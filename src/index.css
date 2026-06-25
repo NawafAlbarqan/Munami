@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  /* Mint Fresh theme — change colors here, they cascade everywhere */
+  --color-page: #F1F6F4;
+  --color-tint: #DCECE6;
+  --color-card: #FFFFFF;
+  --color-card-border: #E2E9E5;
+
+  --color-primary: #0E9F6E;
+  --color-positive: #0E9F6E;
+  --color-caution: #E2674F;
+  --color-info: #3B82F6;
+  --color-rewards: #F0A93B;
+  --color-violet: #8B5CF6;
+
+  --color-text: #16302A;
+  --color-muted: #5C7066;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Thin, subtle scrollbar for the phone screen's internal scroll area. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-card-border) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-card-border);
+  border-radius: 4px;
+}

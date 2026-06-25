@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm create *)",
+      "Bash(npx --yes create-vite@latest temp-app --template react)",
+      "Bash(npm install *)",
+      "Bash(npm ls *)",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/data/munami_transactions.csv)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(awk -F, 'NR>1{print $6}' data/munami_transactions.csv)",
+      "Bash(awk '{print substr\\($2,1,7\\), $1}')",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(npx eslint *)",
+      "Bash(curl -s http://localhost:5173/data/munami_transactions.csv)",
+      "Bash(node -e \"const pkg=require\\('./node_modules/motion/package.json'\\); console.log\\(pkg.version, pkg.exports ? Object.keys\\(pkg.exports\\): 'no exports field'\\)\")",
+      "Bash(npx skills *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

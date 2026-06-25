@@ -1,0 +1,202 @@
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import Papa from 'papaparse'
+import SpendingDonut from './components/SpendingDonut'
+import InsightCard from './components/InsightCard'
+import MonthSwitcher from './components/MonthSwitcher'
+import BottomNav from './components/BottomNav'
+import {
+  monthKey,
+  getLatestMonth,
+  getDebits,
+  getCredits,
+  applyCategoryMap,
+  sumAmount,
+  groupByCategory,
+  listMonths,
+  isEarlyMonth,
+  daysWithDataInMonth,
+  daysInMonth,
+  computeCategoryChanges,
+  topChanges,
+  isGood,
+  resolveMonthIncome,
+  summarizePriorMonth,
+} from './lib/finance'
+import { phraseCategoryChange, phrasePace, phrasePriorMonthSummary } from './lib/aiCoach'
+import { t, monthLabel, monthYearLabel, DIR } from './lib/i18n'
+
+function App() {
+  const [rows, setRows] = useState([])
+  const [selectedMonth, setSelectedMonth] = useState(null)
+
+  useEffect(() => {
+    Papa.parse('/data/munami_transactions.csv', {
+      download: true,
+      header: true,
+      dynamicTyping: true,
+      complete: (result) => setRows(result.data.filter((r) => r.transaction_id)),
+    })
+  }, [])
+
+  const debits = applyCategoryMap(getDebits(rows))
+  const credits = getCredits(rows)
+
+  const months = listMonths(rows)
+  // "Today" is always derived from the data's own latest transaction date,
+  // never the system clock — keeps the demo deterministic.
+  const latestMonth = getLatestMonth(rows)
+  const activeMonth = selectedMonth || latestMonth
+  const monthIndex = months.indexOf(activeMonth)
+  const canGoPrev = monthIndex > 0
+  const canGoNext = monthIndex >= 0 && monthIndex < months.length - 1
+
+  const monthDebits = debits.filter((r) => monthKey(r.date) === activeMonth)
+
+  const { income, isCarriedOver } = resolveMonthIncome(credits, activeMonth)
+  const spent = sumAmount(monthDebits)
+  const net = income - spent
+
+  // Donut: spending only, grouped by the merged categories. Income never appears here.
+  const chartData = Object.entries(groupByCategory(monthDebits))
+    .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
+    .sort((a, b) => b.amount - a.amount)
+
+  const earlyMonth = rows.length > 0 && isEarlyMonth(rows, activeMonth)
+  const daysElapsed = daysWithDataInMonth(debits, activeMonth)
+
+  let cards
+  if (rows.length === 0) {
+    cards = []
+  } else if (earlyMonth) {
+    // Not enough days in the selected month for a fair comparison — show
+    // a pace projection plus a carryover summary of the last full month.
+    cards = []
+
+    const projectedSpend = Math.round((spent / (daysElapsed || 1)) * daysInMonth(activeMonth))
+    cards.push({
+      icon: '📈',
+      accent: 'rewards',
+      text: phrasePace({ daysElapsed, spentSoFar: Math.round(spent), projectedSpend }),
+    })
+
+    const summary = summarizePriorMonth(debits, activeMonth)
+    if (summary) {
+      cards.push({
+        icon: isGood(summary.direction) ? '✅' : '⚠️',
+        accent: isGood(summary.direction) ? 'positive' : 'caution',
+        text: phrasePriorMonthSummary({
+          priorMonthLabel: monthLabel(summary.priorMonth),
+          priorSpent: summary.priorSpent,
+          pctChange: summary.pctChange,
+          direction: summary.direction,
+        }),
+      })
+    }
+  } else {
+    const changes = computeCategoryChanges(debits, activeMonth)
+    cards = topChanges(changes, 3).map((change) => ({
+      icon: isGood(change.direction) ? '✅' : '⚠️',
+      category: change.category,
+      arrow: change.direction === 'down' ? '▼' : '▲',
+      pct: Math.abs(change.pctChange),
+      accent: isGood(change.direction) ? 'positive' : 'caution',
+      text: phraseCategoryChange(change),
+    }))
+  }
+
+  return (
+    <>
+      <div
+        dir={DIR}
+        className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24"
+      >
+        {/* Greeting bar */}
+        <div className="mb-6">
+          <p className="text-muted text-sm">{t('greeting', 'Ahmed')}</p>
+          <h1 className="text-text text-2xl font-bold mb-3">
+            {earlyMonth
+              ? t('summaryTitlePartial', monthLabel(activeMonth) || '...')
+              : t('summaryTitle', monthLabel(activeMonth) || '...')}
+          </h1>
+
+          {/* Month switcher — controls the header + donut below, so it sits right under the heading */}
+          {months.length > 0 && (
+            <MonthSwitcher
+              label={monthYearLabel(activeMonth)}
+              canPrev={canGoPrev}
+              canNext={canGoNext}
+              onPrev={() => canGoPrev && setSelectedMonth(months[monthIndex - 1])}
+              onNext={() => canGoNext && setSelectedMonth(months[monthIndex + 1])}
+            />
+          )}
+
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeMonth}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="flex justify-between bg-tint rounded-[18px] p-3"
+            >
+              <div className="text-center flex-1">
+                <p className="text-muted text-xs">
+                  {isCarriedOver ? t('incomeCarriedOver') : t('income')}
+                </p>
+                <p className="text-positive font-semibold">{income.toLocaleString('en-US')}</p>
+              </div>
+              <div className="text-center flex-1 border-x border-card-border">
+                <p className="text-muted text-xs">{t('spent')}</p>
+                <p className="text-caution font-semibold">{spent.toLocaleString('en-US')}</p>
+              </div>
+              <div className="text-center flex-1">
+                <p className="text-muted text-xs">{t('net')}</p>
+                <p className="text-text font-semibold">{net.toLocaleString('en-US')}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Donut chart — spending only */}
+        <div className="bg-card border-[0.5px] border-card-border rounded-[18px] p-4 mb-6">
+          <AnimatePresence mode="wait" initial={false}>
+            {chartData.length > 0 ? (
+              <motion.div
+                key={activeMonth}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+              >
+                <SpendingDonut data={chartData} total={Math.round(spent)} />
+              </motion.div>
+            ) : (
+              <p className="text-muted text-center py-10">{t('loading')}</p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Insight cards */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeMonth}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="flex flex-col gap-3"
+          >
+            {cards.map((card, i) => (
+              <InsightCard key={i} index={i} {...card} />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <BottomNav active="overview" />
+    </>
+  )
+}
+
+export default App
