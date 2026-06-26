@@ -13,7 +13,7 @@ const ACCENTS = {
 export default function InsightCard({ icon, category, arrow, pct, text, accent = 'rewards', index = 0 }) {
   return (
     <motion.div
-      className="bg-card border-[0.5px] border-card-border rounded-[18px] p-4 flex items-start gap-3"
+      className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 flex items-start gap-3"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.06, ease: 'easeOut' }}

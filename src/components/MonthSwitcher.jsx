@@ -1,6 +1,6 @@
 export default function MonthSwitcher({ label, onPrev, onNext, canPrev, canNext }) {
   return (
-    <div className="flex items-center justify-between bg-tint rounded-[18px] px-2 py-2 mb-4">
+    <div className="flex items-center justify-between bg-tint rounded-[20px] px-2 py-2 mb-4">
       <button
         type="button"
         onClick={onPrev}

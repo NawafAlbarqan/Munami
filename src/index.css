@@ -1,21 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  /* Mint Fresh theme — change colors here, they cascade everywhere */
-  --color-page: #F1F6F4;
-  --color-tint: #DCECE6;
-  --color-card: #FFFFFF;
-  --color-card-border: #E2E9E5;
+  /* Dark Premium theme — change colors here, they cascade everywhere */
+  --color-page: #0E0E0E;
+  --color-tint: #141414;
+  --color-card: #1A1A1A;
+  --color-card-border: #2A2A2A;
 
-  --color-primary: #0E9F6E;
-  --color-positive: #0E9F6E;
-  --color-caution: #E2674F;
-  --color-info: #3B82F6;
-  --color-rewards: #F0A93B;
-  --color-violet: #8B5CF6;
+  --color-primary: #A8D5BA;
+  --color-positive: #A8D5BA;
+  --color-caution: #E8B4B8;
+  --color-rewards: #E8CF8E;
 
-  --color-text: #16302A;
-  --color-muted: #5C7066;
+  --color-text: #F5F5F5;
+  --color-muted: #9A9A9A;
 }
 
 html,

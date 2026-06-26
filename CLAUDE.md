@@ -73,32 +73,42 @@ why in one sentence before installing.
   or it will scroll away with the content.
 - Rounded cards, generous spacing, light and airy fintech feel.
 
-**Colors — "Mint Fresh" theme**
-- Page background (soft mint): `#F1F6F4`
-- Secondary surface / tint: `#DCECE6`
-- Card background: `#FFFFFF`
-- Primary accent (buttons, active nav, main chart): `#0E9F6E` (green)
-- Positive (spending down / savings / success): `#0E9F6E` (green)
-- Caution (spending up / over budget): `#E2674F` (coral)
-- Info / secondary accent (links, secondary chart slices): `#3B82F6` (blue)
-- Rewards / XP / badges: `#F0A93B` (amber/gold)
-- Primary text (dark): `#16302A`
-- Muted text: `#5C7066`
-- Chart palette (donut slices, vibrant, in order): `#0E9F6E`, `#3B82F6`,
-  `#F0A93B`, `#E2674F`, plus `#8B5CF6` if a 5th slice is needed.
+**Colors — "Dark Premium" theme**
+- Page background (near-black charcoal): `#0E0E0E`
+- Secondary surface / tint: `#141414`
+- Card background (slightly lighter charcoal): `#1A1A1A`
+- Card border: `#2A2A2A` (subtle, no heavy shadows)
+- Primary accent / main identity color (buttons, active nav, main chart,
+  positive/spending-down): soft sage mint `#A8D5BA` (muted, not bright)
+- Caution (spending up / over budget): muted blush pink `#E8B4B8`
+- Rewards / XP / badges / secondary accent: warm butter yellow `#E8CF8E`
+- Primary text (off-white, not stark white): `#F5F5F5`
+- Muted text: `#9A9A9A`
+- Chart palette (donut slices, in order, cycles if more categories than
+  colors): `#A8D5BA` (mint), `#E8B4B8` (blush), `#E8CF8E` (butter).
 
 All colors live in **one place** — `src/index.css` as Tailwind `@theme` CSS
 variables — so changing the palette cascades everywhere. Never hardcode hex
 values directly in components; always use the theme color tokens.
 
 **Shape language — soft & rounded**
-- Cards: `border-radius: 18px`, white background, very subtle `0.5px` border
-  in `#E2E9E5`, no heavy shadows.
-- Buttons: pill-shaped (fully rounded). Primary = green fill with white text.
+- Cards: `border-radius: 20px`, charcoal `#1A1A1A` background, very subtle
+  `0.5px` border in `#2A2A2A`, no heavy shadows, generous padding (`p-4`–`p-5`).
+- Buttons: pill-shaped (fully rounded). Primary = mint accent.
 - Charts stay circular (donut, XP ring, badge circles).
+- **Donut chart**: each slice fills with a per-slice `linearGradient`
+  (top stop = base color lightened ~35%, bottom stop = base color darkened
+  ~25%, derived at render time from the theme color via `shade()` in
+  `SpendingDonut.jsx` — never hand-picked hex pairs, so it stays in sync if
+  the palette changes) plus `cornerRadius={10}` and `paddingAngle={4}` so
+  slices read as soft, separated shapes rather than hard pie-chart blocks.
 - Generous padding and whitespace.
 
 **Type**
+- Big, bold numbers as focal points (e.g. the donut's center total, header
+  totals) with a small muted **uppercase, letter-spaced** label above them
+  — never a stark-white-on-black look; text uses the off-white/muted tokens
+  above, which stay legible on the charcoal background without feeling harsh.
 - Clean modern sans-serif. Bold, confident headers.
 - The app is **bilingual-capable but currently defaults to English (LTR)**.
   All UI strings go through `src/lib/i18n.js` (`t()`, `monthLabel()`,
@@ -106,9 +116,9 @@ values directly in components; always use the theme color tokens.
   controls the page's `dir` attribute. To switch the default back to Arabic
   later, change `LOCALE` in that one file — components don't need touching.
 
-**Vibe:** light, airy, minimal. Soft mint base, white cards, vibrant green/blue/
-amber/coral accent pops, lots of rounded circles (donut chart, XP ring, badge
-circles, progress dots).
+**Vibe:** dark, premium, soft contrast. Near-black charcoal base, slightly
+lighter charcoal cards, muted pastel accent pops (mint/blush/butter), lots of
+rounded circles (donut chart, XP ring, badge circles, progress dots).
 
 ---
 

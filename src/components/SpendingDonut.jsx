@@ -10,13 +10,22 @@ function themeColor(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
 }
 
-const CHART_PALETTE = [
-  '--color-primary',
-  '--color-info',
-  '--color-rewards',
-  '--color-caution',
-  '--color-violet',
-]
+const CHART_PALETTE = ['--color-primary', '--color-caution', '--color-rewards']
+
+// Lightens (positive) or darkens (negative) a hex color by mixing it toward
+// white/black — used to build each slice's light→dark gradient from the
+// single base color in src/index.css, so the gradient always stays in sync
+// with the theme.
+function shade(hex, percent) {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = (num >> 16) & 255
+  const g = (num >> 8) & 255
+  const b = num & 255
+  const mix = (channel) =>
+    percent >= 0 ? channel + (255 - channel) * percent : channel * (1 + percent)
+  const toHex = (channel) => Math.round(Math.max(0, Math.min(255, channel))).toString(16).padStart(2, '0')
+  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`
+}
 
 export default function SpendingDonut({ data, total }) {
   const colors = CHART_PALETTE.map(themeColor)
@@ -31,27 +40,40 @@ export default function SpendingDonut({ data, total }) {
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <PieChart width={220} height={220}>
+          <defs>
+            {colors.map((color, i) => (
+              <linearGradient key={color} id={`donut-gradient-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={shade(color, 0.35)} />
+                <stop offset="100%" stopColor={shade(color, -0.25)} />
+              </linearGradient>
+            ))}
+          </defs>
           <Pie
             data={data}
             dataKey="amount"
             nameKey="category"
             innerRadius={70}
             outerRadius={100}
-            paddingAngle={2}
+            cornerRadius={10}
+            paddingAngle={4}
             strokeWidth={0}
           >
             {data.map((entry, i) => (
-              <Cell key={entry.category} fill={colors[i % colors.length]} />
+              <Cell key={entry.category} fill={`url(#donut-gradient-${i % colors.length})`} />
             ))}
           </Pie>
         </PieChart>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-muted text-xs">{t('spent')}</span>
-          <span className="text-text text-xl font-bold">{formatSAR(animatedTotal)}</span>
+          <span className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+            {t('spent')}
+          </span>
+          <span className="text-text text-3xl font-bold tracking-tight">
+            {formatSAR(animatedTotal)}
+          </span>
         </div>
       </motion.div>
 
-      <ul className="w-full mt-4 flex flex-col gap-2">
+      <ul className="w-full mt-5 flex flex-col gap-2.5">
         {data.map((entry, i) => {
           const pct = total > 0 ? Math.round((entry.amount / total) * 100) : 0
           return (

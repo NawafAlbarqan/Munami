@@ -24,7 +24,7 @@ import {
   summarizePriorMonth,
 } from './lib/finance'
 import { phraseCategoryChange, phrasePace, phrasePriorMonthSummary } from './lib/aiCoach'
-import { t, monthLabel, monthYearLabel, DIR } from './lib/i18n'
+import { t, monthLabel, monthYearLabel, formatSAR, DIR } from './lib/i18n'
 
 function App() {
   const [rows, setRows] = useState([])
@@ -114,7 +114,7 @@ function App() {
         {/* Greeting bar */}
         <div className="mb-6">
           <p className="text-muted text-sm">{t('greeting', 'Ahmed')}</p>
-          <h1 className="text-text text-2xl font-bold mb-3">
+          <h1 className="text-text text-2xl font-bold mb-3 tracking-tight">
             {earlyMonth
               ? t('summaryTitlePartial', monthLabel(activeMonth) || '...')
               : t('summaryTitle', monthLabel(activeMonth) || '...')}
@@ -138,28 +138,32 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex justify-between bg-tint rounded-[18px] p-3"
+              className="flex justify-between bg-tint rounded-[20px] p-4"
             >
               <div className="text-center flex-1">
-                <p className="text-muted text-xs">
+                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
                   {isCarriedOver ? t('incomeCarriedOver') : t('income')}
                 </p>
-                <p className="text-positive font-semibold">{income.toLocaleString('en-US')}</p>
+                <p className="text-positive font-semibold tabular-nums">{formatSAR(income)}</p>
               </div>
               <div className="text-center flex-1 border-x border-card-border">
-                <p className="text-muted text-xs">{t('spent')}</p>
-                <p className="text-caution font-semibold">{spent.toLocaleString('en-US')}</p>
+                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                  {t('spent')}
+                </p>
+                <p className="text-caution font-semibold tabular-nums">{formatSAR(spent)}</p>
               </div>
               <div className="text-center flex-1">
-                <p className="text-muted text-xs">{t('net')}</p>
-                <p className="text-text font-semibold">{net.toLocaleString('en-US')}</p>
+                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                  {t('net')}
+                </p>
+                <p className="text-text font-semibold tabular-nums">{formatSAR(net)}</p>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Donut chart — spending only */}
-        <div className="bg-card border-[0.5px] border-card-border rounded-[18px] p-4 mb-6">
+        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-6">
           <AnimatePresence mode="wait" initial={false}>
             {chartData.length > 0 ? (
               <motion.div
