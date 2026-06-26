@@ -84,8 +84,16 @@ why in one sentence before installing.
 - Rewards / XP / badges / secondary accent: warm butter yellow `#E8CF8E`
 - Primary text (off-white, not stark white): `#F5F5F5`
 - Muted text: `#9A9A9A`
-- Chart palette (donut slices, in order, cycles if more categories than
-  colors): `#A8D5BA` (mint), `#E8B4B8` (blush), `#E8CF8E` (butter).
+- Extra chart colors (not used elsewhere in the UI): dusty teal `#7FB8B0`,
+  soft lavender `#C4B5E0`
+- **Per-category colors (fixed, not positional)** — each merged category
+  always gets the same color everywhere (donut slice, legend dot, legend
+  percentage), via `CATEGORY_COLOR_VAR` in `src/lib/finance.js`:
+  - Shopping → `#A8D5BA` (mint)
+  - Bills & Transport → `#E8B4B8` (blush)
+  - Entertainment → `#E8CF8E` (butter)
+  - Food & Groceries → `#7FB8B0` (dusty teal)
+  - Other → `#C4B5E0` (soft lavender)
 
 All colors live in **one place** — `src/index.css` as Tailwind `@theme` CSS
 variables — so changing the palette cascades everywhere. Never hardcode hex
@@ -168,11 +176,16 @@ The app has three tabs. A bottom nav bar (Home / Copilot / Goals) is on every sc
      `Other`, so nothing gets silently dropped from the totals. Current
      category set shown in the app: `Food & Groceries`, `Bills & Transport`,
      `Shopping`, `Entertainment`, `Other`. Change the mapping in one place
-     (`CATEGORY_MAP`) and both the chart and insights pick it up.
+     (`CATEGORY_MAP`) and both the chart and insights pick it up. Each of
+     these categories also has a fixed color via `CATEGORY_COLOR_VAR` (see
+     the color palette above) — colors are assigned per category, not by
+     position in the data, so a category never randomly collides with another.
    - **Income carryover**: salary often posts late in the month, so the
      selected month can have zero credit rows yet. `resolveMonthIncome()`
-     falls back to the most recent prior month's income in that case (and
-     flags `isCarriedOver` so the header can label it "Income (last month)").
+     falls back to the most recent prior month's income in that case, returning
+     `isCarriedOver` + `incomeMonth` so the header can label it
+     **"Income · {month name}"** (e.g. "Income · May") instead of a bare
+     "Income" — it's clear at a glance which month the figure is actually from.
    - Per category, the selected month's spend is compared to the **trailing
      average of all prior FULL months** in the data — the selected month is
      always excluded from its own average (`computeCategoryChanges()`), so a

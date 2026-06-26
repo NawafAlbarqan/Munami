@@ -44,6 +44,22 @@ export function applyCategoryMap(rows) {
   return rows.map((r) => ({ ...r, category: mapCategory(r.category) }))
 }
 
+// Each merged category gets its own fixed theme color (a CSS variable name
+// from src/index.css), so a category is always the same color everywhere —
+// the donut, the legend dots, and the legend percentages. Change colors in
+// src/index.css; change which category gets which color here.
+const CATEGORY_COLOR_VAR = {
+  'Food & Groceries': '--color-teal',
+  'Bills & Transport': '--color-caution',
+  Shopping: '--color-primary',
+  Entertainment: '--color-rewards',
+  Other: '--color-lavender',
+}
+
+export function categoryColorVar(category) {
+  return CATEGORY_COLOR_VAR[category] || '--color-muted'
+}
+
 export function getLatestMonth(rows) {
   const latestDate = rows.reduce((max, r) => (r.date > max ? r.date : max), '')
   return monthKey(latestDate)
@@ -145,15 +161,15 @@ export function topChanges(changes, n = 3) {
 export function resolveMonthIncome(creditRows, selectedMonth) {
   const selectedMonthCredits = creditRows.filter((r) => monthKey(r.date) === selectedMonth)
   if (selectedMonthCredits.length > 0) {
-    return { income: sumAmount(selectedMonthCredits), isCarriedOver: false }
+    return { income: sumAmount(selectedMonthCredits), isCarriedOver: false, incomeMonth: selectedMonth }
   }
 
   const priorMonths = listMonths(creditRows).filter((m) => m < selectedMonth)
   const lastIncomeMonth = priorMonths.pop()
-  if (!lastIncomeMonth) return { income: 0, isCarriedOver: false }
+  if (!lastIncomeMonth) return { income: 0, isCarriedOver: false, incomeMonth: null }
 
   const lastMonthCredits = creditRows.filter((r) => monthKey(r.date) === lastIncomeMonth)
-  return { income: sumAmount(lastMonthCredits), isCarriedOver: true }
+  return { income: sumAmount(lastMonthCredits), isCarriedOver: true, incomeMonth: lastIncomeMonth }
 }
 
 /**

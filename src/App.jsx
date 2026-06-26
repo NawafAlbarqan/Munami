@@ -53,7 +53,7 @@ function App() {
 
   const monthDebits = debits.filter((r) => monthKey(r.date) === activeMonth)
 
-  const { income, isCarriedOver } = resolveMonthIncome(credits, activeMonth)
+  const { income, isCarriedOver, incomeMonth } = resolveMonthIncome(credits, activeMonth)
   const spent = sumAmount(monthDebits)
   const net = income - spent
 
@@ -142,7 +142,7 @@ function App() {
             >
               <div className="text-center flex-1">
                 <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {isCarriedOver ? t('incomeCarriedOver') : t('income')}
+                  {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
                 </p>
                 <p className="text-positive font-semibold tabular-nums">{formatSAR(income)}</p>
               </div>

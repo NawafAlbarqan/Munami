@@ -2,6 +2,7 @@ import { PieChart, Pie, Cell } from 'recharts'
 import { motion } from 'motion/react'
 import { formatSAR, t } from '../lib/i18n'
 import { useCountUp } from '../lib/useCountUp'
+import { categoryColorVar } from '../lib/finance'
 
 // Reads the theme's chart colors from CSS variables (defined once in
 // src/index.css) so the chart always matches the rest of the app.
@@ -9,8 +10,6 @@ function themeColor(varName) {
   if (typeof window === 'undefined') return '#000000'
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
 }
-
-const CHART_PALETTE = ['--color-primary', '--color-caution', '--color-rewards']
 
 // Lightens (positive) or darkens (negative) a hex color by mixing it toward
 // white/black — used to build each slice's light→dark gradient from the
@@ -28,7 +27,9 @@ function shade(hex, percent) {
 }
 
 export default function SpendingDonut({ data, total }) {
-  const colors = CHART_PALETTE.map(themeColor)
+  // Each category always gets the same color (see CATEGORY_COLOR_VAR in
+  // finance.js), so the donut, legend dots, and legend percentages all match.
+  const colors = data.map((entry) => themeColor(categoryColorVar(entry.category)))
   const animatedTotal = useCountUp(total)
 
   return (
@@ -42,7 +43,7 @@ export default function SpendingDonut({ data, total }) {
         <PieChart width={220} height={220}>
           <defs>
             {colors.map((color, i) => (
-              <linearGradient key={color} id={`donut-gradient-${i}`} x1="0" y1="0" x2="0" y2="1">
+              <linearGradient key={data[i].category} id={`donut-gradient-${i}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={shade(color, 0.35)} />
                 <stop offset="100%" stopColor={shade(color, -0.25)} />
               </linearGradient>
@@ -59,15 +60,15 @@ export default function SpendingDonut({ data, total }) {
             strokeWidth={0}
           >
             {data.map((entry, i) => (
-              <Cell key={entry.category} fill={`url(#donut-gradient-${i % colors.length})`} />
+              <Cell key={entry.category} fill={`url(#donut-gradient-${i})`} />
             ))}
           </Pie>
         </PieChart>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <span className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
             {t('spent')}
           </span>
-          <span className="text-text text-3xl font-bold tracking-tight">
+          <span className="text-text text-xl font-bold tracking-tight">
             {formatSAR(animatedTotal)}
           </span>
         </div>
@@ -80,11 +81,12 @@ export default function SpendingDonut({ data, total }) {
             <li key={entry.category} className="flex items-center text-sm">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0 me-2"
-                style={{ backgroundColor: colors[i % colors.length] }}
+                style={{ backgroundColor: colors[i] }}
               />
               <span className="text-text truncate">{entry.category}</span>
               <span className="text-muted ms-auto tabular-nums shrink-0">
-                {formatSAR(entry.amount)} · {pct}%
+                {formatSAR(entry.amount)} ·{' '}
+                <span style={{ color: colors[i] }}>{pct}%</span>
               </span>
             </li>
           )
