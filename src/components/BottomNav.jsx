@@ -1,7 +1,10 @@
+// Left-to-right order. `hero: true` marks منمّي as the center/emphasized tab.
 const TABS = [
+  { key: 'transactions', label: 'Transactions' },
   { key: 'overview', label: 'Overview' },
-  { key: 'copilot', label: 'Copilot' },
+  { key: 'copilot', label: 'منمّي', hero: true },
   { key: 'goals', label: 'Goals' },
+  { key: 'accounts', label: 'Accounts' },
 ]
 
 export default function BottomNav({ active = 'overview' }) {
@@ -13,15 +16,24 @@ export default function BottomNav({ active = 'overview' }) {
           <button
             key={tab.key}
             type="button"
-            className={`flex flex-col items-center gap-1 text-xs ${
-              isActive ? 'text-primary' : 'text-muted'
-            }`}
+            className={`flex flex-col items-center gap-1 ${
+              tab.hero ? 'text-sm font-semibold' : 'text-xs'
+            } ${isActive ? 'text-primary' : 'text-muted'}`}
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isActive ? 'bg-primary' : 'bg-transparent'
-              }`}
-            />
+            {/* Hero tab gets a larger indicator pill; others get a small dot */}
+            {tab.hero ? (
+              <span
+                className={`w-8 h-1 rounded-full ${
+                  isActive ? 'bg-primary' : 'bg-transparent'
+                }`}
+              />
+            ) : (
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isActive ? 'bg-primary' : 'bg-transparent'
+                }`}
+              />
+            )}
             {tab.label}
           </button>
         )

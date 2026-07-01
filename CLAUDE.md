@@ -37,9 +37,13 @@ helps your money grow.
 
 - **React + Vite** — the web app and fast live preview.
 - **Tailwind CSS** — styling.
-- **Recharts** — charts (the donut/spending chart).
+- **Custom hand-rolled SVG** for the donut chart (`src/components/SpendingDonut.jsx`)
+  — not a charting library. We dropped Recharts once the design needed
+  gradient-merged segments and percentage callouts that a library's chart
+  primitives don't expose; the donut is small enough to own directly.
 - **Motion** (`motion/react`) — UI animation. Convention: **subtle and fast,
-  200–400ms**, easeOut, no bounce/spring playfulness. Used for insight-card
+  200–400ms**, easeOut, no bounce/spring playfulness (the donut's own
+  draw-in is a deliberate exception, see below). Used for insight-card
   stagger-in, the donut's fade/scale-in + count-up total, and crossfading
   the header/donut/cards when the month switcher changes (`AnimatePresence`
   keyed on the selected month, see `src/App.jsx`). Don't add motion to
@@ -104,12 +108,31 @@ values directly in components; always use the theme color tokens.
   `0.5px` border in `#2A2A2A`, no heavy shadows, generous padding (`p-4`–`p-5`).
 - Buttons: pill-shaped (fully rounded). Primary = mint accent.
 - Charts stay circular (donut, XP ring, badge circles).
-- **Donut chart**: each slice fills with a per-slice `linearGradient`
-  (top stop = base color lightened ~35%, bottom stop = base color darkened
-  ~25%, derived at render time from the theme color via `shade()` in
-  `SpendingDonut.jsx` — never hand-picked hex pairs, so it stays in sync if
-  the palette changes) plus `cornerRadius={10}` and `paddingAngle={4}` so
-  slices read as soft, separated shapes rather than hard pie-chart blocks.
+- **Donut chart** (`src/components/SpendingDonut.jsx`) is a hand-rolled SVG,
+  not a charting library — built from `<circle>` strokes, not pie wedges:
+  - Segments are **contiguous arcs with no gaps**, drawn in a fixed category
+    order (`CATEGORY_RING_ORDER` in `finance.js`: Shopping → Food & Groceries
+    → Bills & Transport → Entertainment → Other) so the color sequence
+    around the ring is always the same.
+  - Each segment's `linearGradient` runs from its own category color to the
+    **next** segment's category color (last segment blends back to the
+    first), so the ring reads as one continuous color that melts around —
+    not separate flat-colored wedges. `strokeLinecap="round"` softens the
+    seam between segments instead of a hard cut.
+  - Segment sizes are exact proportions of spend (`fraction = amount / total`);
+    drawn via `stroke-dasharray`/`stroke-dashoffset` math on a rotated
+    (`rotate(-90)`) circle so the ring starts at 12 o'clock and fills
+    clockwise.
+  - **Percentage callouts**: the top 3–4 slices by size (the smallest is
+    always skipped — the legend covers it) get a small pill (card-colored
+    fill, category-colored border + text) connected to the ring by a thin
+    leader line. Pill position is clamped to the canvas bounds and nudged
+    outward if it would collide with the previous callout, so labels never
+    get cut off or overlap on a phone-width screen.
+  - The ring **draws in on mount** by animating `strokeDashoffset` per
+    segment (Motion, staggered ~80ms apart, 600ms each) — an intentionally
+    longer "explanatory" animation (see the duration table in CLAUDE's
+    Motion convention), not a UI micro-interaction.
 - Generous padding and whitespace.
 
 **Type**
@@ -130,105 +153,140 @@ rounded circles (donut chart, XP ring, badge circles, progress dots).
 
 ---
 
-## The three tabs (bottom navigation, always visible)
+## The five tabs (bottom navigation, always visible)
 
-The app has three tabs. A bottom nav bar (Home / Copilot / Goals) is on every screen.
+The app has **five tabs**. The bottom nav is always visible on every screen, with
+**منمّي (Copilot) pinned in the center position** as the hero tab — slightly larger
+and more visually prominent than the others.
 
-1. **Overview** (Home) — the spending snapshot.
-   - Greeting bar (user name + month) + income / spent / net for the
-     **selected** month (see month switcher below).
-   - **Donut chart** of spending only (debits, grouped by category) — income
-     never appears in the donut. Each slice shows its own whole-number %
-     label directly on the slice (hidden on slices under ~6% of the total to
-     avoid overlapping text); the legend below shows category + SAR amount.
-   - **Month switcher** (`src/components/MonthSwitcher.jsx`) sits directly
-     under the heading, above the income/spent/net totals and the donut —
-     it controls both, so it sits above them, not below. Left/right arrows
-     step through every month present in the data, label shows e.g.
-     "June 2026". The forward arrow is disabled/greyed out once you're on
-     the latest month. Defaults to the latest month in the data. Switching
-     it re-runs everything below it (totals, donut, insights) for that month.
-   - **Partial-month labeling**: when the selected month is early (see rule
-     below), the heading reads "June · So Far" instead of "June Summary",
-     and a small "9 days so far" line appears under the donut's center total
-     (`daysSoFar` prop on `SpendingDonut`) so it's obvious the totals are
-     incomplete, not a full month.
-   - 3 insight cards (normal mode) or 2 small cards (early-month mode, see
-     below).
-   - NO chat input bar on this tab.
+Bottom nav order, left → right:
+`Transactions | Overview | منمّي (center/hero) | Goals | Accounts`
 
-   **Dataset & "today"**: `/data` holds a full year (13 months) of
-   transactions. The latest month is intentionally partial (fewer than 10
-   days of data) so the early-month state is always reachable. **"Today" is
-   always derived from the data's own latest transaction date** (`getLatestMonth()`
-   in `finance.js`), never `new Date()` / the system clock — this keeps the
-   demo deterministic regardless of when it's actually run.
+Build **ONE tab at a time**. Currently active: **Overview**. Do not build other
+tab contents yet — just keep the full 5-tab structure in mind so the nav and
+shared components (category colors, theme, phone frame) stay consistent.
 
-   **Overview logic** (see `src/lib/finance.js` and `src/lib/aiCoach.js`):
-   - `direction` column splits rows: `debit` = spending, `credit` = income
-     (matched case-insensitively via `isDirection`/`getDebits`/`getCredits`).
-   - **Merged categories**: raw data categories are collapsed via
-     `mapCategory()` in `finance.js` before they ever reach the donut or the
-     insight comparisons — `Food & Dining` + `Groceries` → `Food & Groceries`,
-     `Transport` + `Utilities` → `Bills & Transport`, `Health` → `Other`.
-     `Shopping` and `Entertainment` pass through unchanged. Any category not
-     explicitly mapped and not in the passthrough list also falls into
-     `Other`, so nothing gets silently dropped from the totals. Current
-     category set shown in the app: `Food & Groceries`, `Bills & Transport`,
-     `Shopping`, `Entertainment`, `Other`. Change the mapping in one place
-     (`CATEGORY_MAP`) and both the chart and insights pick it up. Each of
-     these categories also has a fixed color via `CATEGORY_COLOR_VAR` (see
-     the color palette above) — colors are assigned per category, not by
-     position in the data, so a category never randomly collides with another.
-   - **Income carryover**: salary often posts late in the month, so the
-     selected month can have zero credit rows yet. `resolveMonthIncome()`
-     falls back to the most recent prior month's income in that case, returning
-     `isCarriedOver` + `incomeMonth` so the header can label it
-     **"Income · {month name}"** (e.g. "Income · May") instead of a bare
-     "Income" — it's clear at a glance which month the figure is actually from.
-   - Per category, the selected month's spend is compared to the **trailing
-     average of all prior FULL months** in the data — the selected month is
-     always excluded from its own average (`computeCategoryChanges()`), so a
-     partial month never drags the comparison down.
-   - Guardrail: a category is skipped from comparisons if either period's
-     amount is under 100 SAR, so tiny amounts don't produce huge misleading
-     percentages.
-   - Top 3 categories by size of change (not just biggest spend) are shown.
-   - **Early-month rule**: if the selected month has data for fewer than 10
-     distinct days, normal category-comparison cards are misleading, so we
-     show exactly **two** small cards instead:
-     1. A **pace card** (`phrasePace()`) — projects the full month from
-        spend-so-far: `(spend so far ÷ days elapsed) × days in month`
-        (`daysInMonth()` is plain calendar math, not the system clock), e.g.
-        "9 days in — you've spent SAR 2,980 so far. At this pace you're
-        heading toward an estimated SAR 9,934 this month."
-     2. A **carryover card** (`summarizePriorMonth()` + `phrasePriorMonthSummary()`)
-        — the last FULL month's total vs. the trailing average of the full
-        months before *that*, e.g. "Last month (May 2026) you spent
-        SAR 10,972 — that's 17% up from your usual."
-     Months with 10+ days of data show the normal top-3 category cards instead.
-   - **Code computes, AI only phrases.** All totals/grouping/% math happens
-     in plain JS in `finance.js`. The AI's only job is turning a finished
-     fact into a short sentence — that step is isolated in `aiCoach.js` so
-     it's a one-file swap when we wire a real LLM call. Right now those
-     functions return placeholder template strings.
-   - `isGood(direction)` is the single place that decides good vs bad
-     (spending down = good) — flip it there if a category should be treated
-     as savings/income later.
+---
 
-2. **Copilot** — the AI chat advisor (this is the "wow" screen).
-   - Chat thread with the AI coach.
-   - Suggested-question chips.
-   - An **"اسأل منمّي" (Ask Munami)** input bar at the bottom — this bar ONLY
-     appears on this tab.
+### 1. Transactions (leftmost)
+Full searchable, scrollable list of all transactions across every linked bank.
+Design TBD — build after Overview is complete.
 
-3. **Goals** — budgeting + gamification.
-   - Circular XP / level meter.
-   - Streak tracker.
-   - Budget progress bars per category.
-   - Weekly challenge card + badges.
+---
 
-Build ONE tab fully before starting the next. Start with **Overview**.
+### 2. Overview ← **currently building**
+The monthly spending snapshot.
+- Greeting bar (user name + month) + income / spent / net for the
+  **selected** month (see month switcher below).
+- **Donut chart** of spending only (debits, grouped by category) — income
+  never appears in the donut. Each slice shows its own whole-number %
+  label directly on the slice (hidden on slices under ~6% of the total to
+  avoid overlapping text); the legend below shows category + SAR amount.
+- **Month switcher** (`src/components/MonthSwitcher.jsx`) sits directly
+  under the heading, above the income/spent/net totals and the donut —
+  it controls both, so it sits above them, not below. Left/right arrows
+  step through every month present in the data, label shows e.g.
+  "June 2026". The forward arrow is disabled/greyed out once you're on
+  the latest month. Defaults to the latest month in the data. Switching
+  it re-runs everything below it (totals, donut, insights) for that month.
+- **Partial-month labeling**: when the selected month is early (see rule
+  below), the heading reads "June · So Far" instead of "June Summary",
+  and a small "9 days so far" line appears under the donut's center total
+  (`daysSoFar` prop on `SpendingDonut`) so it's obvious the totals are
+  incomplete, not a full month.
+- 3 insight cards (normal mode) or 2 small cards (early-month mode, see
+  below).
+- NO chat input bar on this tab.
+
+**Dataset & "today"**: `/data` holds a full year (13 months) of
+transactions. The latest month is intentionally partial (fewer than 10
+days of data) so the early-month state is always reachable. **"Today" is
+always derived from the data's own latest transaction date** (`getLatestMonth()`
+in `finance.js`), never `new Date()` / the system clock — this keeps the
+demo deterministic regardless of when it's actually run.
+
+**Overview logic** (see `src/lib/finance.js` and `src/lib/aiCoach.js`):
+- `direction` column splits rows: `debit` = spending, `credit` = income
+  (matched case-insensitively via `isDirection`/`getDebits`/`getCredits`).
+- **Merged categories**: raw data categories are collapsed via
+  `mapCategory()` in `finance.js` before they ever reach the donut or the
+  insight comparisons — `Food & Dining` + `Groceries` → `Food & Groceries`,
+  `Transport` + `Utilities` → `Bills & Transport`, `Health` → `Other`.
+  `Shopping` and `Entertainment` pass through unchanged. Any category not
+  explicitly mapped and not in the passthrough list also falls into
+  `Other`, so nothing gets silently dropped from the totals. Current
+  category set shown in the app: `Food & Groceries`, `Bills & Transport`,
+  `Shopping`, `Entertainment`, `Other`. Change the mapping in one place
+  (`CATEGORY_MAP`) and both the chart and insights pick it up. Each of
+  these categories also has a fixed color via `CATEGORY_COLOR_VAR` (see
+  the color palette above) — colors are assigned per category, not by
+  position in the data, so a category never randomly collides with another.
+- **Income carryover**: salary often posts late in the month, so the
+  selected month can have zero credit rows yet. `resolveMonthIncome()`
+  falls back to the most recent prior month's income in that case, returning
+  `isCarriedOver` + `incomeMonth` so the header can label it
+  **"Income · {month name}"** (e.g. "Income · May") instead of a bare
+  "Income" — it's clear at a glance which month the figure is actually from.
+- Per category, the selected month's spend is compared to the **trailing
+  average of all prior FULL months** in the data — the selected month is
+  always excluded from its own average (`computeCategoryChanges()`), so a
+  partial month never drags the comparison down.
+- Guardrail: a category is skipped from comparisons if either period's
+  amount is under 100 SAR, so tiny amounts don't produce huge misleading
+  percentages.
+- Top 3 categories by size of change (not just biggest spend) are shown.
+- **Early-month rule**: if the selected month has data for fewer than 10
+  distinct days, normal category-comparison cards are misleading, so we
+  show exactly **two** small cards instead:
+  1. A **pace card** (`phrasePace()`) — projects the full month from
+     spend-so-far: `(spend so far ÷ days elapsed) × days in month`
+     (`daysInMonth()` is plain calendar math, not the system clock), e.g.
+     "9 days in — you've spent SAR 2,980 so far. At this pace you're
+     heading toward an estimated SAR 9,934 this month."
+  2. A **carryover card** (`summarizePriorMonth()` + `phrasePriorMonthSummary()`)
+     — the last FULL month's total vs. the trailing average of the full
+     months before *that*, e.g. "Last month (May 2026) you spent
+     SAR 10,972 — that's 17% up from your usual."
+  Months with 10+ days of data show the normal top-3 category cards instead.
+- **Code computes, AI only phrases.** All totals/grouping/% math happens
+  in plain JS in `finance.js`. The AI's only job is turning a finished
+  fact into a short sentence — that step is isolated in `aiCoach.js` so
+  it's a one-file swap when we wire a real LLM call. Right now those
+  functions return placeholder template strings.
+- `isGood(direction)` is the single place that decides good vs bad
+  (spending down = good) — flip it there if a category should be treated
+  as savings/income later.
+
+---
+
+### 3. منمّي / Copilot (CENTER — the hero tab, the app's centerpiece)
+The AI financial advisor chat. This is the **main tab** and should feel like
+the heart of the app. Visually emphasized in the nav (slightly larger icon/label).
+- Chat thread with the AI coach.
+- Suggested-question chips.
+- An **"اسأل منمّي" (Ask Munami)** input bar at the bottom — this bar ONLY
+  appears on this tab.
+- Design TBD in detail — build after Overview is complete.
+
+---
+
+### 4. Goals / Gamification
+Budgeting + game layer.
+- Circular XP / level meter.
+- Streak tracker.
+- Budget progress bars per category.
+- Weekly challenge card + badges.
+- Design TBD in detail — build after Copilot tab.
+
+---
+
+### 5. Accounts (rightmost)
+Bank account aggregation + money buckets.
+- Total balance aggregated across all linked banks.
+- Sliding/carousel view to browse each individual bank and its balance.
+- **Fund distribution**: named money buckets (e.g. Emergency Fund, Vacation)
+  with a "+" button to add funds or create a new bucket.
+- Design TBD in detail — build last.
 
 ---
 
@@ -287,7 +345,7 @@ Don't build real bank integrations. Build against the local data files.
 
 ## Current status
 
-- [ ] Project scaffolded (React + Vite + Tailwind + Recharts)
+- [ ] Project scaffolded (React + Vite + Tailwind)
 - [ ] Data files placed in /data
 - [ ] **Overview tab** — spending donut + insight cards  ← we are here
 - [ ] Copilot tab — AI chat + Ask Munami bar

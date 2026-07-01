@@ -60,6 +60,18 @@ export function categoryColorVar(category) {
   return CATEGORY_COLOR_VAR[category] || '--color-muted'
 }
 
+// Fixed display order for the donut ring so adjacent categories always
+// blend in the same sequence (mint → teal → blush → butter → lavender →
+// back to mint). The legend can still show categories sorted by amount —
+// this order only governs the ring.
+export const CATEGORY_RING_ORDER = [
+  'Shopping',
+  'Food & Groceries',
+  'Bills & Transport',
+  'Entertainment',
+  'Other',
+]
+
 export function getLatestMonth(rows) {
   const latestDate = rows.reduce((max, r) => (r.date > max ? r.date : max), '')
   return monthKey(latestDate)
