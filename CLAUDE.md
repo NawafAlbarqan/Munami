@@ -270,13 +270,24 @@ the heart of the app. Visually emphasized in the nav (slightly larger icon/label
 
 ---
 
-### 4. Goals / Gamification
-Budgeting + game layer.
-- Circular XP / level meter.
-- Streak tracker.
-- Budget progress bars per category.
-- Weekly challenge card + badges.
-- Design TBD in detail — build after Copilot tab.
+### 4. Goals / Gamification ← **built**
+Budgeting + game layer. Lives in `src/components/GoalsTab.jsx`, receives `rows`
+prop from App.jsx and computes current-month spend independently of the Overview
+month-switcher (always uses the data's own latest month).
+
+Sections top to bottom:
+- **XP / Level ring**: SVG stroke-dashoffset arc (same technique as donut), shows
+  Level 7, 2340/3000 XP. Ring animates on mount; XP count-up via `useCountUp`.
+  Static demo values.
+- **Streak tracker**: card with 🔥, "7-day streak", days-to-next-badge, longest
+  streak. Static demo values.
+- **Monthly Budgets**: pre-populated with Shopping/Food & Groceries/Entertainment
+  limits. Each budget reads **real spend** for the current month from `rows` via
+  `groupByCategory(thisMonthDebits)`. Progress bar color shifts: category color
+  (healthy) → butter yellow (≥75%) → coral red (≥100%). "+" opens a bottom sheet
+  to add a new budget for any un-budgeted category; local state only.
+- **Weekly Challenges**: two static challenge cards with progress bars and +XP labels.
+- **Badges**: 3×2 grid — 3 earned (colored), 3 locked (greyed, 🔒 icon). Static.
 
 ---
 
@@ -364,6 +375,7 @@ Don't build real bank integrations. Build against the local data files.
 - [x] **Overview tab** — spending donut + insight cards
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
 - [x] **Accounts tab** — balance hero, bank carousel, fund buckets, + sheet
+- [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
 - [ ] **منمّي / Copilot tab** — AI chat + Ask Munami bar  ← next
 - [ ] Goals tab — XP, streaks, budgets, badges
 - [ ] Accounts tab — balance aggregation, bank carousel, fund buckets

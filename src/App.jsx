@@ -7,6 +7,7 @@ import MonthSwitcher from './components/MonthSwitcher'
 import BottomNav from './components/BottomNav'
 import TransactionsTab from './components/TransactionsTab'
 import AccountsTab from './components/AccountsTab'
+import GoalsTab from './components/GoalsTab'
 
 function PlaceholderTab({ label }) {
   return (
@@ -120,7 +121,7 @@ function App() {
   return (
     <>
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
-      {activeTab === 'goals' && <PlaceholderTab label="Goals" />}
+      {activeTab === 'goals' && <GoalsTab rows={rows} />}
       {activeTab === 'copilot' && <PlaceholderTab label="منمّي" />}
       {activeTab === 'accounts' && <AccountsTab />}
 
