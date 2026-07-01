@@ -8,6 +8,7 @@ import BottomNav from './components/BottomNav'
 import TransactionsTab from './components/TransactionsTab'
 import AccountsTab from './components/AccountsTab'
 import GoalsTab from './components/GoalsTab'
+import CopilotTab from './components/CopilotTab'
 
 function PlaceholderTab({ label }) {
   return (
@@ -122,7 +123,7 @@ function App() {
     <>
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <GoalsTab rows={rows} />}
-      {activeTab === 'copilot' && <PlaceholderTab label="منمّي" />}
+      {activeTab === 'copilot' && <CopilotTab />}
       {activeTab === 'accounts' && <AccountsTab />}
 
       <div

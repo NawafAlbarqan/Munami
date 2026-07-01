@@ -262,11 +262,16 @@ demo deterministic regardless of when it's actually run.
 ### 3. منمّي / Copilot (CENTER — the hero tab, the app's centerpiece)
 The AI financial advisor chat. This is the **main tab** and should feel like
 the heart of the app. Visually emphasized in the nav (slightly larger icon/label).
-- Chat thread with the AI coach.
-- Suggested-question chips.
-- An **"اسأل منمّي" (Ask Munami)** input bar at the bottom — this bar ONLY
-  appears on this tab.
-- Design TBD in detail — build after Overview is complete.
+Lives in `src/components/CopilotTab.jsx`. Currently uses a **scripted demo
+conversation** (real LLM wired later — swap in `CopilotTab.jsx`).
+
+- **Header**: منمّي name + 🌱 avatar + "Online" dot, pinned at top.
+- **Chat thread**: 10-message scripted exchange referencing real user data
+  (SAR 47,851 balance, 3 banks, June spend, emergency fund at 40%). Messages
+  stagger-in on mount (Motion, 120ms apart). منمّي bubbles: left-aligned,
+  mint-tinted bg. User bubbles: right-aligned, dark card bg.
+- **Suggested chips**: 3 follow-up questions appear after the last AI message.
+- **"Ask منمّي..." input bar**: pinned above the bottom nav, visual-only for now.
 
 ---
 
@@ -376,7 +381,7 @@ Don't build real bank integrations. Build against the local data files.
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
 - [x] **Accounts tab** — balance hero, bank carousel, fund buckets, + sheet
 - [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
-- [ ] **منمّي / Copilot tab** — AI chat + Ask Munami bar  ← next
+- [x] **منمّي / Copilot tab** — scripted demo chat, stagger-in animation, input bar
 - [ ] Goals tab — XP, streaks, budgets, badges
 - [ ] Accounts tab — balance aggregation, bank carousel, fund buckets
 - [ ] Mock "Connect bank" consent screen
