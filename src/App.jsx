@@ -6,6 +6,7 @@ import InsightCard from './components/InsightCard'
 import MonthSwitcher from './components/MonthSwitcher'
 import BottomNav from './components/BottomNav'
 import TransactionsTab from './components/TransactionsTab'
+import AccountsTab from './components/AccountsTab'
 
 function PlaceholderTab({ label }) {
   return (
@@ -121,7 +122,7 @@ function App() {
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <PlaceholderTab label="Goals" />}
       {activeTab === 'copilot' && <PlaceholderTab label="منمّي" />}
-      {activeTab === 'accounts' && <PlaceholderTab label="Accounts" />}
+      {activeTab === 'accounts' && <AccountsTab />}
 
       <div
         dir={DIR}

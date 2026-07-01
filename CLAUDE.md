@@ -280,13 +280,27 @@ Budgeting + game layer.
 
 ---
 
-### 5. Accounts (rightmost)
-Bank account aggregation + money buckets.
-- Total balance aggregated across all linked banks.
-- Sliding/carousel view to browse each individual bank and its balance.
-- **Fund distribution**: named money buckets (e.g. Emergency Fund, Vacation)
-  with a "+" button to add funds or create a new bucket.
-- Design TBD in detail — build last.
+### 5. Accounts (rightmost) ← **built**
+Bank account aggregation + money buckets. Data from `data/munami_accounts.json`
+(imported directly as a Vite JSON import — not fetched from public/).
+
+- **Total balance hero**: large bold number (count-up animation) with "Total Balance"
+  label and "across N accounts" subtitle.
+- **Bank card carousel** (`BankCarousel` inside `AccountsTab.jsx`): horizontal
+  scroll-snap slider, one card per bank. Each card uses the account's own `color`
+  field as an accent (background tint + border + balance text). Dot indicators below
+  the carousel expand/color to match the active card.
+- **Fund buckets ("pots")**: list of named savings goals from the `funds` array.
+  Each bucket shows icon, name, `balance_sar / target_sar`, a progress bar animated
+  on mount, and a % label — all in the bucket's own color.
+- **Unallocated balance**: shown above the fund list as free-to-assign cash
+  (`unallocated_sar` from the data).
+- **"+" button**: opens a bottom sheet (Motion slide-up) with two modes:
+  - *Add Funds*: pick an existing bucket, enter an amount ≤ unallocated;
+    moves money from unallocated into the bucket, updates progress bar in place.
+  - *New Bucket*: enter name + target; new bucket appears in the list with 0 balance
+    and a color auto-assigned from the palette cycle.
+  State is local (React `useState`) — no persistence needed for the demo.
 
 ---
 
@@ -349,6 +363,7 @@ Don't build real bank integrations. Build against the local data files.
 - [x] Data files placed in /data
 - [x] **Overview tab** — spending donut + insight cards
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
+- [x] **Accounts tab** — balance hero, bank carousel, fund buckets, + sheet
 - [ ] **منمّي / Copilot tab** — AI chat + Ask Munami bar  ← next
 - [ ] Goals tab — XP, streaks, budgets, badges
 - [ ] Accounts tab — balance aggregation, bank carousel, fund buckets
