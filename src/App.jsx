@@ -5,6 +5,16 @@ import SpendingDonut from './components/SpendingDonut'
 import InsightCard from './components/InsightCard'
 import MonthSwitcher from './components/MonthSwitcher'
 import BottomNav from './components/BottomNav'
+import TransactionsTab from './components/TransactionsTab'
+
+function PlaceholderTab({ label }) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-page gap-2">
+      <p className="text-text text-xl font-bold">{label}</p>
+      <p className="text-muted text-sm">Coming soon</p>
+    </div>
+  )
+}
 import {
   monthKey,
   getLatestMonth,
@@ -29,6 +39,7 @@ import { t, monthLabel, monthYearLabel, formatSAR, DIR } from './lib/i18n'
 function App() {
   const [rows, setRows] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(null)
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     Papa.parse('/data/munami_transactions.csv', {
@@ -107,9 +118,15 @@ function App() {
 
   return (
     <>
+      {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
+      {activeTab === 'goals' && <PlaceholderTab label="Goals" />}
+      {activeTab === 'copilot' && <PlaceholderTab label="منمّي" />}
+      {activeTab === 'accounts' && <PlaceholderTab label="Accounts" />}
+
       <div
         dir={DIR}
         className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24"
+        style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* Greeting bar */}
         <div className="mb-6">
@@ -198,7 +215,7 @@ function App() {
         </AnimatePresence>
       </div>
 
-      <BottomNav active="overview" />
+      <BottomNav active={activeTab} onTabChange={setActiveTab} />
     </>
   )
 }

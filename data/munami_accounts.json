@@ -1,0 +1,58 @@
+{
+  "total_balance_sar": 47851.25,
+  "accounts": [
+    {
+      "account_id": "ACC-ALINMA-001",
+      "bank": "Alinma Bank",
+      "type": "Current",
+      "iban_tail": "8842",
+      "balance_sar": 15420.5,
+      "color": "#A8D5BA"
+    },
+    {
+      "account_id": "ACC-RAJHI-002",
+      "bank": "Al Rajhi Bank",
+      "type": "Current",
+      "iban_tail": "1196",
+      "balance_sar": 9280.75,
+      "color": "#E8B4B8"
+    },
+    {
+      "account_id": "ACC-SNB-003",
+      "bank": "Saudi National Bank",
+      "type": "Savings",
+      "iban_tail": "5530",
+      "balance_sar": 23150.0,
+      "color": "#E8CF8E"
+    }
+  ],
+  "funds": [
+    {
+      "id": "fund-emergency",
+      "name": "Emergency Fund",
+      "icon": "shield",
+      "balance_sar": 6000.0,
+      "target_sar": 15000.0,
+      "color": "#A8D5BA"
+    },
+    {
+      "id": "fund-vacation",
+      "name": "Vacation",
+      "icon": "plane",
+      "balance_sar": 2400.0,
+      "target_sar": 8000.0,
+      "color": "#E8B4B8"
+    },
+    {
+      "id": "fund-newcar",
+      "name": "New Car",
+      "icon": "car",
+      "balance_sar": 3100.0,
+      "target_sar": 40000.0,
+      "color": "#E8CF8E"
+    }
+  ],
+  "allocated_sar": 11500.0,
+  "unallocated_sar": 36351.25,
+  "currency": "SAR"
+}

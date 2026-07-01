@@ -160,7 +160,7 @@ The app has **five tabs**. The bottom nav is always visible on every screen, wit
 and more visually prominent than the others.
 
 Bottom nav order, left → right:
-`Transactions | Overview | منمّي (center/hero) | Goals | Accounts`
+`Transactions | Goals | منمّي (center/hero) | Overview | Accounts`
 
 Build **ONE tab at a time**. Currently active: **Overview**. Do not build other
 tab contents yet — just keep the full 5-tab structure in mind so the nav and
@@ -345,11 +345,13 @@ Don't build real bank integrations. Build against the local data files.
 
 ## Current status
 
-- [ ] Project scaffolded (React + Vite + Tailwind)
-- [ ] Data files placed in /data
-- [ ] **Overview tab** — spending donut + insight cards  ← we are here
-- [ ] Copilot tab — AI chat + Ask Munami bar
+- [x] Project scaffolded (React + Vite + Tailwind)
+- [x] Data files placed in /data
+- [x] **Overview tab** — spending donut + insight cards
+- [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
+- [ ] **منمّي / Copilot tab** — AI chat + Ask Munami bar  ← next
 - [ ] Goals tab — XP, streaks, budgets, badges
+- [ ] Accounts tab — balance aggregation, bank carousel, fund buckets
 - [ ] Mock "Connect bank" consent screen
 - [ ] Wire real AI (categorization + chat)
 - [ ] Demo polish + rehearsal
