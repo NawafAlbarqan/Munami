@@ -30,14 +30,14 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
 }
 
-export default function SpendingDonut({ data, total }) {
+export default function SpendingDonut({ data, total, cardBg }) {
   // The ring always lays out categories in the same fixed order (see
   // CATEGORY_RING_ORDER) so adjacent colors blend the same way every time;
   // the legend below keeps showing the amount-sorted order from `data`.
   const byCategory = Object.fromEntries(data.map((d) => [d.category, d]))
   const ringEntries = CATEGORY_RING_ORDER.map((c) => byCategory[c]).filter(Boolean)
   const ringColors = ringEntries.map((entry) => themeColor(categoryColorVar(entry.category)))
-  const cardBg = themeColor('--color-card')
+  const resolvedCardBg = cardBg || themeColor('--color-card')
 
   const segments = ringEntries.reduce((acc, entry, i) => {
     const fraction = total > 0 ? entry.amount / total : 0
@@ -157,7 +157,7 @@ export default function SpendingDonut({ data, total }) {
                 width={56}
                 height={26}
                 rx={13}
-                fill={cardBg}
+                fill={resolvedCardBg}
                 stroke={c.color}
                 strokeWidth={1.5}
               />

@@ -9,6 +9,8 @@ import TransactionsTab from './components/TransactionsTab'
 import AccountsTab from './components/AccountsTab'
 import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
+import MunamiMascot from './components/MunamiMascot'
+import GrowthMark from './components/GrowthMark'
 
 function PlaceholderTab({ label }) {
   return (
@@ -119,6 +121,23 @@ function App() {
     }))
   }
 
+  // Mascot expression — derived from current month's spend health
+  const spendRatio = income > 0 ? spent / income : 0
+  const goodCount = cards.filter((c) => c.accent === 'positive').length
+  const badCount = cards.filter((c) => c.accent === 'caution').length
+  let mascotExpression = 'happy'
+  if (rows.length > 0 && !earlyMonth) {
+    if (spendRatio > 0.85 || badCount >= 2) mascotExpression = 'concerned'
+    else if (goodCount >= 2) mascotExpression = 'celebrating'
+  }
+  const mascotVerdict = earlyMonth
+    ? `${daysElapsed} day${daysElapsed !== 1 ? 's' : ''} in — keep it up!`
+    : mascotExpression === 'celebrating'
+      ? 'Crushing it this month 🌿'
+      : mascotExpression === 'concerned'
+        ? "Let's reel it in a bit"
+        : 'On track, keep going!'
+
   return (
     <>
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
@@ -128,19 +147,31 @@ function App() {
 
       <div
         dir={DIR}
-        className="absolute inset-0 overflow-y-auto scroll-thin bg-page-rich px-4 pt-6 pb-24"
+        className="theme-warm absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
-        {/* Greeting bar */}
-        <div className="mb-6">
-          <p className="text-muted text-sm">{t('greeting', 'Ahmed')}</p>
-          <h1 className="text-text text-2xl font-bold mb-3 tracking-tight">
+        {/* ── Mascot greeting ── */}
+        <div className="flex items-center gap-3 mb-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+          >
+            <MunamiMascot expression={mascotExpression} size={54} />
+          </motion.div>
+          <div>
+            <p className="text-muted text-xs">{monthYearLabel(activeMonth) || '...'}</p>
+            <p className="text-text text-lg font-bold leading-tight">{t('greeting', 'Ahmed')}</p>
+          </div>
+        </div>
+
+        {/* ── Title + month switcher ── */}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-text text-base font-semibold tracking-tight">
             {earlyMonth
               ? t('summaryTitlePartial', monthLabel(activeMonth) || '...')
               : t('summaryTitle', monthLabel(activeMonth) || '...')}
           </h1>
-
-          {/* Month switcher — controls the header + donut below, so it sits right under the heading */}
           {months.length > 0 && (
             <MonthSwitcher
               label={monthYearLabel(activeMonth)}
@@ -150,48 +181,57 @@ function App() {
               onNext={() => canGoNext && setSelectedMonth(months[monthIndex + 1])}
             />
           )}
-
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={activeMonth}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex flex-col gap-3"
-            >
-              {/* SPENT — the dominant visual hero; the number you came here to see */}
-              <div className="text-center py-2">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
-                  {t('spent')}
-                </p>
-                <p className="text-caution text-4xl font-bold tracking-tight tabular-nums leading-none">
-                  {formatSAR(spent)}
-                </p>
-              </div>
-
-              {/* Income + Net — supporting context in a smaller flanking row */}
-              <div className="flex bg-tint rounded-[20px] p-4">
-                <div className="text-center flex-1">
-                  <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                    {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
-                  </p>
-                  <p className="text-positive text-sm font-semibold tabular-nums">{formatSAR(income)}</p>
-                </div>
-                <div className="w-px bg-card-border self-stretch" />
-                <div className="text-center flex-1">
-                  <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                    {t('net')}
-                  </p>
-                  <p className="text-text text-sm font-semibold tabular-nums">{formatSAR(net)}</p>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
         </div>
 
-        {/* Donut chart — spending only */}
-        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-6 glow-mint">
+        {/* ── Spent hero card ── */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeMonth}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="bg-card border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
+            style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.08)' }}
+          >
+            <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
+              You've spent
+            </p>
+            <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
+
+            {/* منمّي's verdict pill */}
+            <div
+              className="inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
+              style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
+            >
+              <GrowthMark size={11} color="var(--color-primary)" />
+              <span className="text-primary text-xs font-semibold">{mascotVerdict}</span>
+            </div>
+
+            {/* Income + Left over */}
+            <div className="flex pt-4 border-t border-card-border">
+              <div className="text-center flex-1">
+                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                  {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
+                </p>
+                <p className="text-positive text-sm font-bold tabular-nums">{formatSAR(income)}</p>
+              </div>
+              <div className="w-px bg-card-border self-stretch" />
+              <div className="text-center flex-1">
+                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                  Left over
+                </p>
+                <p className="text-text text-sm font-bold tabular-nums">{formatSAR(net)}</p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* ── Donut chart ── */}
+        <div
+          className="bg-card border border-card-border rounded-[28px] p-5 mb-4"
+          style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.06)' }}
+        >
           <AnimatePresence mode="wait" initial={false}>
             {chartData.length > 0 ? (
               <motion.div
@@ -201,7 +241,7 @@ function App() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
               >
-                <SpendingDonut data={chartData} total={Math.round(spent)} />
+                <SpendingDonut data={chartData} total={Math.round(spent)} cardBg="#FFFFFF" />
               </motion.div>
             ) : (
               <p className="text-muted text-center py-10">{t('loading')}</p>
@@ -209,7 +249,7 @@ function App() {
           </AnimatePresence>
         </div>
 
-        {/* Insight cards */}
+        {/* ── Insight cards ── */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeMonth}

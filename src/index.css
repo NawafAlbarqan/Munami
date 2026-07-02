@@ -63,3 +63,30 @@ body {
     0 8px 24px rgba(0,0,0,0.35),
     0 0 48px rgba(168,213,186,0.08);
 }
+
+/* ── Warm "منمّي character" theme — Overview tab proof-of-concept ──────────
+   Overrides the global dark tokens on the Overview scrollable div only.
+   CSS custom properties cascade, so all Tailwind color classes inside
+   .theme-warm automatically pick up these warmer values.               */
+.theme-warm {
+  --color-page: #F6F1EA;
+  --color-tint: #EDE5D9;
+  --color-card: #FFFFFF;
+  --color-card-border: #DDD3C4;
+  --color-primary: #2D6A4A;
+  --color-positive: #2D6A4A;
+  --color-caution: #B5472A;
+  --color-text: #1A2B1F;
+  --color-muted: #7B7568;
+  --color-rewards: #C87E1A;
+  font-family: 'Nunito', 'DM Sans', ui-sans-serif, sans-serif;
+}
+
+/* Hero number — Nunito Black, very large. Only meaningful inside .theme-warm. */
+.munami-hero {
+  font-family: 'Nunito', sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
