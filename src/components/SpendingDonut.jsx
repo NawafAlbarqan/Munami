@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { formatSAR, t } from '../lib/i18n'
+import { formatSAR, t, categoryName } from '../lib/i18n'
 import { useCountUp } from '../lib/useCountUp'
 import { categoryColorVar, CATEGORY_RING_ORDER } from '../lib/finance'
 
@@ -30,7 +30,7 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
 }
 
-export default function SpendingDonut({ data, total, cardBg }) {
+export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
   // The ring always lays out categories in the same fixed order (see
   // CATEGORY_RING_ORDER) so adjacent colors blend the same way every time;
   // the legend below keeps showing the amount-sorted order from `data`.
@@ -171,7 +171,7 @@ export default function SpendingDonut({ data, total, cardBg }) {
 
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <span className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-            {t('spent')}
+            {t(locale, 'spent')}
           </span>
           <span className="text-text text-xl font-bold tracking-tight">
             {formatSAR(animatedTotal)}
@@ -189,7 +189,7 @@ export default function SpendingDonut({ data, total, cardBg }) {
                 className="w-2.5 h-2.5 rounded-full shrink-0 me-2"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-text truncate">{entry.category}</span>
+              <span className="text-text truncate">{categoryName(locale, entry.category)}</span>
               <span className="text-muted ms-auto tabular-nums shrink-0">
                 {formatSAR(entry.amount)} · <span style={{ color }}>{pct}%</span>
               </span>

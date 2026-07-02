@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useCountUp } from '../lib/useCountUp'
-import { formatSAR } from '../lib/i18n'
+import { formatSAR, t, categoryName } from '../lib/i18n'
+import { useLocale } from '../lib/LocaleContext'
 import {
   getDebits,
   applyCategoryMap,
@@ -27,7 +28,7 @@ const CANVAS = 200
 const C = CANVAS / 2
 const CIRCUMFERENCE = 2 * Math.PI * R
 
-function XPRing() {
+function XPRing({ locale }) {
   const filled = (XP_CURRENT / XP_MAX) * CIRCUMFERENCE
   const animatedXP = useCountUp(XP_CURRENT, 0.8)
 
@@ -35,14 +36,7 @@ function XPRing() {
     <div className="flex flex-col items-center">
       <div className="relative">
         <svg width={CANVAS} height={CANVAS} viewBox={`0 0 ${CANVAS} ${CANVAS}`}>
-          {/* Track ring */}
-          <circle
-            cx={C} cy={C} r={R}
-            fill="none"
-            stroke="var(--color-card-border)"
-            strokeWidth={STROKE}
-          />
-          {/* Progress arc — animates from empty to filled */}
+          <circle cx={C} cy={C} r={R} fill="none" stroke="var(--color-card-border)" strokeWidth={STROKE} />
           <motion.circle
             cx={C} cy={C} r={R}
             fill="none"
@@ -56,9 +50,10 @@ function XPRing() {
             transition={{ duration: 1.0, ease: 'easeOut' }}
           />
         </svg>
-        {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-muted text-[10px] font-medium uppercase tracking-widest">Level</p>
+          <p className="text-muted text-[10px] font-medium uppercase tracking-widest">
+            {t(locale, 'level')}
+          </p>
           <p className="text-text leading-none munami-hero">{LEVEL}</p>
         </div>
       </div>
@@ -66,7 +61,9 @@ function XPRing() {
         <span className="text-primary font-semibold">{animatedXP.toLocaleString()}</span>
         {' / '}{XP_MAX.toLocaleString()} XP
       </p>
-      <p className="text-muted text-[11px] mt-0.5">{(XP_MAX - XP_CURRENT).toLocaleString()} XP to Level {LEVEL + 1}</p>
+      <p className="text-muted text-[11px] mt-0.5">
+        {(XP_MAX - XP_CURRENT).toLocaleString()} {t(locale, 'xpToLevel', LEVEL + 1)}
+      </p>
     </div>
   )
 }
@@ -77,54 +74,51 @@ const STREAK_DAYS = 7
 const STREAK_LONGEST = 14
 const DAYS_TO_BADGE = 3
 
-// Pre-populated budgets — user can add more via the "+" sheet
 const DEFAULT_BUDGETS = [
   { category: 'Shopping', limit: 2000 },
   { category: 'Food & Groceries', limit: 1500 },
   { category: 'Entertainment', limit: 800 },
 ]
 
-const ALL_CATEGORIES = [
-  'Shopping',
-  'Food & Groceries',
-  'Bills & Transport',
-  'Entertainment',
-  'Other',
-]
+const ALL_CATEGORIES = ['Shopping', 'Food & Groceries', 'Bills & Transport', 'Entertainment', 'Other']
 
-const CHALLENGES = [
-  {
-    id: 'c1',
-    icon: '🍽️',
-    title: 'Dining Under Budget',
-    desc: 'Spend under SAR 300 on Food & Groceries this week',
-    xp: 200,
-    progress: 190,
-    target: 300,
-    unit: 'SAR',
-  },
-  {
-    id: 'c2',
-    icon: '🎬',
-    title: 'Entertainment Discipline',
-    desc: 'Keep Entertainment under SAR 200 for 3 days',
-    xp: 150,
-    progress: 2,
-    target: 3,
-    unit: 'days',
-  },
-]
+function getChallenges(locale) {
+  return [
+    {
+      id: 'c1',
+      icon: '🍽️',
+      title: locale === 'ar' ? 'الطعام ضمن الميزانية' : 'Dining Under Budget',
+      desc: locale === 'ar'
+        ? 'أنفق أقل من 300 ريال على الطعام والبقالة هذا الأسبوع'
+        : 'Spend under SAR 300 on Food & Groceries this week',
+      xp: 200, progress: 190, target: 300, unit: 'SAR',
+    },
+    {
+      id: 'c2',
+      icon: '🎬',
+      title: locale === 'ar' ? 'انضباط الترفيه' : 'Entertainment Discipline',
+      desc: locale === 'ar'
+        ? 'حافظ على الترفيه تحت 200 ريال لمدة 3 أيام'
+        : 'Keep Entertainment under SAR 200 for 3 days',
+      xp: 150, progress: 2, target: 3, unit: 'days',
+    },
+  ]
+}
 
-const BADGES = [
-  { id: 'b1', icon: '⭐', name: 'First Saver', earned: true },
-  { id: 'b2', icon: '🎯', name: 'Budget Starter', earned: true },
-  { id: 'b3', icon: '🔥', name: 'Streak Starter', earned: true },
-  { id: 'b4', icon: '🏆', name: 'Budget Master', earned: false },
-  { id: 'b5', icon: '🌟', name: 'Streak Legend', earned: false },
-  { id: 'b6', icon: '💎', name: 'No-Spend Champ', earned: false },
-]
+function getBadges(locale) {
+  const names = locale === 'ar'
+    ? { 'First Saver': 'أول مدخر', 'Budget Starter': 'بداية الميزانية', 'Streak Starter': 'بداية المتتالية', 'Budget Master': 'محترف الميزانية', 'Streak Legend': 'أسطورة المتتالية', 'No-Spend Champ': 'بطل التوفير' }
+    : { 'First Saver': 'First Saver', 'Budget Starter': 'Budget Starter', 'Streak Starter': 'Streak Starter', 'Budget Master': 'Budget Master', 'Streak Legend': 'Streak Legend', 'No-Spend Champ': 'No-Spend Champ' }
+  return [
+    { id: 'b1', icon: '⭐', name: names['First Saver'], earned: true },
+    { id: 'b2', icon: '🎯', name: names['Budget Starter'], earned: true },
+    { id: 'b3', icon: '🔥', name: names['Streak Starter'], earned: true },
+    { id: 'b4', icon: '🏆', name: names['Budget Master'], earned: false },
+    { id: 'b5', icon: '🌟', name: names['Streak Legend'], earned: false },
+    { id: 'b6', icon: '💎', name: names['No-Spend Champ'], earned: false },
+  ]
+}
 
-// Budget bar color shifts from category color → butter (warning) → coral (over)
 function budgetBarColor(pct, categoryColor) {
   if (pct >= 1.0) return '#E8756A'
   if (pct >= 0.75) return '#E8CF8E'
@@ -134,13 +128,12 @@ function budgetBarColor(pct, categoryColor) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function GoalsTab({ rows }) {
+  const { locale } = useLocale()
   const [budgets, setBudgets] = useState(DEFAULT_BUDGETS)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [newCategory, setNewCategory] = useState('')
   const [newLimit, setNewLimit] = useState('')
 
-  // Real spend: always use the data's latest month, independent of Overview's
-  // month-switcher — Goals is about "this month", not a historical view.
   const spendByCategory = useMemo(() => {
     if (!rows?.length) return {}
     const debits = applyCategoryMap(getDebits(rows))
@@ -149,9 +142,7 @@ export default function GoalsTab({ rows }) {
     return groupByCategory(thisMonth)
   }, [rows])
 
-  const availableCategories = ALL_CATEGORIES.filter(
-    (c) => !budgets.some((b) => b.category === c),
-  )
+  const availableCategories = ALL_CATEGORIES.filter((c) => !budgets.some((b) => b.category === c))
 
   function openSheet() {
     setNewCategory(availableCategories[0] ?? '')
@@ -166,20 +157,25 @@ export default function GoalsTab({ rows }) {
     setSheetOpen(false)
   }
 
+  const CHALLENGES = getChallenges(locale)
+  const BADGES = getBadges(locale)
+
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24">
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 44 }}>
 
       {/* ── Page header ── */}
       <div className="mb-5">
-        <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">Your progress</p>
-        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Nunito', sans-serif", fontSize: 26 }}>
-          Keep growing 🌿
+        <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">
+          {t(locale, 'goalsSubtitle')}
+        </p>
+        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Nunito', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
+          {t(locale, 'goalsHeader')}
         </h1>
       </div>
 
       {/* ── XP / Level ── */}
       <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-4">
-        <XPRing />
+        <XPRing locale={locale} />
       </div>
 
       {/* ── Streak ── */}
@@ -191,13 +187,13 @@ export default function GoalsTab({ rows }) {
       >
         <span className="text-3xl">🔥</span>
         <div className="flex-1 min-w-0">
-          <p className="text-text font-semibold">{STREAK_DAYS}-day streak</p>
-          <p className="text-muted text-xs mt-0.5">{DAYS_TO_BADGE} days to your next badge!</p>
+          <p className="text-text font-semibold">{t(locale, 'streakLabel', STREAK_DAYS)}</p>
+          <p className="text-muted text-xs mt-0.5">{t(locale, 'streakToBadge', DAYS_TO_BADGE)}</p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-muted text-[10px] uppercase tracking-wide">Best</p>
+          <p className="text-muted text-[10px] uppercase tracking-wide">{t(locale, 'streakBest')}</p>
           <p className="text-sm font-semibold" style={{ color: 'var(--color-rewards)' }}>
-            {STREAK_LONGEST} days
+            {t(locale, 'streakBestDays', STREAK_LONGEST)}
           </p>
         </div>
       </motion.div>
@@ -205,7 +201,7 @@ export default function GoalsTab({ rows }) {
       {/* ── Monthly budgets ── */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-text font-semibold">Monthly Budgets</h2>
+          <h2 className="text-text font-semibold">{t(locale, 'monthlyBudgets')}</h2>
           {availableCategories.length > 0 && (
             <button
               onClick={openSheet}
@@ -233,10 +229,12 @@ export default function GoalsTab({ rows }) {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: catColor }} />
-                    <span className="text-text text-sm font-medium">{budget.category}</span>
+                    <span className="text-text text-sm font-medium">
+                      {categoryName(locale, budget.category)}
+                    </span>
                   </div>
                   <span className="text-xs font-semibold tabular-nums" style={{ color: barColor }}>
-                    {pct >= 1 ? 'Over budget!' : `${Math.round(Math.min(pct, 1) * 100)}%`}
+                    {pct >= 1 ? t(locale, 'overBudget') : `${Math.round(Math.min(pct, 1) * 100)}%`}
                   </span>
                 </div>
 
@@ -251,8 +249,12 @@ export default function GoalsTab({ rows }) {
                 </div>
 
                 <div className="flex justify-between mt-1.5">
-                  <span className="text-muted text-[11px] tabular-nums">{formatSAR(spent)} spent</span>
-                  <span className="text-muted text-[11px] tabular-nums">of {formatSAR(budget.limit)}</span>
+                  <span className="text-muted text-[11px] tabular-nums">
+                    {formatSAR(spent)} {t(locale, 'budgetSpent')}
+                  </span>
+                  <span className="text-muted text-[11px] tabular-nums">
+                    {t(locale, 'budgetOf')} {formatSAR(budget.limit)}
+                  </span>
                 </div>
               </motion.div>
             )
@@ -262,7 +264,7 @@ export default function GoalsTab({ rows }) {
 
       {/* ── Weekly challenges ── */}
       <div className="mb-4">
-        <h2 className="text-text font-semibold mb-3">Weekly Challenges</h2>
+        <h2 className="text-text font-semibold mb-3">{t(locale, 'weeklyChallenges')}</h2>
         <div className="flex flex-col gap-3">
           {CHALLENGES.map((ch, i) => {
             const barPct = Math.min(ch.progress / ch.target, 1)
@@ -280,10 +282,7 @@ export default function GoalsTab({ rows }) {
                     <p className="text-text text-sm font-semibold">{ch.title}</p>
                     <p className="text-muted text-[11px] mt-0.5">{ch.desc}</p>
                   </div>
-                  <span
-                    className="text-xs font-bold shrink-0 tabular-nums"
-                    style={{ color: 'var(--color-rewards)' }}
-                  >
+                  <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
                     +{ch.xp} XP
                   </span>
                 </div>
@@ -313,7 +312,7 @@ export default function GoalsTab({ rows }) {
 
       {/* ── Badges ── */}
       <div className="mb-4">
-        <h2 className="text-text font-semibold mb-3">Badges</h2>
+        <h2 className="text-text font-semibold mb-3">{t(locale, 'badges')}</h2>
         <div className="grid grid-cols-3 gap-3">
           {BADGES.map((badge, i) => (
             <motion.div
@@ -338,7 +337,7 @@ export default function GoalsTab({ rows }) {
           <>
             <motion.div
               className="absolute inset-0 z-20"
-              style={{ background: 'rgba(0,0,0,0.55)' }}
+              style={{ background: 'rgba(0,0,0,0.35)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -353,12 +352,12 @@ export default function GoalsTab({ rows }) {
               transition={{ duration: 0.28, ease: 'easeOut' }}
             >
               <div className="w-10 h-1 bg-card-border rounded-full mx-auto mb-5" />
-              <p className="text-text font-semibold text-base mb-5">Add Budget</p>
+              <p className="text-text font-semibold text-base mb-5">{t(locale, 'addBudget')}</p>
 
               <div className="flex flex-col gap-4">
                 <div>
                   <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                    Category
+                    {t(locale, 'categoryLabel')}
                   </p>
                   <div className="flex flex-col gap-2">
                     {availableCategories.map((cat) => {
@@ -368,16 +367,11 @@ export default function GoalsTab({ rows }) {
                           key={cat}
                           onClick={() => setNewCategory(cat)}
                           className={`flex items-center gap-3 px-4 py-3 rounded-[14px] border-[0.5px] text-left transition-colors ${
-                            newCategory === cat
-                              ? 'border-primary bg-primary/10'
-                              : 'border-card-border bg-tint'
+                            newCategory === cat ? 'border-primary bg-primary/10' : 'border-card-border bg-tint'
                           }`}
                         >
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ backgroundColor: catColor }}
-                          />
-                          <span className="text-text text-sm">{cat}</span>
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catColor }} />
+                          <span className="text-text text-sm">{categoryName(locale, cat)}</span>
                         </button>
                       )
                     })}
@@ -386,7 +380,7 @@ export default function GoalsTab({ rows }) {
 
                 <div>
                   <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                    Monthly Limit (SAR)
+                    {t(locale, 'monthlyLimit')}
                   </p>
                   <input
                     type="number"
@@ -401,7 +395,7 @@ export default function GoalsTab({ rows }) {
                   onClick={handleAddBudget}
                   className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
                 >
-                  Add Budget
+                  {t(locale, 'addBudgetBtn')}
                 </button>
               </div>
             </motion.div>

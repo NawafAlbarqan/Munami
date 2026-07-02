@@ -1,4 +1,6 @@
 import GrowthMark from './GrowthMark'
+import { useLocale } from '../lib/LocaleContext'
+import { t } from '../lib/i18n'
 
 // Simple SVG icons for each non-hero tab
 function ListIcon(props) {
@@ -45,14 +47,15 @@ function WalletIcon(props) {
 }
 
 const TABS = [
-  { key: 'transactions', label: 'Transactions', Icon: ListIcon },
-  { key: 'goals', label: 'Goals', Icon: TargetIcon },
-  { key: 'copilot', label: 'منمّي', hero: true },
-  { key: 'overview', label: 'Overview', Icon: DonutIcon },
-  { key: 'accounts', label: 'Accounts', Icon: WalletIcon },
+  { key: 'transactions', labelKey: 'navTransactions', Icon: ListIcon },
+  { key: 'goals', labelKey: 'navGoals', Icon: TargetIcon },
+  { key: 'copilot', hero: true },
+  { key: 'overview', labelKey: 'navOverview', Icon: DonutIcon },
+  { key: 'accounts', labelKey: 'navAccounts', Icon: WalletIcon },
 ]
 
 export default function BottomNav({ active = 'overview', onTabChange }) {
+  const { locale } = useLocale()
   return (
     <nav
       className="absolute bottom-0 left-0 right-0 z-10 flex items-end bg-card border-t-[0.5px] border-card-border"
@@ -122,7 +125,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                 fontWeight: isActive ? 700 : 400,
               }}
             >
-              {tab.label}
+              {t(locale, tab.labelKey)}
             </span>
           </button>
         )

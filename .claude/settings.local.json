@@ -39,7 +39,10 @@
       "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"playful warm friendly wellness fintech light cream\" --design-system -p \"Munami\" -f markdown)",
       "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"playful rounded friendly\" --domain typography -n 5 -f markdown)",
       "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"wellness fintech green warm\" --domain color -n 5 -f markdown)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(git -C \"C:/Users/albar/OneDrive/Desktop/Munami\" status)",
+      "Bash(git -C \"C:/Users/albar/OneDrive/Desktop/Munami\" remote -v)",
+      "Bash(git -C \"C:/Users/albar/OneDrive/Desktop/Munami\" log --oneline -5)"
     ]
   }
 }

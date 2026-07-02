@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { applyCategoryMap, categoryColorVar } from '../lib/finance'
-import { formatSAR } from '../lib/i18n'
+import { formatSAR, t } from '../lib/i18n'
+import { useLocale } from '../lib/LocaleContext'
 
 function themeColor(varName) {
   if (typeof window === 'undefined') return '#000000'
@@ -21,14 +22,15 @@ function prevDay(dateStr) {
   ].join('-')
 }
 
-function formatDateHeader(dateStr, latestDate) {
-  if (dateStr === latestDate) return 'Today'
-  if (dateStr === prevDay(latestDate)) return 'Yesterday'
+function formatDateHeader(dateStr, latestDate, locale) {
+  if (dateStr === latestDate) return locale === 'ar' ? 'اليوم' : 'Today'
+  if (dateStr === prevDay(latestDate)) return locale === 'ar' ? 'أمس' : 'Yesterday'
   const parsed = new Date(dateStr + 'T00:00:00')
-  return parsed.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  return parsed.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
 export default function TransactionsTab({ rows }) {
+  const { locale } = useLocale()
   const [search, setSearch] = useState('')
   const [bankFilter, setBankFilter] = useState(null) // null = all banks
 
@@ -75,15 +77,15 @@ export default function TransactionsTab({ rows }) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24">
-      <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">Your activity</p>
-      <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Nunito', sans-serif", fontSize: 26 }}>
-        Every spend, tracked 🌱
+      <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">{t(locale, 'txSubtitle')}</p>
+      <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Nunito', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
+        {t(locale, 'txHeader')}
       </h1>
 
       {/* Search bar */}
       <input
         type="text"
-        placeholder="Search merchants or categories…"
+        placeholder={t(locale, 'txSearchPlaceholder')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full bg-card border-[0.5px] border-card-border rounded-[14px] px-4 py-3 text-sm text-text placeholder:text-muted outline-none mb-3"
@@ -99,7 +101,7 @@ export default function TransactionsTab({ rows }) {
               : 'bg-card border-card-border text-muted'
           }`}
         >
-          All Banks
+          {t(locale, 'txAllBanks')}
         </button>
         {banks.map((bank) => (
           <button
@@ -119,12 +121,12 @@ export default function TransactionsTab({ rows }) {
       {/* Transaction list grouped by date */}
       <div className="flex flex-col gap-4">
         {grouped.length === 0 && (
-          <p className="text-muted text-sm text-center py-10">No transactions found.</p>
+          <p className="text-muted text-sm text-center py-10">{t(locale, 'txEmpty')}</p>
         )}
         {grouped.map(({ date, transactions }) => (
           <div key={date}>
             <p className="text-muted text-[11px] font-medium uppercase tracking-wide mb-2 px-1">
-              {formatDateHeader(date, latestDate)}
+              {formatDateHeader(date, latestDate, locale)}
             </p>
             <div className="bg-card border-[0.5px] border-card-border rounded-[20px] overflow-hidden">
               {transactions.map((tx, i) => {

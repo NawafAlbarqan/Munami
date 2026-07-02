@@ -82,11 +82,17 @@ body {
   font-family: 'Nunito', 'DM Sans', ui-sans-serif, sans-serif;
 }
 
-/* Hero number — Nunito Black, very large. Only meaningful inside .theme-warm. */
+/* Hero number — Nunito Black / Noto Sans Arabic Black, very large. */
 .munami-hero {
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Noto Sans Arabic', sans-serif;
   font-size: 44px;
   font-weight: 900;
   letter-spacing: -0.5px;
   line-height: 1;
+}
+
+/* RTL mode: switch to Noto Sans Arabic as the primary font */
+.theme-warm[dir="rtl"],
+.theme-warm [dir="rtl"] {
+  font-family: 'Noto Sans Arabic', 'Nunito', ui-sans-serif, sans-serif;
 }

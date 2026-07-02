@@ -11,15 +11,8 @@ import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
 import MunamiMascot from './components/MunamiMascot'
 import GrowthMark from './components/GrowthMark'
-
-function PlaceholderTab({ label }) {
-  return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-page gap-2">
-      <p className="text-text text-xl font-bold">{label}</p>
-      <p className="text-muted text-sm">Coming soon</p>
-    </div>
-  )
-}
+import LanguageToggle from './components/LanguageToggle'
+import { useLocale } from './lib/LocaleContext'
 import {
   monthKey,
   getLatestMonth,
@@ -39,9 +32,10 @@ import {
   summarizePriorMonth,
 } from './lib/finance'
 import { phraseCategoryChange, phrasePace, phrasePriorMonthSummary } from './lib/aiCoach'
-import { t, monthLabel, monthYearLabel, formatSAR, DIR } from './lib/i18n'
+import { t, monthLabel, monthYearLabel, categoryName, formatSAR, dir } from './lib/i18n'
 
 function App() {
+  const { locale } = useLocale()
   const [rows, setRows] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
@@ -59,8 +53,6 @@ function App() {
   const credits = getCredits(rows)
 
   const months = listMonths(rows)
-  // "Today" is always derived from the data's own latest transaction date,
-  // never the system clock — keeps the demo deterministic.
   const latestMonth = getLatestMonth(rows)
   const activeMonth = selectedMonth || latestMonth
   const monthIndex = months.indexOf(activeMonth)
@@ -73,7 +65,6 @@ function App() {
   const spent = sumAmount(monthDebits)
   const net = income - spent
 
-  // Donut: spending only, grouped by the merged categories. Income never appears here.
   const chartData = Object.entries(groupByCategory(monthDebits))
     .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
     .sort((a, b) => b.amount - a.amount)
@@ -85,24 +76,20 @@ function App() {
   if (rows.length === 0) {
     cards = []
   } else if (earlyMonth) {
-    // Not enough days in the selected month for a fair comparison — show
-    // a pace projection plus a carryover summary of the last full month.
     cards = []
-
     const projectedSpend = Math.round((spent / (daysElapsed || 1)) * daysInMonth(activeMonth))
     cards.push({
       icon: '📈',
       accent: 'rewards',
-      text: phrasePace({ daysElapsed, spentSoFar: Math.round(spent), projectedSpend }),
+      text: phrasePace(locale, { daysElapsed, spentSoFar: Math.round(spent), projectedSpend }),
     })
-
     const summary = summarizePriorMonth(debits, activeMonth)
     if (summary) {
       cards.push({
         icon: isGood(summary.direction) ? '✅' : '⚠️',
         accent: isGood(summary.direction) ? 'positive' : 'caution',
-        text: phrasePriorMonthSummary({
-          priorMonthLabel: monthLabel(summary.priorMonth),
+        text: phrasePriorMonthSummary(locale, {
+          priorMonthLabel: monthLabel(locale, summary.priorMonth),
           priorSpent: summary.priorSpent,
           pctChange: summary.pctChange,
           direction: summary.direction,
@@ -113,15 +100,15 @@ function App() {
     const changes = computeCategoryChanges(debits, activeMonth)
     cards = topChanges(changes, 3).map((change) => ({
       icon: isGood(change.direction) ? '✅' : '⚠️',
-      category: change.category,
+      category: categoryName(locale, change.category),
       arrow: change.direction === 'down' ? '▼' : '▲',
       pct: Math.abs(change.pctChange),
       accent: isGood(change.direction) ? 'positive' : 'caution',
-      text: phraseCategoryChange(change),
+      text: phraseCategoryChange(locale, change),
     }))
   }
 
-  // Mascot expression — derived from current month's spend health
+  // Mascot expression derived from current month's spend health
   const spendRatio = income > 0 ? spent / income : 0
   const goodCount = cards.filter((c) => c.accent === 'positive').length
   const badCount = cards.filter((c) => c.accent === 'caution').length
@@ -131,27 +118,30 @@ function App() {
     else if (goodCount >= 2) mascotExpression = 'celebrating'
   }
   const mascotVerdict = earlyMonth
-    ? `${daysElapsed} day${daysElapsed !== 1 ? 's' : ''} in — keep it up!`
+    ? t(locale, 'mascotEarly', daysElapsed)
     : mascotExpression === 'celebrating'
-      ? 'Crushing it this month 🌿'
+      ? t(locale, 'mascotCelebrating')
       : mascotExpression === 'concerned'
-        ? "Let's reel it in a bit"
-        : 'On track, keep going!'
+        ? t(locale, 'mascotConcerned')
+        : t(locale, 'mascotOnTrack')
+
+  const appDir = dir(locale)
 
   return (
-    <>
+    // Wrapper applies RTL/LTR direction to all tabs uniformly
+    <div dir={appDir} className="absolute inset-0">
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <GoalsTab rows={rows} />}
       {activeTab === 'copilot' && <CopilotTab />}
       {activeTab === 'accounts' && <AccountsTab />}
 
+      {/* Overview tab — always mounted, hidden via display:none when inactive */}
       <div
-        dir={DIR}
         className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* ── Mascot greeting ── */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 28 }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -160,8 +150,8 @@ function App() {
             <MunamiMascot expression={mascotExpression} size={54} />
           </motion.div>
           <div>
-            <p className="text-muted text-xs">{monthYearLabel(activeMonth) || '...'}</p>
-            <p className="text-text text-lg font-bold leading-tight">{t('greeting', 'Ahmed')}</p>
+            <p className="text-muted text-xs">{monthYearLabel(locale, activeMonth) || '...'}</p>
+            <p className="text-text text-lg font-bold leading-tight">{t(locale, 'greeting', 'Ahmed')}</p>
           </div>
         </div>
 
@@ -169,16 +159,17 @@ function App() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-text text-base font-semibold tracking-tight">
             {earlyMonth
-              ? t('summaryTitlePartial', monthLabel(activeMonth) || '...')
-              : t('summaryTitle', monthLabel(activeMonth) || '...')}
+              ? t(locale, 'summaryTitlePartial', monthLabel(locale, activeMonth) || '...')
+              : t(locale, 'summaryTitle', monthLabel(locale, activeMonth) || '...')}
           </h1>
           {months.length > 0 && (
             <MonthSwitcher
-              label={monthYearLabel(activeMonth)}
+              label={monthYearLabel(locale, activeMonth)}
               canPrev={canGoPrev}
               canNext={canGoNext}
               onPrev={() => canGoPrev && setSelectedMonth(months[monthIndex - 1])}
               onNext={() => canGoNext && setSelectedMonth(months[monthIndex + 1])}
+              locale={locale}
             />
           )}
         </div>
@@ -195,7 +186,7 @@ function App() {
             style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.08)' }}
           >
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
-              You've spent
+              {t(locale, 'youveSpent')}
             </p>
             <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
 
@@ -212,14 +203,16 @@ function App() {
             <div className="flex pt-4 border-t border-card-border">
               <div className="text-center flex-1">
                 <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
+                  {isCarriedOver
+                    ? t(locale, 'incomeCarriedOver', monthLabel(locale, incomeMonth))
+                    : t(locale, 'income')}
                 </p>
                 <p className="text-positive text-sm font-bold tabular-nums">{formatSAR(income)}</p>
               </div>
               <div className="w-px bg-card-border self-stretch" />
               <div className="text-center flex-1">
                 <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  Left over
+                  {t(locale, 'leftOver')}
                 </p>
                 <p className="text-text text-sm font-bold tabular-nums">{formatSAR(net)}</p>
               </div>
@@ -241,10 +234,15 @@ function App() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15, ease: 'easeOut' }}
               >
-                <SpendingDonut data={chartData} total={Math.round(spent)} cardBg="#FFFFFF" />
+                <SpendingDonut
+                  data={chartData}
+                  total={Math.round(spent)}
+                  cardBg="#FFFFFF"
+                  locale={locale}
+                />
               </motion.div>
             ) : (
-              <p className="text-muted text-center py-10">{t('loading')}</p>
+              <p className="text-muted text-center py-10">{t(locale, 'loading')}</p>
             )}
           </AnimatePresence>
         </div>
@@ -252,7 +250,7 @@ function App() {
         {/* ── Insight cards ── */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={activeMonth}
+            key={activeMonth + locale}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -267,7 +265,8 @@ function App() {
       </div>
 
       <BottomNav active={activeTab} onTabChange={setActiveTab} />
-    </>
+      <LanguageToggle />
+    </div>
   )
 }
 

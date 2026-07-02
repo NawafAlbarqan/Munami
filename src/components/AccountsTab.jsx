@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useCountUp } from '../lib/useCountUp'
-import { formatSAR } from '../lib/i18n'
+import { formatSAR, t } from '../lib/i18n'
+import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
@@ -10,7 +11,7 @@ const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
 
 // ─── Bank card carousel ──────────────────────────────────────────────────────
 
-function BankCarousel({ accounts }) {
+function BankCarousel({ accounts, locale }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
   function onScroll(e) {
@@ -53,7 +54,7 @@ function BankCarousel({ accounts }) {
               />
             </div>
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
-              Balance
+              {t(locale, 'balance')}
             </p>
             <p className="text-2xl font-bold tracking-tight" style={{ color: acc.color }}>
               {formatSAR(acc.balance_sar)}
@@ -127,6 +128,7 @@ function FundBucket({ fund, index }) {
 // ─── Main tab ────────────────────────────────────────────────────────────────
 
 export default function AccountsTab() {
+  const { locale } = useLocale()
   const [funds, setFunds] = useState(accountsData.funds)
   const [unallocated, setUnallocated] = useState(accountsData.unallocated_sar)
 
@@ -190,23 +192,23 @@ export default function AccountsTab() {
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
-          Your total balance
+          {t(locale, 'yourTotalBalance')}
         </p>
         <p className="text-text munami-hero">
           {formatSAR(animatedTotal)}
         </p>
         <p className="text-muted text-xs mt-2">
-          across {accountsData.accounts.length} accounts
+          {t(locale, 'acrossAccounts', accountsData.accounts.length)}
         </p>
       </motion.div>
 
       {/* ── Bank carousel ── */}
-      <BankCarousel accounts={accountsData.accounts} />
+      <BankCarousel accounts={accountsData.accounts} locale={locale} />
 
       {/* ── Fund buckets ── */}
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-text text-base font-semibold">Your Funds</h2>
+          <h2 className="text-text text-base font-semibold">{t(locale, 'yourFunds')}</h2>
           <button
             onClick={() => openSheet('add')}
             className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-page text-xl font-bold leading-none"
@@ -219,8 +221,8 @@ export default function AccountsTab() {
         <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-3.5 mb-3 flex items-center gap-3">
           <span className="text-xl">💵</span>
           <div className="flex-1 min-w-0">
-            <p className="text-text text-sm font-medium">Unallocated</p>
-            <p className="text-muted text-[11px]">Free to assign</p>
+            <p className="text-text text-sm font-medium">{t(locale, 'unallocated')}</p>
+            <p className="text-muted text-[11px]">{t(locale, 'freeToAssign')}</p>
           </div>
           <p className="text-positive font-semibold tabular-nums text-sm shrink-0">
             {formatSAR(unallocated)}
@@ -267,7 +269,7 @@ export default function AccountsTab() {
                       sheetMode === mode ? 'bg-card text-text' : 'text-muted'
                     }`}
                   >
-                    {mode === 'add' ? 'Add Funds' : 'New Bucket'}
+                    {mode === 'add' ? t(locale, 'addFunds') : t(locale, 'newBucket')}
                   </button>
                 ))}
               </div>
@@ -276,7 +278,7 @@ export default function AccountsTab() {
                 <div className="flex flex-col gap-4">
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                      Select Bucket
+                      {t(locale, 'selectBucket')}
                     </p>
                     <div className="flex flex-col gap-2">
                       {funds.map((f) => (
@@ -301,7 +303,7 @@ export default function AccountsTab() {
 
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                      Amount (SAR)
+                      {t(locale, 'amountSAR')}
                     </p>
                     <input
                       type="number"
@@ -311,7 +313,7 @@ export default function AccountsTab() {
                       className="w-full bg-tint border-[0.5px] border-card-border rounded-[14px] px-4 py-3 text-text text-sm outline-none"
                     />
                     <p className="text-muted text-xs mt-1.5">
-                      {formatSAR(unallocated)} available
+                      {t(locale, 'availableFunds', formatSAR(unallocated))}
                     </p>
                   </div>
 
@@ -319,18 +321,18 @@ export default function AccountsTab() {
                     onClick={handleAddFunds}
                     className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
                   >
-                    Add Funds
+                    {t(locale, 'addFunds')}
                   </button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                      Bucket Name
+                      {t(locale, 'bucketName')}
                     </p>
                     <input
                       type="text"
-                      placeholder="e.g. Wedding Fund"
+                      placeholder={t(locale, 'bucketNamePlaceholder')}
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
                       className="w-full bg-tint border-[0.5px] border-card-border rounded-[14px] px-4 py-3 text-text text-sm outline-none"
@@ -339,7 +341,7 @@ export default function AccountsTab() {
 
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                      Target Amount (SAR)
+                      {t(locale, 'targetAmountSAR')}
                     </p>
                     <input
                       type="number"
@@ -354,7 +356,7 @@ export default function AccountsTab() {
                     onClick={handleCreateBucket}
                     className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
                   >
-                    Create Bucket
+                    {t(locale, 'createBucket')}
                   </button>
                 </div>
               )}
