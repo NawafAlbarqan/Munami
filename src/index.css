@@ -29,7 +29,7 @@ body,
 body {
   background: var(--color-page);
   color: var(--color-text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hides the scrollbar on the phone screen's internal scroll area so it
@@ -39,4 +39,27 @@ body {
 }
 .scroll-thin::-webkit-scrollbar {
   display: none;
+}
+
+/* Rich page background — near-black base with a barely-visible mint gradient
+   at the top and a faint dot-grid texture for depth. Used inside the phone screen. */
+.bg-page-rich {
+  background-color: #0E0E0E;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px),
+    radial-gradient(ellipse 160% 45% at 50% -5%, #131A15 0%, transparent 60%);
+  background-size: 24px 24px, 100% 100%;
+}
+
+/* Elevated card — faint inner rim + soft depth shadow */
+.card-elevated {
+  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* Mint ambient glow — adds a soft green halo behind the donut chart card */
+.glow-mint {
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.04) inset,
+    0 8px 24px rgba(0,0,0,0.35),
+    0 0 48px rgba(168,213,186,0.08);
 }

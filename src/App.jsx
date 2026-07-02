@@ -128,7 +128,7 @@ function App() {
 
       <div
         dir={DIR}
-        className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24"
+        className="absolute inset-0 overflow-y-auto scroll-thin bg-page-rich px-4 pt-6 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* Greeting bar */}
@@ -158,32 +158,40 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="flex justify-between bg-tint rounded-[20px] p-4"
+              className="flex flex-col gap-3"
             >
-              <div className="text-center flex-1">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
-                </p>
-                <p className="text-positive font-semibold tabular-nums">{formatSAR(income)}</p>
-              </div>
-              <div className="text-center flex-1 border-x border-card-border">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+              {/* SPENT — the dominant visual hero; the number you came here to see */}
+              <div className="text-center py-2">
+                <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
                   {t('spent')}
                 </p>
-                <p className="text-caution font-semibold tabular-nums">{formatSAR(spent)}</p>
-              </div>
-              <div className="text-center flex-1">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {t('net')}
+                <p className="text-caution text-4xl font-bold tracking-tight tabular-nums leading-none">
+                  {formatSAR(spent)}
                 </p>
-                <p className="text-text font-semibold tabular-nums">{formatSAR(net)}</p>
+              </div>
+
+              {/* Income + Net — supporting context in a smaller flanking row */}
+              <div className="flex bg-tint rounded-[20px] p-4">
+                <div className="text-center flex-1">
+                  <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                    {isCarriedOver ? t('incomeCarriedOver', monthLabel(incomeMonth)) : t('income')}
+                  </p>
+                  <p className="text-positive text-sm font-semibold tabular-nums">{formatSAR(income)}</p>
+                </div>
+                <div className="w-px bg-card-border self-stretch" />
+                <div className="text-center flex-1">
+                  <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
+                    {t('net')}
+                  </p>
+                  <p className="text-text text-sm font-semibold tabular-nums">{formatSAR(net)}</p>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Donut chart — spending only */}
-        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-6">
+        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-6 glow-mint">
           <AnimatePresence mode="wait" initial={false}>
             {chartData.length > 0 ? (
               <motion.div

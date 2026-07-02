@@ -30,7 +30,10 @@
       "Bash(npm uninstall *)",
       "Bash(gh repo *)",
       "WebFetch(domain:github.com)",
-      "Bash(sort -t',' -k6,6 -r)"
+      "Bash(sort -t',' -k6,6 -r)",
+      "Bash(git -C \"C:\\\\Users\\\\albar\\\\OneDrive\\\\Desktop\\\\Munami\" status)",
+      "Bash(git -C \"C:\\\\Users\\\\albar\\\\OneDrive\\\\Desktop\\\\Munami\" diff --stat)",
+      "Bash(git -C \"C:\\\\Users\\\\albar\\\\OneDrive\\\\Desktop\\\\Munami\" log --oneline -3)"
     ]
   }
 }

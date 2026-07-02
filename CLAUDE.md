@@ -57,6 +57,41 @@ why in one sentence before installing.
 
 ---
 
+## Design identity
+
+These choices give منمّي a deliberate visual personality — not a template.
+
+**Typography**
+- **Space Grotesk** (Google Fonts, weights 300–700) is the app font. It has a
+  geometric, modern character that reads as "premium fintech" without feeling cold.
+  Loaded in `index.html`; set as `font-family` in `src/index.css`.
+- Hierarchy rule: **one dominant number per screen**. The number you came to see
+  (SPENT on Overview, Total Balance on Accounts, Level on Goals) is `text-4xl
+  font-bold`. Supporting figures (Income, Net, sub-items) are `text-sm font-semibold`
+  in a flanking row — visually subordinate.
+
+**Depth and texture** (Overview tab)
+- Page background uses `.bg-page-rich` (defined in `src/index.css`): base `#0E0E0E`
+  + a barely-visible mint gradient ellipse at the top + a 24px dot-grid texture.
+  Result: the screen reads as textured near-black, not flat. Apply to Overview's
+  scrollable div; other tabs stay plain `bg-page` for now.
+- Key cards use `.glow-mint`: a faint inset rim + depth shadow + a soft green ambient
+  halo. Applied to the donut chart card only — overuse would kill the effect.
+
+**Growth motif — `src/components/GrowthMark.jsx`**
+- A minimal two-leaf sprout SVG. منمّي means "the one who grows" — this mark is
+  the visual signature of that idea.
+- Currently used in the Copilot tab header (replaces the plain 🌱 emoji with a
+  proper brand mark). Can be added as a subtle watermark elsewhere if needed.
+- Color is passed via the `color` prop; default is `currentColor`.
+
+**Copy voice**
+- Warm and direct, like a smart friend — not a bank statement.
+- Copilot suggested-questions label: "What's on your mind?" (not "Suggested").
+- Keep AI messages in first person, casual: "You've got this." "Nice start."
+
+---
+
 ## Design system (use these EXACTLY)
 
 **Layout**

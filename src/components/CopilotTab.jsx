@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { motion } from 'motion/react'
+import GrowthMark from './GrowthMark'
 
 const MESSAGES = [
   {
@@ -79,15 +80,17 @@ export default function CopilotTab() {
   return (
     <>
       {/* ── Header ── */}
-      <div className="absolute top-0 left-0 right-0 z-10 h-14 flex items-center px-4 gap-3 bg-page border-b border-card-border">
-        <div className="w-9 h-9 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-lg shrink-0">
-          🌱
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-text text-sm font-semibold leading-none">منمّي</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <p className="text-muted text-[10px]">Online · Your financial copilot</p>
+      <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-4 pb-3.5 bg-page border-b border-card-border">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
+            <GrowthMark size={19} color="var(--color-primary)" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 leading-none">
+              <p className="text-text text-base font-bold">منمّي</p>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            </div>
+            <p className="text-muted text-[11px] mt-1">Your AI financial copilot</p>
           </div>
         </div>
       </div>
@@ -95,7 +98,7 @@ export default function CopilotTab() {
       {/* ── Message thread ── */}
       <div
         ref={scrollRef}
-        className="absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[72px] pb-[140px]"
+        className="absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[78px] pb-[140px]"
       >
         <div className="flex flex-col gap-3 py-2">
           {MESSAGES.map((msg, i) => (
@@ -133,7 +136,7 @@ export default function CopilotTab() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, delay: CHIPS_DELAY, ease: 'easeOut' }}
           >
-            <p className="text-muted text-[11px] px-1 mb-1">Suggested</p>
+            <p className="text-muted text-[11px] px-1 mb-1">What's on your mind?</p>
             {CHIPS.map((chip) => (
               <button
                 key={chip}
