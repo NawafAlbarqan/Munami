@@ -9,7 +9,7 @@ export default function PhoneFrame({ children }) {
         {/* Fixed-size, non-scrolling "screen" — its children (App's content
             area and bottom nav) handle their own scrolling/positioning so
             the nav can stay pinned while content scrolls behind it. */}
-        <div className="w-[400px] h-[min(844px,88vh)] rounded-[36px] overflow-hidden relative bg-page">
+        <div className="theme-warm w-[400px] h-[min(844px,88vh)] rounded-[36px] overflow-hidden relative bg-page">
           {children}
         </div>
       </div>

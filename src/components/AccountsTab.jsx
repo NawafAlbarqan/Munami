@@ -70,7 +70,7 @@ function BankCarousel({ accounts }) {
             className="h-1.5 rounded-full transition-all duration-200"
             style={{
               width: i === activeIdx ? '20px' : '6px',
-              backgroundColor: i === activeIdx ? acc.color : '#2A2A2A',
+              backgroundColor: i === activeIdx ? acc.color : 'var(--color-card-border)',
             }}
           />
         ))}
@@ -111,7 +111,7 @@ function FundBucket({ fund, index }) {
         </span>
       </div>
 
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#2A2A2A' }}>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: fund.color }}
@@ -184,18 +184,18 @@ export default function AccountsTab() {
 
       {/* ── Total balance hero ── */}
       <motion.div
-        className="pt-8 pb-6 text-center"
+        className="pt-6 pb-6 text-center"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
-          Total Balance
+          Your total balance
         </p>
-        <p className="text-text text-4xl font-bold tracking-tight">
+        <p className="text-text munami-hero">
           {formatSAR(animatedTotal)}
         </p>
-        <p className="text-muted text-xs mt-1.5">
+        <p className="text-muted text-xs mt-2">
           across {accountsData.accounts.length} accounts
         </p>
       </motion.div>

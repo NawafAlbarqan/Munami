@@ -75,7 +75,10 @@ export default function TransactionsTab({ rows }) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24">
-      <h1 className="text-text text-2xl font-bold mb-4 tracking-tight">Transactions</h1>
+      <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">Your activity</p>
+      <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Nunito', sans-serif", fontSize: 26 }}>
+        Every spend, tracked 🌱
+      </h1>
 
       {/* Search bar */}
       <input

@@ -1,6 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { motion } from 'motion/react'
 import GrowthMark from './GrowthMark'
+import MunamiMascot from './MunamiMascot'
 
 const MESSAGES = [
   {
@@ -90,7 +91,7 @@ export default function CopilotTab() {
               <p className="text-text text-base font-bold">منمّي</p>
               <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
             </div>
-            <p className="text-muted text-[11px] mt-1">Your AI financial copilot</p>
+            <p className="text-muted text-[11px] mt-1">Your money, growing 🌿</p>
           </div>
         </div>
       </div>
@@ -111,8 +112,8 @@ export default function CopilotTab() {
             >
               {/* منمّي avatar — only on AI messages */}
               {msg.role === 'ai' && (
-                <div className="w-7 h-7 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-xs shrink-0 mb-0.5">
-                  🌱
+                <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 mb-0.5 overflow-hidden">
+                  <MunamiMascot size={26} expression="happy" />
                 </div>
               )}
 

@@ -35,11 +35,11 @@ function XPRing() {
     <div className="flex flex-col items-center">
       <div className="relative">
         <svg width={CANVAS} height={CANVAS} viewBox={`0 0 ${CANVAS} ${CANVAS}`}>
-          {/* Track */}
+          {/* Track ring */}
           <circle
             cx={C} cy={C} r={R}
             fill="none"
-            stroke="#2A2A2A"
+            stroke="var(--color-card-border)"
             strokeWidth={STROKE}
           />
           {/* Progress arc — animates from empty to filled */}
@@ -59,7 +59,7 @@ function XPRing() {
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <p className="text-muted text-[10px] font-medium uppercase tracking-widest">Level</p>
-          <p className="text-text text-4xl font-bold leading-none">{LEVEL}</p>
+          <p className="text-text leading-none munami-hero">{LEVEL}</p>
         </div>
       </div>
       <p className="text-xs mt-1 tabular-nums text-muted">
@@ -169,6 +169,14 @@ export default function GoalsTab({ rows }) {
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-6 pb-24">
 
+      {/* ── Page header ── */}
+      <div className="mb-5">
+        <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">Your progress</p>
+        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Nunito', sans-serif", fontSize: 26 }}>
+          Keep growing 🌿
+        </h1>
+      </div>
+
       {/* ── XP / Level ── */}
       <div className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-4">
         <XPRing />
@@ -232,7 +240,7 @@ export default function GoalsTab({ rows }) {
                   </span>
                 </div>
 
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#2A2A2A' }}>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
                   <motion.div
                     className="h-full rounded-full"
                     style={{ backgroundColor: barColor }}
@@ -280,7 +288,7 @@ export default function GoalsTab({ rows }) {
                   </span>
                 </div>
 
-                <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: '#2A2A2A' }}>
+                <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--color-card-border)' }}>
                   <motion.div
                     className="h-full rounded-full bg-primary"
                     initial={{ width: 0 }}

@@ -147,7 +147,7 @@ function App() {
 
       <div
         dir={DIR}
-        className="theme-warm absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
+        className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* ── Mascot greeting ── */}

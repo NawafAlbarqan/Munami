@@ -54,32 +54,25 @@ export default function SpendingDonut({ data, total, cardBg }) {
     return acc
   }, [])
 
-  // Callouts for the largest slices only — the smallest are skipped so the
-  // ring doesn't get cluttered (the legend already covers every category).
-  const calloutCount = segments.length <= 3 ? segments.length : Math.min(4, segments.length - 1)
-  const calloutCategories = new Set(
-    [...segments]
-      .sort((a, b) => b.fraction - a.fraction)
-      .slice(0, calloutCount)
-      .map((s) => s.category),
-  )
-
+  // Callouts for every segment so no category goes unlabelled on the ring.
+  // Each pill uses the pure category color (matches the legend dot exactly, not
+  // the gradient blend on the arc). Multi-pass collision push keeps them apart.
   const callouts = []
-  let prevCenter = null
+  const placed = []
   for (const seg of segments) {
-    if (!calloutCategories.has(seg.category)) continue
+    if (seg.fraction < 0.02) continue // skip truly negligible slivers
     const anchor = polarToCartesian(seg.midAngle, RING_RADIUS + STROKE_WIDTH / 2)
     let labelRadius = LABEL_RADIUS
     let center = polarToCartesian(seg.midAngle, labelRadius)
-    // Cheap separation pass: if this pill would land on top of the previous
-    // one, push it further out along its own angle instead.
-    if (prevCenter && Math.hypot(center.x - prevCenter.x, center.y - prevCenter.y) < 46) {
-      labelRadius += 22
+    for (let attempt = 0; attempt < 8; attempt++) {
+      if (!placed.some((p) => Math.hypot(center.x - p.x, center.y - p.y) < 54)) break
+      labelRadius += 16
       center = polarToCartesian(seg.midAngle, labelRadius)
     }
-    center = { x: clamp(center.x, 34, CANVAS - 34), y: clamp(center.y, 18, CANVAS - 18) }
-    prevCenter = center
-    callouts.push({ ...seg, anchor, center })
+    center = { x: clamp(center.x, 32, CANVAS - 32), y: clamp(center.y, 16, CANVAS - 16) }
+    placed.push(center)
+    const catColor = themeColor(categoryColorVar(seg.category))
+    callouts.push({ ...seg, anchor, center, catColor })
   }
 
   const animatedTotal = useCountUp(total)
@@ -147,7 +140,7 @@ export default function SpendingDonut({ data, total, cardBg }) {
                 y1={c.anchor.y}
                 x2={c.center.x}
                 y2={c.center.y}
-                stroke={c.color}
+                stroke={c.catColor}
                 strokeOpacity={0.5}
                 strokeWidth={1.5}
               />
@@ -158,7 +151,7 @@ export default function SpendingDonut({ data, total, cardBg }) {
                 height={26}
                 rx={13}
                 fill={resolvedCardBg}
-                stroke={c.color}
+                stroke={c.catColor}
                 strokeWidth={1.5}
               />
               <text
@@ -168,7 +161,7 @@ export default function SpendingDonut({ data, total, cardBg }) {
                 dominantBaseline="central"
                 fontSize={14}
                 fontWeight={600}
-                fill={c.color}
+                fill={c.catColor}
               >
                 {Math.round(c.fraction * 100)}%
               </text>

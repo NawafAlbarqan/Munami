@@ -59,36 +59,47 @@ why in one sentence before installing.
 
 ## Design identity
 
-These choices give منمّي a deliberate visual personality — not a template.
+منمّي has a **warm, playful, characterful** personality — inspired by apps like
+Cleo that give their AI a real persona. Think "fun financial advisor", not
+"corporate bank portal." Premium and trustworthy, but sunny and approachable.
+
+**The mascot — `src/components/MunamiMascot.jsx`**
+- منمّي is a **friendly sprout character**: a round cream face with a two-leaf
+  stalk growing from the top. This ties to the name "the one who grows."
+- Three expressions: `happy` (default smile), `concerned` (worry brows + slight
+  frown), `celebrating` (squinting joy eyes + cheek blush + sparkle lines).
+- Expression is **derived from real spending data** in `App.jsx`: `concerned` if
+  spend ratio > 85% of income or 2+ categories trending up; `celebrating` if 2+
+  categories trending down; `happy` otherwise. Early-month mode always = `happy`.
+- Used at 54px in the Overview greeting, 26px in Copilot chat avatar bubbles,
+  and 28px (via GrowthMark) in the nav hero button.
+- Mascot verdict text appears as a pill below the hero number: "Crushing it 🌿",
+  "Let's reel it in", "9 days in — keep it up!" etc.
+
+**The growth mark — `src/components/GrowthMark.jsx`**
+- A minimal two-leaf sprout SVG (18×18 viewBox). Used as the brand icon where
+  the full mascot face is too large: nav hero button (cream on forest green),
+  copilot header avatar, the verdict pill in the Overview hero card.
+- Color via `color` prop; default is `currentColor`.
 
 **Typography**
-- **Space Grotesk** (Google Fonts, weights 300–700) is the app font. It has a
-  geometric, modern character that reads as "premium fintech" without feeling cold.
-  Loaded in `index.html`; set as `font-family` in `src/index.css`.
-- Hierarchy rule: **one dominant number per screen**. The number you came to see
-  (SPENT on Overview, Total Balance on Accounts, Level on Goals) is `text-4xl
-  font-bold`. Supporting figures (Income, Net, sub-items) are `text-sm font-semibold`
-  in a flanking row — visually subordinate.
-
-**Depth and texture** (Overview tab)
-- Page background uses `.bg-page-rich` (defined in `src/index.css`): base `#0E0E0E`
-  + a barely-visible mint gradient ellipse at the top + a 24px dot-grid texture.
-  Result: the screen reads as textured near-black, not flat. Apply to Overview's
-  scrollable div; other tabs stay plain `bg-page` for now.
-- Key cards use `.glow-mint`: a faint inset rim + depth shadow + a soft green ambient
-  halo. Applied to the donut chart card only — overuse would kill the effect.
-
-**Growth motif — `src/components/GrowthMark.jsx`**
-- A minimal two-leaf sprout SVG. منمّي means "the one who grows" — this mark is
-  the visual signature of that idea.
-- Currently used in the Copilot tab header (replaces the plain 🌱 emoji with a
-  proper brand mark). Can be added as a subtle watermark elsewhere if needed.
-- Color is passed via the `color` prop; default is `currentColor`.
+- **Nunito** (Google Fonts, weights 400/700/800/900) is the primary display font
+  — rounded, bold, friendly. Used for all headings, hero numbers, and the nav.
+- **DM Sans** is the secondary body font — clean and readable at small sizes.
+- **Space Grotesk** is still loaded but superseded by Nunito as the app's default.
+- `font-family` for the whole app is set via `.theme-warm` in `src/index.css`.
+- Hero numbers (the dominant number per screen) use `.munami-hero`: Nunito Black
+  900, 44px, letter-spacing -0.5px. Apply to: SPENT (Overview), Total Balance
+  (Accounts), Level (Goals).
+- Hierarchy: one dominant `.munami-hero` number per screen. Supporting figures
+  are `text-sm font-bold` in flanking rows — visually subordinate.
 
 **Copy voice**
-- Warm and direct, like a smart friend — not a bank statement.
+- Warm and direct, like a smart friend who is good with money — not a bank.
+- Tab headers use personality phrases: "Keep growing 🌿" (Goals), "Every spend,
+  tracked 🌱" (Transactions), "Your money, growing 🌿" (Copilot subtitle).
+- AI messages in first person, casual: "You've got this." "Nice start." "Done!"
 - Copilot suggested-questions label: "What's on your mind?" (not "Suggested").
-- Keep AI messages in first person, casual: "You've got this." "Nice start."
 
 ---
 
@@ -110,81 +121,86 @@ These choices give منمّي a deliberate visual personality — not a template
   the last card clears the nav. This is what keeps the nav pinned while
   content scrolls behind it — don't nest the nav inside the scrolling div
   or it will scroll away with the content.
-- Rounded cards, generous spacing, light and airy fintech feel.
+- Rounded cards, generous spacing, light and airy feel.
 
-**Colors — "Dark Premium" theme**
-- Page background (near-black charcoal): `#0E0E0E`
-- Secondary surface / tint: `#141414`
-- Card background (slightly lighter charcoal): `#1A1A1A`
-- Card border: `#2A2A2A` (subtle, no heavy shadows)
-- Primary accent / main identity color (buttons, active nav, main chart,
-  positive/spending-down): soft sage mint `#A8D5BA` (muted, not bright)
-- Caution (spending up / over budget): muted blush pink `#E8B4B8`
-- Rewards / XP / badges / secondary accent: warm butter yellow `#E8CF8E`
-- Primary text (off-white, not stark white): `#F5F5F5`
-- Muted text: `#9A9A9A`
-- Extra chart colors (not used elsewhere in the UI): dusty teal `#7FB8B0`,
-  soft lavender `#C4B5E0`
-- **Per-category colors (fixed, not positional)** — each merged category
-  always gets the same color everywhere (donut slice, legend dot, legend
-  percentage), via `CATEGORY_COLOR_VAR` in `src/lib/finance.js`:
-  - Shopping → `#A8D5BA` (mint)
-  - Bills & Transport → `#E8B4B8` (blush)
-  - Entertainment → `#E8CF8E` (butter)
-  - Food & Groceries → `#7FB8B0` (dusty teal)
-  - Other → `#C4B5E0` (soft lavender)
+**Colors — "Warm Playful" theme (THE OFFICIAL IDENTITY)**
 
-All colors live in **one place** — `src/index.css` as Tailwind `@theme` CSS
-variables — so changing the palette cascades everywhere. Never hardcode hex
-values directly in components; always use the theme color tokens.
+The warm theme is applied globally via `.theme-warm` on the PhoneFrame's inner
+screen div (`src/components/PhoneFrame.jsx`). All CSS variables cascade from
+there — every tab and the nav inherit it automatically.
 
-**Shape language — soft & rounded**
-- Cards: `border-radius: 20px`, charcoal `#1A1A1A` background, very subtle
-  `0.5px` border in `#2A2A2A`, no heavy shadows, generous padding (`p-4`–`p-5`).
-- Buttons: pill-shaped (fully rounded). Primary = mint accent.
+Root tokens (in `@theme` in `src/index.css`, overridden by `.theme-warm`):
+- Page background (warm cream): `#F6F1EA`
+- Secondary surface / tint (warm beige): `#EDE5D9`
+- Card background (white): `#FFFFFF`
+- Card border (warm sand): `#DDD3C4`
+- Primary accent / identity color (forest green): `#2D6A4A`
+- Positive / good spending (forest green): `#2D6A4A`
+- Caution / overspend (terracotta): `#B5472A`
+- Rewards / XP / butter gold: `#C87E1A`
+- Primary text (dark forest): `#1A2B1F`
+- Muted text (warm taupe): `#7B7568`
+
+**Per-category colors** — fixed, not positional. Same color for every category's
+donut slice, callout pill, and legend dot. Defined in `CATEGORY_COLOR_VAR` in
+`src/lib/finance.js`. These are NOT overridden by `.theme-warm` — they read
+from the root `@theme` and stay consistent:
+  - Shopping → `#A8D5BA` (mint, `--color-primary` root value)
+  - Bills & Transport → `#E8B4B8` (blush, `--color-caution` root value)
+  - Entertainment → `#E8CF8E` (butter, `--color-rewards` root value)
+  - Food & Groceries → `#7FB8B0` (dusty teal, `--color-teal`)
+  - Other → `#C4B5E0` (soft lavender, `--color-lavender`)
+
+IMPORTANT: `themeColor()` in components reads from `document.documentElement`,
+which returns the ROOT `@theme` values (dark theme tokens), not the `.theme-warm`
+overridden values. Tailwind classes like `text-primary`, `bg-card` DO cascade
+correctly. For components that call `themeColor()` and need the warm-theme UI
+color (not a category color), pass it as an explicit prop (e.g. `cardBg="#FFFFFF"`
+in `SpendingDonut`).
+
+**Shape language — soft, rounded, tactile**
+- Cards: `border-radius: 20–28px`, white background, subtle `0.5px` border in
+  `#DDD3C4`, faint green ambient shadow (`0 2px 16px rgba(45,106,74,0.08)`).
+- Hero card (Overview spent): `rounded-[28px]` with a slightly stronger green shadow.
+- Buttons: pill-shaped (fully rounded). Primary = forest green `#2D6A4A`.
 - Charts stay circular (donut, XP ring, badge circles).
-- **Donut chart** (`src/components/SpendingDonut.jsx`) is a hand-rolled SVG,
-  not a charting library — built from `<circle>` strokes, not pie wedges:
-  - Segments are **contiguous arcs with no gaps**, drawn in a fixed category
-    order (`CATEGORY_RING_ORDER` in `finance.js`: Shopping → Food & Groceries
-    → Bills & Transport → Entertainment → Other) so the color sequence
-    around the ring is always the same.
-  - Each segment's `linearGradient` runs from its own category color to the
-    **next** segment's category color (last segment blends back to the
-    first), so the ring reads as one continuous color that melts around —
-    not separate flat-colored wedges. `strokeLinecap="round"` softens the
-    seam between segments instead of a hard cut.
-  - Segment sizes are exact proportions of spend (`fraction = amount / total`);
-    drawn via `stroke-dasharray`/`stroke-dashoffset` math on a rotated
-    (`rotate(-90)`) circle so the ring starts at 12 o'clock and fills
-    clockwise.
-  - **Percentage callouts**: the top 3–4 slices by size (the smallest is
-    always skipped — the legend covers it) get a small pill (card-colored
-    fill, category-colored border + text) connected to the ring by a thin
-    leader line. Pill position is clamped to the canvas bounds and nudged
-    outward if it would collide with the previous callout, so labels never
-    get cut off or overlap on a phone-width screen.
-  - The ring **draws in on mount** by animating `strokeDashoffset` per
-    segment (Motion, staggered ~80ms apart, 600ms each) — an intentionally
-    longer "explanatory" animation (see the duration table in CLAUDE's
-    Motion convention), not a UI micro-interaction.
-- Generous padding and whitespace.
+- **Donut chart** (`src/components/SpendingDonut.jsx`) is a hand-rolled SVG:
+  - Segments in fixed `CATEGORY_RING_ORDER` (Shopping → Food → Bills → Entertainment
+    → Other); gradient from each segment's color to the next so the ring reads as
+    one continuous color melting around.
+  - **Percentage callouts**: ALL segments get a pill (card-white fill, category-colored
+    border + text) connected by a thin leader line. Color is explicitly derived as
+    `themeColor(categoryColorVar(seg.category))` — the same token as the legend dot,
+    so they always match. Multi-pass collision detection pushes overlapping pills
+    outward. Segments < 2% of total are skipped (truly negligible slivers).
+  - The legend below shows ALL categories with amount + % in the category color.
+  - The ring draws in on mount via `strokeDashoffset` animation (600ms staggered).
+- Track rings / progress bar backgrounds: use `var(--color-card-border)` (`#DDD3C4`
+  in warm theme), NOT hardcoded `#2A2A2A`. This is important — hardcoded dark hex
+  in track elements looks broken on the warm cream background.
+
+**Bottom nav — `src/components/BottomNav.jsx`**
+- Height: 72px, `overflow: visible` (hero button floats above).
+- **منمّي center tab**: a 56×56px forest-green circle raised 24px above the nav
+  line (`marginTop: -24`) containing a cream-colored `GrowthMark` icon. Active =
+  full `--color-primary` opacity; inactive = 72% opacity. Green ambient shadow.
+- **Regular tabs**: small SVG icon (18×18) + label. Active = icon and text in
+  `--color-primary` + a 20×3px primary pill indicator above the icon. Inactive =
+  muted color, no indicator.
+- Nav background: `bg-card` (white in warm theme). Border-top `border-card-border`.
 
 **Type**
-- Big, bold numbers as focal points (e.g. the donut's center total, header
-  totals) with a small muted **uppercase, letter-spaced** label above them
-  — never a stark-white-on-black look; text uses the off-white/muted tokens
-  above, which stay legible on the charcoal background without feeling harsh.
-- Clean modern sans-serif. Bold, confident headers.
-- The app is **bilingual-capable but currently defaults to English (LTR)**.
-  All UI strings go through `src/lib/i18n.js` (`t()`, `monthLabel()`,
-  `formatSAR()`) instead of being hardcoded in components, and `DIR` there
-  controls the page's `dir` attribute. To switch the default back to Arabic
-  later, change `LOCALE` in that one file — components don't need touching.
+- Nunito is the app's default font (set in `.theme-warm`). All headings,
+  hero numbers, and body copy inherit it from the `.theme-warm` root.
+- Page-level section headers follow the pattern:
+  - Muted tiny uppercase label: `text-muted text-xs font-medium uppercase tracking-widest`
+  - Bold heading below it: Nunito, 26px, `font-bold`, with a personality emoji.
+- The app is **bilingual-capable but defaults to English (LTR)**. All UI strings
+  go through `src/lib/i18n.js`. To switch to Arabic later, change `LOCALE` there.
 
-**Vibe:** dark, premium, soft contrast. Near-black charcoal base, slightly
-lighter charcoal cards, muted pastel accent pops (mint/blush/butter), lots of
-rounded circles (donut chart, XP ring, badge circles, progress dots).
+**Vibe:** warm cream base, white cards, forest green as the growth identity color,
+friendly rounded type, منمّي character presence throughout, tactile depth via
+subtle green shadows on hero cards.
 
 ---
 
@@ -197,19 +213,17 @@ and more visually prominent than the others.
 Bottom nav order, left → right:
 `Transactions | Goals | منمّي (center/hero) | Overview | Accounts`
 
-Build **ONE tab at a time**. Currently active: **Overview**. Do not build other
-tab contents yet — just keep the full 5-tab structure in mind so the nav and
-shared components (category colors, theme, phone frame) stay consistent.
+All five tabs are built and use the warm/playful identity consistently.
 
 ---
 
-### 1. Transactions (leftmost)
+### 1. Transactions (leftmost) ← **built**
 Full searchable, scrollable list of all transactions across every linked bank.
-Design TBD — build after Overview is complete.
+Warm header "Every spend, tracked 🌱", search bar, bank filter chips, grouped by date.
 
 ---
 
-### 2. Overview ← **currently building**
+### 2. Overview ← **built**
 The monthly spending snapshot.
 - Greeting bar (user name + month) + income / spent / net for the
   **selected** month (see month switcher below).
@@ -412,13 +426,13 @@ Don't build real bank integrations. Build against the local data files.
 
 - [x] Project scaffolded (React + Vite + Tailwind)
 - [x] Data files placed in /data
-- [x] **Overview tab** — spending donut + insight cards
+- [x] **Warm/playful design identity** — MunamiMascot, Nunito font, cream palette, warm theme global
+- [x] **Overview tab** — mascot greeting, hero card, donut + callouts, insight cards, month switcher
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
-- [x] **Accounts tab** — balance hero, bank carousel, fund buckets, + sheet
+- [x] **Accounts tab** — Nunito hero balance, bank carousel, fund buckets, + sheet
 - [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
-- [x] **منمّي / Copilot tab** — scripted demo chat, stagger-in animation, input bar
-- [ ] Goals tab — XP, streaks, budgets, badges
-- [ ] Accounts tab — balance aggregation, bank carousel, fund buckets
+- [x] **منمّي / Copilot tab** — scripted demo chat, MunamiMascot avatar, stagger-in, input bar
+- [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout
 - [ ] Mock "Connect bank" consent screen
 - [ ] Wire real AI (categorization + chat)
 - [ ] Demo polish + rehearsal
