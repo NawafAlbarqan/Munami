@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Claude Code local settings — may contain auto-recorded API keys from tool calls
+.claude/settings.local.json
+
 # Logs
 logs
 *.log

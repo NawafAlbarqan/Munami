@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import Papa from 'papaparse'
 import SpendingDonut from './components/SpendingDonut'
@@ -31,14 +31,25 @@ import {
   resolveMonthIncome,
   summarizePriorMonth,
 } from './lib/finance'
-import { phraseCategoryChange, phrasePace, phrasePriorMonthSummary } from './lib/aiCoach'
+import {
+  phraseCategoryChange,
+  phrasePace,
+  phrasePriorMonthSummary,
+  fetchInsightPhrases,
+} from './lib/aiCoach'
 import { t, monthLabel, monthYearLabel, categoryName, formatSAR, dir } from './lib/i18n'
+import accountsData from '../data/munami_accounts.json'
 
 function App() {
   const { locale } = useLocale()
   const [rows, setRows] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
+
+  // AI-phrased insight cards — cached by "month+locale" so we don't re-fetch on every render
+  const [aiCards, setAiCards] = useState([])
+  const [insightsLoading, setInsightsLoading] = useState(false)
+  const phraseCache = useRef({})  // { "2026-06+en": [text, text, text] }
 
   useEffect(() => {
     Papa.parse('/data/munami_transactions.csv', {
@@ -60,6 +71,7 @@ function App() {
   const canGoNext = monthIndex >= 0 && monthIndex < months.length - 1
 
   const monthDebits = debits.filter((r) => monthKey(r.date) === activeMonth)
+  const spendByCategory = useMemo(() => groupByCategory(monthDebits), [monthDebits])
 
   const { income, isCarriedOver, incomeMonth } = resolveMonthIncome(credits, activeMonth)
   const spent = sumAmount(monthDebits)
@@ -72,20 +84,24 @@ function App() {
   const earlyMonth = rows.length > 0 && isEarlyMonth(rows, activeMonth)
   const daysElapsed = daysWithDataInMonth(debits, activeMonth)
 
-  let cards
+  // ── Build base cards (template fallback text) ─────────────────────────────
+  let baseChanges = []   // raw changes, used to fetch AI phrases
+  let baseCards = []
+
   if (rows.length === 0) {
-    cards = []
+    baseCards = []
   } else if (earlyMonth) {
-    cards = []
     const projectedSpend = Math.round((spent / (daysElapsed || 1)) * daysInMonth(activeMonth))
-    cards.push({
-      icon: '📈',
-      accent: 'rewards',
-      text: phrasePace(locale, { daysElapsed, spentSoFar: Math.round(spent), projectedSpend }),
-    })
+    baseCards = [
+      {
+        icon: '📈',
+        accent: 'rewards',
+        text: phrasePace(locale, { daysElapsed, spentSoFar: Math.round(spent), projectedSpend }),
+      },
+    ]
     const summary = summarizePriorMonth(debits, activeMonth)
     if (summary) {
-      cards.push({
+      baseCards.push({
         icon: isGood(summary.direction) ? '✅' : '⚠️',
         accent: isGood(summary.direction) ? 'positive' : 'caution',
         text: phrasePriorMonthSummary(locale, {
@@ -98,7 +114,8 @@ function App() {
     }
   } else {
     const changes = computeCategoryChanges(debits, activeMonth)
-    cards = topChanges(changes, 3).map((change) => ({
+    baseChanges = topChanges(changes, 3)
+    baseCards = baseChanges.map((change) => ({
       icon: isGood(change.direction) ? '✅' : '⚠️',
       category: categoryName(locale, change.category),
       arrow: change.direction === 'down' ? '▼' : '▲',
@@ -108,7 +125,62 @@ function App() {
     }))
   }
 
-  // Mascot expression derived from current month's spend health
+  // ── Fetch AI-phrased insight text (only for normal category cards) ─────────
+  useEffect(() => {
+    if (!baseChanges.length || earlyMonth) {
+      setAiCards([])
+      return
+    }
+    const cacheKey = `${activeMonth}+${locale}`
+    if (phraseCache.current[cacheKey]) {
+      setAiCards(phraseCache.current[cacheKey])
+      return
+    }
+    setInsightsLoading(true)
+    fetchInsightPhrases(locale, baseChanges).then((phrases) => {
+      const updated = baseCards.map((card, i) => ({ ...card, text: phrases[i] ?? card.text }))
+      phraseCache.current[cacheKey] = updated
+      setAiCards(updated)
+      setInsightsLoading(false)
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMonth, locale, rows.length])
+
+  // Use AI cards when available, fall back to template cards
+  const cards = aiCards.length ? aiCards : baseCards
+
+  // ── Financial context for the Copilot chat ────────────────────────────────
+  const financialContext = useMemo(() => {
+    if (!rows.length) return null
+    return {
+      totalBalance: accountsData.total_balance_sar,
+      accounts: accountsData.accounts.map((a) => ({ bank: a.bank, balance: a.balance_sar })),
+      month: monthYearLabel(locale, activeMonth) || 'current month',
+      spent: Math.round(spent),
+      income,
+      daysElapsed,
+      isEarlyMonth: earlyMonth,
+      topCategories: chartData.slice(0, 4).map((d) => ({
+        category: d.category,
+        amount: d.amount,
+        pct: spent > 0 ? Math.round((d.amount / spent) * 100) : 0,
+      })),
+      budgets: [
+        { category: 'Shopping', limit: 2000, spent: Math.round(spendByCategory['Shopping'] || 0) },
+        { category: 'Food & Groceries', limit: 1500, spent: Math.round(spendByCategory['Food & Groceries'] || 0) },
+        { category: 'Entertainment', limit: 800, spent: Math.round(spendByCategory['Entertainment'] || 0) },
+      ],
+      goals: {
+        emergencyFund: { current: 6000, target: 15000 },
+        level: 7,
+        xpCurrent: 2340,
+        xpMax: 3000,
+        streak: 7,
+      },
+    }
+  }, [rows, spent, income, daysElapsed, earlyMonth, activeMonth, chartData, spendByCategory, locale])
+
+  // ── Mascot expression ─────────────────────────────────────────────────────
   const spendRatio = income > 0 ? spent / income : 0
   const goodCount = cards.filter((c) => c.accent === 'positive').length
   const badCount = cards.filter((c) => c.accent === 'caution').length
@@ -128,14 +200,13 @@ function App() {
   const appDir = dir(locale)
 
   return (
-    // Wrapper applies RTL/LTR direction to all tabs uniformly
     <div dir={appDir} className="absolute inset-0">
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <GoalsTab rows={rows} />}
-      {activeTab === 'copilot' && <CopilotTab />}
+      {activeTab === 'copilot' && <CopilotTab financialContext={financialContext} />}
       {activeTab === 'accounts' && <AccountsTab />}
 
-      {/* Overview tab — always mounted, hidden via display:none when inactive */}
+      {/* Overview tab */}
       <div
         className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
@@ -190,7 +261,6 @@ function App() {
             </p>
             <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
 
-            {/* منمّي's verdict pill */}
             <div
               className="inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
               style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
@@ -199,7 +269,6 @@ function App() {
               <span className="text-primary text-xs font-semibold">{mascotVerdict}</span>
             </div>
 
-            {/* Income + Left over */}
             <div className="flex pt-4 border-t border-card-border">
               <div className="text-center flex-1">
                 <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
@@ -257,7 +326,10 @@ function App() {
             transition={{ duration: 0.15, ease: 'easeOut' }}
             className="flex flex-col gap-3"
           >
-            {cards.map((card, i) => (
+            {insightsLoading && !aiCards.length && baseCards.map((card, i) => (
+              <InsightCard key={i} index={i} {...card} loading />
+            ))}
+            {(!insightsLoading || aiCards.length > 0) && cards.map((card, i) => (
               <InsightCard key={i} index={i} {...card} />
             ))}
           </motion.div>

@@ -422,6 +422,49 @@ Don't build real bank integrations. Build against the local data files.
 
 ---
 
+## AI integration
+
+**Provider**: Google Gemini (`@google/generative-ai` SDK), model `gemini-2.0-flash-lite`.
+
+**Security pattern — why a backend server?**
+The API key lives ONLY in `.env` on the Express server (`server.js`, port 3001).
+The React app never talks to Gemini directly — it calls `/api/*` on our own server,
+which the Vite proxy forwards to Express. If the key were in the React code it would
+be visible to anyone in DevTools → Network. Server-side = invisible to the browser.
+
+**Key file**: `.env` at the project root. NEVER commit it — it's in `.gitignore`.
+```
+GEMINI_API_KEY=your_key_here
+VITE_USE_AI=true   ← set to false to fall back to scripted responses instantly
+PORT=3001
+```
+
+**Backend routes** (`server.js`):
+- `POST /api/insights` — takes pre-computed category changes, returns AI-phrased sentences
+- `POST /api/chat` — takes conversation history + compact financial context, returns reply
+- `POST /api/categorize` — takes raw merchant string, returns one of our 5 categories
+
+**Safety switch**: Set `VITE_USE_AI=false` in `.env` and restart — the entire AI
+system shuts off instantly and falls back to scripted responses. Use this if the API
+is unstable right before a demo. No code change needed.
+
+**Fallback chain**:
+1. If `VITE_USE_AI=false` → scripted responses (always)
+2. If API call fails → template strings / scripted fallback (graceful, no error shown)
+3. If AI returns fewer phrases than expected → template fills the gap
+
+**Running locally**:
+```
+npm run dev    # starts both Express (:3001) and Vite (:5173) via concurrently
+```
+
+**Getting a working API key**:
+Go to https://aistudio.google.com → Get API Key → Create API key in new project.
+The free tier gives 15 requests/minute for Flash models — plenty for a demo.
+Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
+
+---
+
 ## Current status
 
 - [x] Project scaffolded (React + Vite + Tailwind)
@@ -431,10 +474,11 @@ Don't build real bank integrations. Build against the local data files.
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
 - [x] **Accounts tab** — Nunito hero balance, bank carousel, fund buckets, + sheet
 - [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
-- [x] **منمّي / Copilot tab** — scripted demo chat, MunamiMascot avatar, stagger-in, input bar
+- [x] **منمّي / Copilot tab** — real AI chat with context, live categorization demo, scripted fallback
 - [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout
+- [x] **EN/AR bilingual** — full RTL support, Noto Sans Arabic, language toggle
+- [x] **AI backend** — Express server, Gemini wired, security pattern, fallback switch
 - [ ] Mock "Connect bank" consent screen
-- [ ] Wire real AI (categorization + chat)
 - [ ] Demo polish + rehearsal
 
 Update this checklist as we go.
