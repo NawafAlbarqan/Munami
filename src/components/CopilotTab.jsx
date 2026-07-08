@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import GrowthMark from './GrowthMark'
 import MunamiMascot from './MunamiMascot'
 import { useLocale } from '../lib/LocaleContext'
-import { t, formatSAR } from '../lib/i18n'
+import { t } from '../lib/i18n'
 
 const USE_AI = import.meta.env.VITE_USE_AI === 'true'
 
@@ -15,17 +15,28 @@ const CATEGORY_EMOJI = {
   'Other': '📦',
 }
 
-// Builds a short dynamic greeting using real financial context
-function buildGreeting(locale, context) {
-  if (!context) {
-    return locale === 'ar'
-      ? 'مرحباً! 👋 جارِ تحميل بياناتك... 🌱'
-      : 'Hey! 👋 Loading your finances... 🌱'
-  }
-  if (locale === 'ar') {
-    return `مرحباً أحمد! 👋 رصيدك الإجمالي ${formatSAR(context.totalBalance)} عبر ${context.accounts.length} بنوك. هذا الشهر أنفقت ${formatSAR(context.spent)} حتى الآن. ما الذي تودّ معرفته؟ 🌱`
-  }
-  return `Hey Ahmed! 👋 You've got ${formatSAR(context.totalBalance)} across ${context.accounts.length} banks. This month you've spent ${formatSAR(context.spent)} so far. What would you like to know? 🌱`
+// Randomized casual greetings — one picked at random each time the chat opens
+const GREETINGS_AR = [
+  'يالله حياك، كيف أقدر أخدمك اليوم؟',
+  'يا مرحبا 🌱',
+  'سم',
+  'اهلين، وش عندك؟',
+  'حياك، تبي تشوف وضعك المالي؟',
+  'هلا هلا، جاهز أساعدك',
+]
+
+const GREETINGS_EN = [
+  "Hey, what's up?",
+  "Yo, how's it going?",
+  "Hey! What do you need?",
+  "Sup 🌱",
+  "Hey hey, what's on your mind?",
+  "Hi! Ready when you are.",
+]
+
+function pickRandomGreeting(locale) {
+  const pool = locale === 'ar' ? GREETINGS_AR : GREETINGS_EN
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
 // Detect if the user is asking to categorize a merchant or transaction
@@ -79,20 +90,20 @@ export default function CopilotTab({ financialContext }) {
   const inputRef = useRef(null)
 
   const [messages, setMessages] = useState([
-    { role: 'ai', content: buildGreeting(locale, financialContext) },
+    { role: 'ai', content: pickRandomGreeting(locale) },
   ])
   const [input, setInput] = useState('')
   const [isThinking, setIsThinking] = useState(false)
 
-  // Update greeting when financial context loads or locale changes (only if still at greeting)
+  // On locale switch, swap greeting to the new language (only if still at the opening message)
   useEffect(() => {
     setMessages((prev) => {
       if (prev.length === 1 && prev[0].role === 'ai') {
-        return [{ role: 'ai', content: buildGreeting(locale, financialContext) }]
+        return [{ role: 'ai', content: pickRandomGreeting(locale) }]
       }
       return prev
     })
-  }, [financialContext, locale])
+  }, [locale])
 
   // Auto-scroll to bottom when messages or thinking state changes
   useEffect(() => {
