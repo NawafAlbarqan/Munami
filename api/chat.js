@@ -19,9 +19,14 @@ ${(context.accounts || []).map((a) => `  · ${a.bank}: SAR ${a.balance?.toLocale
 - Top spending categories: ${(context.topCategories || []).map((c) => `${c.category} ${c.pct}%`).join(', ')}
 - Budgets: ${(context.budgets || []).map((b) => `${b.category} SAR ${b.spent}/${b.limit}`).join(', ')}
 - Emergency Fund: SAR ${context.goals?.emergencyFund?.current?.toLocaleString()} / SAR ${context.goals?.emergencyFund?.target?.toLocaleString()} goal
-- Level ${context.goals?.level}, ${context.goals?.xpCurrent} XP, ${context.goals?.streak}-day streak` : ''
+- Level ${context.goals?.level}, ${context.goals?.xpCurrent} XP, ${context.goals?.streak}-day streak
+- Average monthly spend (full months only): SAR ${context.avgMonthlySpend?.toLocaleString()}
+- Highest spending month: ${context.highestMonth?.month} — SAR ${context.highestMonth?.spend?.toLocaleString()}
+- Lowest spending month: ${context.lowestMonth?.month} — SAR ${context.lowestMonth?.spend?.toLocaleString()}
+- Monthly history (${context.monthlyHistory?.length} months, YYYY-MM format):
+${(context.monthlyHistory || []).map((m) => `  ${m.month}: spent SAR ${m.spend?.toLocaleString()}, income SAR ${m.income?.toLocaleString()}`).join('\n')}` : ''
 
-  const systemPrompt = `You are منمّي (pronounced "Munami"), a warm, friendly Saudi personal finance assistant — like a smart friend who is great with money. Speak in ${lang}. Be casual and encouraging, not corporate. Use 🌱 occasionally but not every message. Keep replies to 2-4 short sentences — this is a chat bubble, not an essay. Answer ONLY from the financial data provided below. If something is not in the data, say you don't have that info yet rather than guessing.
+  const systemPrompt = `You are منمّي (pronounced "Munami"), a warm, friendly Saudi personal finance assistant — like a smart friend who is great with money. Speak in ${lang}. Be casual and encouraging, not corporate. Use 🌱 occasionally but not every message. Keep replies to 2-4 short sentences — this is a chat bubble, not an essay. Answer ONLY from the financial data provided below — you have the user's full spending history across all months, so you CAN answer questions like "highest spending month", "average spend", or "how does this month compare". Never guess or invent numbers not in the data.
 ${contextBlock}`
 
   const history = messages.slice(0, -1).map((m) => ({

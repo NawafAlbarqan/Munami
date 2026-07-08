@@ -152,6 +152,29 @@ function App() {
   // ── Financial context for the Copilot chat ────────────────────────────────
   const financialContext = useMemo(() => {
     if (!rows.length) return null
+
+    // Precompute monthly totals for all months — AI reads these, never the raw CSV
+    const allDebits = applyCategoryMap(getDebits(rows))
+    const allCredits = getCredits(rows)
+    const allMonths = listMonths(rows)
+
+    const monthlyHistory = allMonths.map((m) => {
+      const mDebits = allDebits.filter((r) => monthKey(r.date) === m)
+      const mCredits = allCredits.filter((r) => monthKey(r.date) === m)
+      return {
+        month: m,
+        spend: Math.round(sumAmount(mDebits)),
+        income: Math.round(sumAmount(mCredits)),
+      }
+    })
+
+    // Full (non-partial) months only for averages and extremes
+    const fullMonthHistory = monthlyHistory.filter((mh) => !isEarlyMonth(rows, mh.month))
+    const avgMonthlySpend = fullMonthHistory.length
+      ? Math.round(fullMonthHistory.reduce((s, m) => s + m.spend, 0) / fullMonthHistory.length)
+      : 0
+    const sortedBySpend = [...fullMonthHistory].sort((a, b) => b.spend - a.spend)
+
     return {
       totalBalance: accountsData.total_balance_sar,
       accounts: accountsData.accounts.map((a) => ({ bank: a.bank, balance: a.balance_sar })),
@@ -177,6 +200,11 @@ function App() {
         xpMax: 3000,
         streak: 7,
       },
+      // Full spending history across all months in the dataset
+      monthlyHistory,
+      avgMonthlySpend,
+      highestMonth: sortedBySpend[0] || null,
+      lowestMonth: sortedBySpend[sortedBySpend.length - 1] || null,
     }
   }, [rows, spent, income, daysElapsed, earlyMonth, activeMonth, chartData, spendByCategory, locale])
 

@@ -321,6 +321,11 @@ Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful 
   right-aligned (white card bg). Messages animate in on send (not on mount).
 - **"Ask منمّي..." input bar**: pinned above the bottom nav, fully functional.
   Sends to `/api/chat` with the full message history + financial context object.
+  The context includes the **full monthly history** (spend + income for every month
+  in the dataset, precomputed in `App.jsx`), plus average monthly spend, highest
+  and lowest spending months. This lets منمّي answer historical questions ("highest
+  spending month", "how does this month compare", "my average") using real data.
+  Code computes all aggregates; the AI only reads finished numbers, never raw rows.
 - **Conversational categorization**: if the user asks "what category is X?" or
   "categorize STARBUCKS RIYADH SA", `isCategoryQuestion()` detects the intent,
   extracts the merchant via `extractMerchant()`, calls `/api/categorize`, and
