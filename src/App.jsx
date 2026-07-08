@@ -177,7 +177,10 @@ function App() {
 
     return {
       totalBalance: accountsData.total_balance_sar,
+      unallocated: accountsData.unallocated_sar,
+      allocated: accountsData.allocated_sar,
       accounts: accountsData.accounts.map((a) => ({ bank: a.bank, balance: a.balance_sar })),
+      funds: accountsData.funds.map((f) => ({ name: f.name, balance: f.balance_sar, target: f.target_sar })),
       month: monthYearLabel(locale, activeMonth) || 'current month',
       spent: Math.round(spent),
       income,
