@@ -311,16 +311,25 @@ demo deterministic regardless of when it's actually run.
 ### 3. منمّي / Copilot (CENTER — the hero tab, the app's centerpiece)
 The AI financial advisor chat. This is the **main tab** and should feel like
 the heart of the app. Visually emphasized in the nav (slightly larger icon/label).
-Lives in `src/components/CopilotTab.jsx`. Currently uses a **scripted demo
-conversation** (real LLM wired later — swap in `CopilotTab.jsx`).
+Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful fallback.
 
-- **Header**: منمّي name + 🌱 avatar + "Online" dot, pinned at top.
-- **Chat thread**: 10-message scripted exchange referencing real user data
-  (SAR 47,851 balance, 3 banks, June spend, emergency fund at 40%). Messages
-  stagger-in on mount (Motion, 120ms apart). منمّي bubbles: left-aligned,
-  mint-tinted bg. User bubbles: right-aligned, dark card bg.
-- **Suggested chips**: 3 follow-up questions appear after the last AI message.
-- **"Ask منمّي..." input bar**: pinned above the bottom nav, visual-only for now.
+- **Header**: منمّي name + 🌱 avatar + "AI" / "Demo" status dot, pinned at top.
+- **Chat opens with only the greeting**: a single منمّي bubble built from real
+  financial data (`buildGreeting()`) — total balance, bank count, month spend.
+  No pre-seeded messages. No suggested chips. Clean slate, ready for input.
+- **Chat thread**: منمّي bubbles left-aligned (mint-tinted bg), user bubbles
+  right-aligned (white card bg). Messages animate in on send (not on mount).
+- **"Ask منمّي..." input bar**: pinned above the bottom nav, fully functional.
+  Sends to `/api/chat` with the full message history + financial context object.
+- **Conversational categorization**: if the user asks "what category is X?" or
+  "categorize STARBUCKS RIYADH SA", `isCategoryQuestion()` detects the intent,
+  extracts the merchant via `extractMerchant()`, calls `/api/categorize`, and
+  replies in the normal chat bubble with the category + emoji. No separate panel.
+- **Thinking bubble**: three-dot pulse animation shown while waiting for AI reply.
+- **Fallback chain**:
+  1. `VITE_USE_AI=false` → friendly "demo mode" message, no API call at all
+  2. API call fails → friendly error message in chat bubble
+- **No `CategorizationDemo` widget, no scripted conversation, no suggestion chips.**
 
 ---
 
