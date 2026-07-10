@@ -3,13 +3,13 @@
 // none of these colors are part of the app's own design system (see CLAUDE.md).
 export default function PhoneFrame({ children }) {
   return (
-    <div className="h-screen w-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#1C1C1E' }}>
+    <div className="w-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#1C1C1E', height: '100dvh' }}>
       <div className="relative bg-neutral-950 rounded-[48px] p-3 shadow-2xl">
         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-6 bg-neutral-950 rounded-full z-10" />
         {/* Fixed-size, non-scrolling "screen" — its children (App's content
             area and bottom nav) handle their own scrolling/positioning so
             the nav can stay pinned while content scrolls behind it. */}
-        <div className="theme-warm w-[400px] h-[min(844px,88vh)] rounded-[36px] overflow-hidden relative bg-page">
+        <div className="theme-warm w-[400px] rounded-[36px] overflow-hidden relative bg-page" style={{ height: 'min(844px, 88dvh)' }}>
           {children}
         </div>
       </div>
