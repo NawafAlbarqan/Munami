@@ -216,8 +216,8 @@ export default function AccountsTab() {
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <div
-          className="bg-card border border-card-border rounded-[28px] px-6 py-7 text-center"
-          style={{ boxShadow: '0 2px 24px rgba(45,106,74,0.10)' }}
+          className="border border-card-border rounded-[28px] px-6 py-7 text-center"
+          style={{ background: 'linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%)', boxShadow: '0 2px 24px rgba(45,106,74,0.12)' }}
         >
           <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-3">
             {t(locale, 'yourTotalBalance')}

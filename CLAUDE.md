@@ -83,13 +83,14 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 - Color via `color` prop; default is `currentColor`.
 
 **Typography**
-- **Nunito** (Google Fonts, weights 400/700/800/900) is the primary display font
-  — rounded, bold, friendly. Used for all headings, hero numbers, and the nav.
+- **Space Grotesk** (Google Fonts, weights 400–700) is the primary display font
+  — geometric, distinctive, characterful at large sizes. Used for all headings,
+  hero numbers, and the nav.
 - **DM Sans** is the secondary body font — clean and readable at small sizes.
-- **Space Grotesk** is still loaded but superseded by Nunito as the app's default.
+- **Nunito** has been replaced by Space Grotesk and is no longer loaded.
 - `font-family` for the whole app is set via `.theme-warm` in `src/index.css`.
-- Hero numbers (the dominant number per screen) use `.munami-hero`: Nunito Black
-  900, 44px, letter-spacing -0.5px. Apply to: SPENT (Overview), Total Balance
+- Hero numbers (the dominant number per screen) use `.munami-hero`: Space Grotesk
+  700, 44px, letter-spacing -1px. Apply to: SPENT (Overview), Total Balance
   (Accounts), Level (Goals).
 - Hierarchy: one dominant `.munami-hero` number per screen. Supporting figures
   are `text-sm font-bold` in flanking rows — visually subordinate.
@@ -199,11 +200,11 @@ in `SpendingDonut`).
 - Nav background: `bg-card` (white in warm theme). Border-top `border-card-border`.
 
 **Type**
-- Nunito is the app's default font (set in `.theme-warm`). All headings,
+- Space Grotesk is the app's default font (set in `.theme-warm`). All headings,
   hero numbers, and body copy inherit it from the `.theme-warm` root.
 - Page-level section headers follow the pattern:
   - Muted tiny uppercase label: `text-muted text-xs font-medium uppercase tracking-widest`
-  - Bold heading below it: Nunito, 26px, `font-bold`, with a personality emoji.
+  - Bold heading below it: Space Grotesk, 26px, `font-bold`, with a personality emoji.
 - The app is **bilingual (EN/AR)**. All UI strings go through `src/lib/i18n.js`.
   Language switching is via the **Settings screen** (hamburger icon → top-right corner,
   present on all tabs). The old floating EN/AR pill (`LanguageToggle.jsx`) is removed —
@@ -212,9 +213,15 @@ in `SpendingDonut`).
   (placeholder: Ahmed), the language segmented control, and placeholder rows for
   Notifications / Linked Accounts / About (dimmed, `comingSoon` label, non-functional).
 
-**Vibe:** warm cream base, white cards, forest green as the growth identity color,
-friendly rounded type, منمّي character presence throughout, tactile depth via
-subtle green shadows on hero cards.
+**Hero card gradients** — the three main hero cards (Overview spent, Accounts
+total balance, Goals XP/level) use `linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%)`
+instead of flat white. Subtle white→pale-mint sweep that adds premium depth without
+changing the colour identity. Applied via inline `style` (not a Tailwind class) so it
+can coexist with the `border` and `rounded-[28px]` classes.
+
+**Vibe:** warm cream base, gradient-tinted hero cards, forest green as the growth
+identity color, Space Grotesk geometric type, منمّي character presence throughout,
+tactile depth via subtle green shadows on hero cards.
 
 ---
 
@@ -502,10 +509,10 @@ Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
 
 - [x] Project scaffolded (React + Vite + Tailwind)
 - [x] Data files placed in /data
-- [x] **Warm/playful design identity** — MunamiMascot, Nunito font, cream palette, warm theme global
+- [x] **Warm/playful design identity** — MunamiMascot, Space Grotesk font, cream palette, gradient hero cards, warm theme global
 - [x] **Overview tab** — mascot greeting, hero card, donut + callouts, insight cards, month switcher
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
-- [x] **Accounts tab** — Nunito hero balance, bank carousel, fund buckets, + sheet
+- [x] **Accounts tab** — Space Grotesk hero balance, bank carousel, fund buckets, + sheet
 - [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
 - [x] **منمّي / Copilot tab** — real AI chat with context, live categorization demo, scripted fallback
 - [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout

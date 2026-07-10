@@ -79,20 +79,20 @@ body {
   --color-text: #1A2B1F;
   --color-muted: #7B7568;
   --color-rewards: #C87E1A;
-  font-family: 'Nunito', 'DM Sans', ui-sans-serif, sans-serif;
+  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;
 }
 
-/* Hero number — Nunito Black / Noto Sans Arabic Black, very large. */
+/* Hero number — Space Grotesk Bold / Noto Sans Arabic Black, very large. */
 .munami-hero {
-  font-family: 'Nunito', 'Noto Sans Arabic', sans-serif;
+  font-family: 'Space Grotesk', 'Noto Sans Arabic', sans-serif;
   font-size: 44px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
+  font-weight: 700;
+  letter-spacing: -1px;
   line-height: 1;
 }
 
 /* RTL mode: switch to Noto Sans Arabic as the primary font */
 .theme-warm[dir="rtl"],
 .theme-warm [dir="rtl"] {
-  font-family: 'Noto Sans Arabic', 'Nunito', ui-sans-serif, sans-serif;
+  font-family: 'Noto Sans Arabic', 'Space Grotesk', ui-sans-serif, sans-serif;
 }

@@ -285,8 +285,8 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="bg-card border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
-            style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.08)' }}
+            className="border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
+            style={{ background: 'linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%)', boxShadow: '0 2px 16px rgba(45,106,74,0.10)' }}
           >
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
               {t(locale, 'youveSpent')}
