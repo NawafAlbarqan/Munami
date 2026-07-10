@@ -161,14 +161,14 @@ export default function GoalsTab({ rows }) {
   const BADGES = getBadges(locale)
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 44 }}>
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
 
       {/* ── Page header ── */}
       <div className="mb-5">
         <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">
           {t(locale, 'goalsSubtitle')}
         </p>
-        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Nunito', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
+        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
           {t(locale, 'goalsHeader')}
         </h1>
       </div>

@@ -29,9 +29,10 @@ function TargetIcon(props) {
 function DonutIcon(props) {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" {...props}>
-      <circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="9" cy="9" r="3.8" fill="var(--color-page)" />
-      <path d="M9 1.5A7.5 7.5 0 0 1 16.5 9H9V1.5Z" fill="currentColor" />
+      <circle cx="9" cy="9" r="5.65" stroke="currentColor" strokeWidth="3.7" opacity="0.45" />
+      {/* Quarter wedge drawn as a true annular sector — no background-colored
+          masking circle, so the icon sits cleanly on any fill behind it. */}
+      <path d="M 9 1.5 A 7.5 7.5 0 0 1 16.5 9 L 12.8 9 A 3.8 3.8 0 0 0 9 5.2 Z" fill="currentColor" />
     </svg>
   )
 }
@@ -58,8 +59,15 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
   const { locale } = useLocale()
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-10 flex items-end bg-card border-t-[0.5px] border-card-border"
-      style={{ height: 72, overflow: 'visible' }}
+      className="absolute bottom-0 left-0 right-0 z-10 flex items-end border-t-[0.5px] border-card-border"
+      style={{
+        height: 74,
+        overflow: 'visible',
+        // Soft white→cream vertical sweep so the bar reads as a designed
+        // surface, not a flat default strip.
+        background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%)',
+        boxShadow: '0 -6px 24px rgba(45,106,74,0.07)',
+      }}
     >
       {TABS.map((tab) => {
         const isActive = tab.key === active
@@ -73,21 +81,25 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               className="flex-1 flex flex-col items-center pb-2 gap-0.5"
               style={{ overflow: 'visible', marginBottom: 0 }}
             >
-              {/* Raised circle — floats up above the nav line */}
+              {/* Raised circle — floats up above the nav line. Cream ring makes
+                  it read as a cut-out floating button; gradient adds depth. */}
               <div
-                className="w-[56px] h-[56px] rounded-full flex items-center justify-center transition-all duration-200"
+                className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
-                  backgroundColor: isActive ? 'var(--color-primary)' : 'rgba(45,106,74,0.72)',
+                  background: 'linear-gradient(145deg, #3E8560 0%, #2D6A4A 58%, #24583D 100%)',
+                  border: '3px solid #FFFDF8',
+                  opacity: isActive ? 1 : 0.88,
+                  transform: isActive ? 'scale(1.04)' : 'scale(1)',
                   boxShadow: isActive
-                    ? '0 -2px 20px rgba(45,106,74,0.35), 0 4px 16px rgba(45,106,74,0.25)'
-                    : '0 -2px 12px rgba(45,106,74,0.18), 0 4px 10px rgba(45,106,74,0.15)',
-                  marginTop: -24,
+                    ? '0 -2px 24px rgba(45,106,74,0.40), 0 6px 18px rgba(45,106,74,0.30), inset 0 1px 0 rgba(255,255,255,0.25)'
+                    : '0 -2px 12px rgba(45,106,74,0.20), 0 4px 10px rgba(45,106,74,0.16), inset 0 1px 0 rgba(255,255,255,0.18)',
+                  marginTop: -26,
                 }}
               >
-                <GrowthMark size={22} color="#FFFDF8" />
+                <GrowthMark size={23} color="#FFFDF8" />
               </div>
               <span
-                className="text-[9px] font-bold leading-none"
+                className="text-[9px] font-bold leading-none transition-colors duration-200"
                 style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-muted)' }}
               >
                 منمّي
@@ -103,26 +115,35 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
             type="button"
             onClick={() => onTabChange?.(tab.key)}
             className="flex-1 flex flex-col items-center justify-center gap-1"
-            style={{ paddingBottom: 8 }}
+            style={{ paddingBottom: 9 }}
           >
-            {/* Active pill indicator above the icon */}
+            {/* Soft mint pill fills behind the active icon — the "tubelight"
+                treatment — instead of a bare color swap. */}
             <span
-              className="rounded-full transition-all duration-200"
+              className="flex items-center justify-center transition-all duration-200"
               style={{
-                width: isActive ? 20 : 4,
-                height: 3,
-                backgroundColor: isActive ? 'var(--color-primary)' : 'transparent',
-                marginBottom: 2,
+                width: 44,
+                height: 27,
+                borderRadius: 999,
+                background: isActive
+                  ? 'linear-gradient(150deg, #E3F2E9 0%, #CBE6D6 100%)'
+                  : 'transparent',
+                boxShadow: isActive ? '0 2px 10px rgba(45,106,74,0.20)' : 'none',
               }}
-            />
-            <Icon
-              style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-muted)' }}
-            />
+            >
+              <Icon
+                className="transition-transform duration-200"
+                style={{
+                  color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
+                  transform: isActive ? 'scale(1.06)' : 'scale(1)',
+                }}
+              />
+            </span>
             <span
               className="text-[10px] leading-none transition-all duration-200"
               style={{
                 color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
-                fontWeight: isActive ? 700 : 400,
+                fontWeight: isActive ? 700 : 500,
               }}
             >
               {t(locale, tab.labelKey)}

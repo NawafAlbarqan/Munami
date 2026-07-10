@@ -244,7 +244,7 @@ function App() {
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* ── Mascot greeting ── */}
-        <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 28 }}>
+        <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 40 }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -370,11 +370,12 @@ function App() {
 
       <BottomNav active={activeTab} onTabChange={setActiveTab} />
 
-      {/* Hamburger — floats above all tab content, covered by SettingsPanel when open */}
+      {/* Hamburger — lives in the reserved "system strip" (top 0–56px) that
+          every tab keeps clear of content; covered by SettingsPanel when open */}
       <button
         onClick={() => setSettingsOpen(true)}
         className="absolute z-30 rounded-full bg-card border-[0.5px] border-card-border flex items-center justify-center"
-        style={{ top: 12, right: 14, width: 32, height: 32, boxShadow: '0 1px 6px rgba(45,106,74,0.10)' }}
+        style={{ top: 18, right: 16, width: 34, height: 34, boxShadow: '0 1px 8px rgba(45,106,74,0.12)' }}
         aria-label="Open settings"
       >
         <svg width="15" height="12" viewBox="0 0 15 12" fill="none">

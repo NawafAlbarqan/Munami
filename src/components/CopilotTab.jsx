@@ -190,7 +190,8 @@ export default function CopilotTab({ financialContext }) {
   return (
     <>
       {/* ── Header ── */}
-      <div className="absolute top-0 left-0 right-0 z-10 px-5 pt-4 pb-3.5 bg-page border-b border-card-border">
+      {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
+      <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b border-card-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
             <GrowthMark size={19} color="var(--color-primary)" />

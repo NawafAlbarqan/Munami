@@ -118,12 +118,23 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 **Layout**
 - Mobile-first. Max content width **400px**, centered on screen.
 - Phone-style framing — the whole app renders inside a `PhoneFrame`
-  (`src/components/PhoneFrame.jsx`): dark bezel, top notch, a fixed-size
-  screen (`400px × min(844px, 88vh)`) centered on a neutral backdrop. The
-  browser window itself never scrolls (`html/body/#root` are locked to
+  (`src/components/PhoneFrame.jsx`): dark bezel, top notch, a screen that is
+  ALWAYS **400×844px internally** (real iPhone proportions). On viewports too
+  short/narrow for the full frame, the whole frame is scaled down with
+  `transform: scale()` (computed in a resize listener) — the layout is never
+  compressed, it just appears smaller. Do NOT go back to `min(844px, 88dvh)`
+  heights: that squished the layout on laptop screens. The browser window
+  itself never scrolls (`html/body/#root` are locked to
   `height: 100%; overflow: hidden`) — only the content *inside* the phone
   screen scrolls, with a thin custom scrollbar (`.scroll-thin` in
   `src/index.css`).
+- **System strip (hamburger zone)**: the top ~56px of every tab is reserved.
+  The floating hamburger/settings button (in `App.jsx`) sits at
+  `top: 18, right: 16` (34×34px). Every scrollable tab starts its content at
+  **60px top padding** (Overview greeting `paddingTop: 40` on top of the
+  scroller's `pt-5`; Transactions/Goals/Accounts `paddingTop: 60`). The
+  Copilot tab is the exception — its pinned header uses `pr-16` so the title
+  row stays clear of the button. Keep this invariant when adding new tabs.
 - Inside the screen, the scrollable content area and the bottom nav are
   siblings, not nested — the nav is `position: absolute; bottom: 0` against
   the non-scrolling screen wrapper, while the content area is a separate
@@ -190,14 +201,23 @@ in `SpendingDonut`).
   in track elements looks broken on the warm cream background.
 
 **Bottom nav — `src/components/BottomNav.jsx`**
-- Height: 72px, `overflow: visible` (hero button floats above).
-- **منمّي center tab**: a 56×56px forest-green circle raised 24px above the nav
-  line (`marginTop: -24`) containing a cream-colored `GrowthMark` icon. Active =
-  full `--color-primary` opacity; inactive = 72% opacity. Green ambient shadow.
-- **Regular tabs**: small SVG icon (18×18) + label. Active = icon and text in
-  `--color-primary` + a 20×3px primary pill indicator above the icon. Inactive =
-  muted color, no indicator.
-- Nav background: `bg-card` (white in warm theme). Border-top `border-card-border`.
+- Height: 74px, `overflow: visible` (hero button floats above).
+- Nav background: white→cream vertical gradient
+  (`linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%)`) + soft green upward
+  shadow (`0 -6px 24px rgba(45,106,74,0.07)`). Border-top `border-card-border`.
+- **منمّي center tab (hero)**: a 58×58px circle raised 26px above the nav line
+  (`marginTop: -26`) with a forest-green **gradient** fill
+  (`145deg, #3E8560 → #2D6A4A → #24583D`), a 3px cream ring
+  (`border: 3px solid #FFFDF8`) so it reads as a floating cut-out button, and
+  an inner top highlight. Active = full opacity + `scale(1.04)` + stronger
+  glow; inactive = 88% opacity. Contains a cream `GrowthMark` icon.
+- **Regular tabs**: small SVG icon (18×18) + label. Active = a soft mint
+  **pill fill behind the icon** (44×27px, `150deg, #E3F2E9 → #CBE6D6`, subtle
+  green shadow — the "tubelight" treatment) + icon/text in `--color-primary` +
+  icon `scale(1.06)`. Inactive = muted icon on transparent, weight 500 label.
+  There is no separate pill-line indicator anymore — the fill IS the indicator.
+- The Overview donut icon is drawn as a true annular sector (no
+  background-colored masking circle) so it renders correctly on any fill.
 
 **Type**
 - Space Grotesk is the app's default font (set in `.theme-warm`). All headings,

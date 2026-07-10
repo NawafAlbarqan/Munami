@@ -84,7 +84,7 @@ export default function SettingsPanel({ onClose }) {
             className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'var(--color-primary)' }}
           >
-            <span className="text-2xl font-black" style={{ color: '#FFFDF8', fontFamily: 'Nunito, sans-serif' }}>
+            <span className="text-2xl font-bold" style={{ color: '#FFFDF8', fontFamily: "'Space Grotesk', sans-serif" }}>
               A
             </span>
           </div>

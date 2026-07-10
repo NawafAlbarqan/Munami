@@ -210,7 +210,8 @@ export default function AccountsTab() {
 
       {/* ── Total balance hero ── */}
       <motion.div
-        className="px-4 pt-10 pb-6"
+        className="px-4 pb-6"
+        style={{ paddingTop: 60 }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
