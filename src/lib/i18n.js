@@ -61,6 +61,10 @@ const STRINGS = {
     bucketNamePlaceholder: 'e.g. Wedding Fund',
     targetAmountSAR: 'Target Amount (SAR)',
     createBucket: 'Create Bucket',
+    withdraw: 'Withdraw',
+    depositToFund: (name) => `Add to ${name}`,
+    withdrawFromFund: (name) => `Withdraw from ${name}`,
+    availableToWithdraw: (amt) => `${amt} in fund`,
 
     // Transactions tab
     txSubtitle: 'Your activity',
@@ -134,6 +138,10 @@ const STRINGS = {
     bucketNamePlaceholder: 'مثل: صندوق الزفاف',
     targetAmountSAR: 'المبلغ المستهدف (ريال)',
     createBucket: 'إنشاء صندوق',
+    withdraw: 'سحب',
+    depositToFund: (name) => `إضافة إلى ${name}`,
+    withdrawFromFund: (name) => `سحب من ${name}`,
+    availableToWithdraw: (amt) => `${amt} في الصندوق`,
 
     // Transactions tab
     txSubtitle: 'نشاطك',

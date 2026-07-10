@@ -6,7 +6,6 @@ import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
-// Cycle through these when user creates a new bucket
 const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
 
 // ─── Bank card carousel ──────────────────────────────────────────────────────
@@ -16,7 +15,6 @@ function BankCarousel({ accounts, locale }) {
 
   function onScroll(e) {
     const el = e.currentTarget
-    // Cards are w-[280px] with gap-3 (12px) → scroll step ≈ 292px
     const step = el.children[0]?.offsetWidth + 12 || 292
     const idx = Math.round(el.scrollLeft / step)
     setActiveIdx(Math.max(0, Math.min(accounts.length - 1, idx)))
@@ -33,10 +31,7 @@ function BankCarousel({ accounts, locale }) {
           <motion.div
             key={acc.account_id}
             className="shrink-0 w-[280px] snap-center rounded-[20px] p-5 border-[0.5px]"
-            style={{
-              backgroundColor: acc.color + '18',
-              borderColor: acc.color + '50',
-            }}
+            style={{ backgroundColor: acc.color + '18', borderColor: acc.color + '50' }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: i * 0.07, ease: 'easeOut' }}
@@ -48,10 +43,7 @@ function BankCarousel({ accounts, locale }) {
                   {acc.type} · ···· {acc.iban_tail}
                 </p>
               </div>
-              <span
-                className="w-3 h-3 rounded-full mt-0.5"
-                style={{ backgroundColor: acc.color }}
-              />
+              <span className="w-3 h-3 rounded-full mt-0.5" style={{ backgroundColor: acc.color }} />
             </div>
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
               {t(locale, 'balance')}
@@ -63,7 +55,6 @@ function BankCarousel({ accounts, locale }) {
         ))}
       </div>
 
-      {/* Dot indicators — pill expands on active, coloured to match card */}
       <div className="flex justify-center gap-1.5 mt-4">
         {accounts.map((acc, i) => (
           <span
@@ -80,19 +71,21 @@ function BankCarousel({ accounts, locale }) {
   )
 }
 
-// ─── Fund bucket row ──────────────────────────────────────────────────────────
+// ─── Tappable fund bucket ────────────────────────────────────────────────────
 
-function FundBucket({ fund, index }) {
+function FundBucket({ fund, index, onTap }) {
   const pct = fund.target_sar > 0
     ? Math.min(100, Math.round((fund.balance_sar / fund.target_sar) * 100))
     : 0
 
   return (
-    <motion.div
-      className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
+    <motion.button
+      onClick={onTap}
+      className="w-full bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4 text-left"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.07, ease: 'easeOut' }}
+      whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-3">
@@ -104,12 +97,14 @@ function FundBucket({ fund, index }) {
             </p>
           </div>
         </div>
-        <span
-          className="text-xs font-bold tabular-nums"
-          style={{ color: fund.color }}
-        >
-          {pct}%
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold tabular-nums" style={{ color: fund.color }}>
+            {pct}%
+          </span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-30">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
       </div>
 
       <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
@@ -121,7 +116,7 @@ function FundBucket({ fund, index }) {
           transition={{ duration: 0.7, delay: index * 0.08, ease: 'easeOut' }}
         />
       </div>
-    </motion.div>
+    </motion.button>
   )
 }
 
@@ -132,74 +127,108 @@ export default function AccountsTab() {
   const [funds, setFunds] = useState(accountsData.funds)
   const [unallocated, setUnallocated] = useState(accountsData.unallocated_sar)
 
+  // Sheet state — 'create' | 'fund'
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [sheetMode, setSheetMode] = useState('add') // 'add' | 'create'
+  const [sheetMode, setSheetMode] = useState('create')
 
-  // "Add funds" form
-  const [addFundId, setAddFundId] = useState(accountsData.funds[0]?.id ?? '')
-  const [addAmount, setAddAmount] = useState('')
+  // Fund detail sheet
+  const [activeFund, setActiveFund] = useState(null)
+  const [fundAction, setFundAction] = useState('add') // 'add' | 'withdraw'
+  const [amount, setAmount] = useState('')
 
-  // "New bucket" form
+  // New fund form
   const [newName, setNewName] = useState('')
   const [newTarget, setNewTarget] = useState('')
 
   const animatedTotal = useCountUp(accountsData.total_balance_sar, 0.8)
 
-  function openSheet(mode) {
-    setSheetMode(mode)
-    setAddAmount('')
-    setNewName('')
-    setNewTarget('')
+  function openFundSheet(fund) {
+    setActiveFund(fund)
+    setFundAction('add')
+    setAmount('')
+    setSheetMode('fund')
     setSheetOpen(true)
   }
 
-  function handleAddFunds() {
-    const amount = parseFloat(addAmount)
-    if (!amount || amount <= 0 || amount > unallocated) return
-    setFunds((prev) =>
-      prev.map((f) =>
-        f.id === addFundId ? { ...f, balance_sar: f.balance_sar + amount } : f,
-      ),
-    )
-    setUnallocated((prev) => prev - amount)
-    setSheetOpen(false)
+  function openCreateSheet() {
+    setNewName('')
+    setNewTarget('')
+    setSheetMode('create')
+    setSheetOpen(true)
   }
 
-  function handleCreateBucket() {
+  function closeSheet() {
+    setSheetOpen(false)
+    setActiveFund(null)
+    setAmount('')
+  }
+
+  function handleFundAction() {
+    const val = parseFloat(amount)
+    if (!val || val <= 0 || !activeFund) return
+
+    if (fundAction === 'add') {
+      if (val > unallocated) return
+      setFunds((prev) =>
+        prev.map((f) => f.id === activeFund.id ? { ...f, balance_sar: f.balance_sar + val } : f)
+      )
+      setUnallocated((prev) => prev - val)
+    } else {
+      const fund = funds.find((f) => f.id === activeFund.id)
+      if (!fund || val > fund.balance_sar) return
+      setFunds((prev) =>
+        prev.map((f) => f.id === activeFund.id ? { ...f, balance_sar: f.balance_sar - val } : f)
+      )
+      setUnallocated((prev) => prev + val)
+    }
+    closeSheet()
+  }
+
+  function handleCreateFund() {
     const name = newName.trim()
     if (!name) return
     const target = parseFloat(newTarget) || 0
-    const newFund = {
-      id: `fund-${Date.now()}`,
-      name,
-      icon: 'default',
-      balance_sar: 0,
-      target_sar: target,
-      color: BUCKET_COLORS[funds.length % BUCKET_COLORS.length],
-    }
-    setFunds((prev) => [...prev, newFund])
-    setSheetOpen(false)
+    setFunds((prev) => [
+      ...prev,
+      {
+        id: `fund-${Date.now()}`,
+        name,
+        icon: 'default',
+        balance_sar: 0,
+        target_sar: target,
+        color: BUCKET_COLORS[prev.length % BUCKET_COLORS.length],
+      },
+    ])
+    closeSheet()
   }
+
+  // Keep activeFund in sync with live fund state (balance updates)
+  const liveFund = activeFund ? funds.find((f) => f.id === activeFund.id) ?? activeFund : null
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
 
       {/* ── Total balance hero ── */}
       <motion.div
-        className="pt-6 pb-6 text-center"
+        className="px-4 pt-10 pb-6"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
-        <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
-          {t(locale, 'yourTotalBalance')}
-        </p>
-        <p className="text-text munami-hero">
-          {formatSAR(animatedTotal)}
-        </p>
-        <p className="text-muted text-xs mt-2">
-          {t(locale, 'acrossAccounts', accountsData.accounts.length)}
-        </p>
+        <div
+          className="bg-card border border-card-border rounded-[28px] px-6 py-7 text-center"
+          style={{ boxShadow: '0 2px 24px rgba(45,106,74,0.10)' }}
+        >
+          <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-3">
+            {t(locale, 'yourTotalBalance')}
+          </p>
+          <p className="text-text munami-hero tabular-nums">
+            {formatSAR(animatedTotal)}
+          </p>
+          <p className="text-muted text-xs mt-3">
+            {t(locale, 'acrossAccounts', accountsData.accounts.length)}
+          </p>
+        </div>
       </motion.div>
 
       {/* ── Bank carousel ── */}
@@ -209,15 +238,16 @@ export default function AccountsTab() {
       <div className="px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-text text-base font-semibold">{t(locale, 'yourFunds')}</h2>
+          {/* + only creates a new fund — each fund card handles deposits/withdrawals */}
           <button
-            onClick={() => openSheet('add')}
+            onClick={openCreateSheet}
             className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-page text-xl font-bold leading-none"
           >
             +
           </button>
         </div>
 
-        {/* Unallocated / free cash */}
+        {/* Unallocated — display only, not tappable */}
         <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-3.5 mb-3 flex items-center gap-3">
           <span className="text-xl">💵</span>
           <div className="flex-1 min-w-0">
@@ -229,9 +259,15 @@ export default function AccountsTab() {
           </p>
         </div>
 
+        {/* Fund cards — each tappable */}
         <div className="flex flex-col gap-3">
           {funds.map((fund, i) => (
-            <FundBucket key={fund.id} fund={fund} index={i} />
+            <FundBucket
+              key={fund.id}
+              fund={fund}
+              index={i}
+              onTap={() => openFundSheet(fund)}
+            />
           ))}
         </div>
       </div>
@@ -242,12 +278,12 @@ export default function AccountsTab() {
           <>
             <motion.div
               className="absolute inset-0 z-20"
-              style={{ background: 'rgba(0,0,0,0.55)' }}
+              style={{ background: 'rgba(0,0,0,0.45)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setSheetOpen(false)}
+              onClick={closeSheet}
             />
             <motion.div
               className="absolute bottom-0 left-0 right-0 z-30 bg-card rounded-t-[24px] px-5 pt-4 pb-10"
@@ -256,51 +292,38 @@ export default function AccountsTab() {
               exit={{ y: '100%' }}
               transition={{ duration: 0.28, ease: 'easeOut' }}
             >
-              {/* Drag handle */}
               <div className="w-10 h-1 bg-card-border rounded-full mx-auto mb-5" />
 
-              {/* Mode toggle */}
-              <div className="flex bg-tint rounded-[12px] p-1 mb-5">
-                {['add', 'create'].map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setSheetMode(mode)}
-                    className={`flex-1 py-2 rounded-[10px] text-sm font-medium transition-colors ${
-                      sheetMode === mode ? 'bg-card text-text' : 'text-muted'
-                    }`}
-                  >
-                    {mode === 'add' ? t(locale, 'addFunds') : t(locale, 'newBucket')}
-                  </button>
-                ))}
-              </div>
-
-              {sheetMode === 'add' ? (
+              {sheetMode === 'fund' && liveFund ? (
+                /* ── Fund detail: add or withdraw ── */
                 <div className="flex flex-col gap-4">
-                  <div>
-                    <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
-                      {t(locale, 'selectBucket')}
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      {funds.map((f) => (
-                        <button
-                          key={f.id}
-                          onClick={() => setAddFundId(f.id)}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-[14px] border-[0.5px] text-left transition-colors ${
-                            addFundId === f.id
-                              ? 'border-primary bg-primary/10'
-                              : 'border-card-border bg-tint'
-                          }`}
-                        >
-                          <span>{ICONS[f.icon] || ICONS.default}</span>
-                          <span className="text-text text-sm font-medium flex-1">{f.name}</span>
-                          <span className="text-muted text-xs tabular-nums">
-                            {formatSAR(f.balance_sar)}
-                          </span>
-                        </button>
-                      ))}
+                  {/* Fund header */}
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-2xl">{ICONS[liveFund.icon] || ICONS.default}</span>
+                    <div>
+                      <p className="text-text text-base font-semibold">{liveFund.name}</p>
+                      <p className="text-muted text-xs tabular-nums">
+                        {formatSAR(liveFund.balance_sar)} / {formatSAR(liveFund.target_sar)}
+                      </p>
                     </div>
                   </div>
 
+                  {/* Add / Withdraw toggle */}
+                  <div className="flex bg-tint rounded-[12px] p-1">
+                    {(['add', 'withdraw'] ).map((action) => (
+                      <button
+                        key={action}
+                        onClick={() => { setFundAction(action); setAmount('') }}
+                        className={`flex-1 py-2 rounded-[10px] text-sm font-medium transition-colors ${
+                          fundAction === action ? 'bg-card text-text' : 'text-muted'
+                        }`}
+                      >
+                        {action === 'add' ? t(locale, 'addFunds') : t(locale, 'withdraw')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Amount input */}
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
                       {t(locale, 'amountSAR')}
@@ -308,24 +331,31 @@ export default function AccountsTab() {
                     <input
                       type="number"
                       placeholder="0"
-                      value={addAmount}
-                      onChange={(e) => setAddAmount(e.target.value)}
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                       className="w-full bg-tint border-[0.5px] border-card-border rounded-[14px] px-4 py-3 text-text text-sm outline-none"
                     />
                     <p className="text-muted text-xs mt-1.5">
-                      {t(locale, 'availableFunds', formatSAR(unallocated))}
+                      {fundAction === 'add'
+                        ? t(locale, 'availableFunds', formatSAR(unallocated))
+                        : t(locale, 'availableToWithdraw', formatSAR(liveFund.balance_sar))}
                     </p>
                   </div>
 
                   <button
-                    onClick={handleAddFunds}
+                    onClick={handleFundAction}
                     className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
                   >
-                    {t(locale, 'addFunds')}
+                    {fundAction === 'add'
+                      ? t(locale, 'depositToFund', liveFund.name)
+                      : t(locale, 'withdrawFromFund', liveFund.name)}
                   </button>
                 </div>
               ) : (
+                /* ── Create new fund ── */
                 <div className="flex flex-col gap-4">
+                  <p className="text-text text-base font-semibold mb-1">{t(locale, 'newBucket')}</p>
+
                   <div>
                     <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-2">
                       {t(locale, 'bucketName')}
@@ -353,7 +383,7 @@ export default function AccountsTab() {
                   </div>
 
                   <button
-                    onClick={handleCreateBucket}
+                    onClick={handleCreateFund}
                     className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
                   >
                     {t(locale, 'createBucket')}
