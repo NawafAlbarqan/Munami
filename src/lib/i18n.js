@@ -66,6 +66,18 @@ const STRINGS = {
     withdrawFromFund: (name) => `Withdraw from ${name}`,
     availableToWithdraw: (amt) => `${amt} in fund`,
 
+    // Settings panel
+    settings: 'Settings',
+    memberSince: 'منمّي member',
+    preferences: 'Preferences',
+    language: 'Language',
+    settingsAccount: 'Account',
+    notifications: 'Notifications',
+    linkedAccounts: 'Linked Accounts',
+    settingsApp: 'App',
+    aboutMunami: 'About منمّي',
+    comingSoon: 'Coming soon',
+
     // Transactions tab
     txSubtitle: 'Your activity',
     txHeader: 'Every spend, tracked 🌱',
@@ -142,6 +154,18 @@ const STRINGS = {
     depositToFund: (name) => `إضافة إلى ${name}`,
     withdrawFromFund: (name) => `سحب من ${name}`,
     availableToWithdraw: (amt) => `${amt} في الصندوق`,
+
+    // Settings panel
+    settings: 'الإعدادات',
+    memberSince: 'عضو منمّي',
+    preferences: 'التفضيلات',
+    language: 'اللغة',
+    settingsAccount: 'الحساب',
+    notifications: 'الإشعارات',
+    linkedAccounts: 'الحسابات المرتبطة',
+    settingsApp: 'التطبيق',
+    aboutMunami: 'عن منمّي',
+    comingSoon: 'قريباً',
 
     // Transactions tab
     txSubtitle: 'نشاطك',

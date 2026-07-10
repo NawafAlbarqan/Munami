@@ -204,8 +204,13 @@ in `SpendingDonut`).
 - Page-level section headers follow the pattern:
   - Muted tiny uppercase label: `text-muted text-xs font-medium uppercase tracking-widest`
   - Bold heading below it: Nunito, 26px, `font-bold`, with a personality emoji.
-- The app is **bilingual-capable but defaults to English (LTR)**. All UI strings
-  go through `src/lib/i18n.js`. To switch to Arabic later, change `LOCALE` there.
+- The app is **bilingual (EN/AR)**. All UI strings go through `src/lib/i18n.js`.
+  Language switching is via the **Settings screen** (hamburger icon → top-right corner,
+  present on all tabs). The old floating EN/AR pill (`LanguageToggle.jsx`) is removed —
+  language only lives in Settings. `SettingsPanel.jsx` (`src/components/SettingsPanel.jsx`)
+  slides in from the right (`x: 100% → 0` via Motion), contains a profile header
+  (placeholder: Ahmed), the language segmented control, and placeholder rows for
+  Notifications / Linked Accounts / About (dimmed, `comingSoon` label, non-functional).
 
 **Vibe:** warm cream base, white cards, forest green as the growth identity color,
 friendly rounded type, منمّي character presence throughout, tactile depth via
@@ -504,7 +509,8 @@ Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
 - [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
 - [x] **منمّي / Copilot tab** — real AI chat with context, live categorization demo, scripted fallback
 - [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout
-- [x] **EN/AR bilingual** — full RTL support, Noto Sans Arabic, language toggle
+- [x] **EN/AR bilingual** — full RTL support, Noto Sans Arabic, language toggle in Settings
+- [x] **Settings screen** — hamburger icon (top-right, all tabs), slides in from right, profile header + language switch + placeholder rows
 - [x] **AI backend** — Express server, Gemini wired, security pattern, fallback switch
 - [ ] Mock "Connect bank" consent screen
 - [ ] Demo polish + rehearsal

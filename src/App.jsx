@@ -11,7 +11,7 @@ import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
 import MunamiMascot from './components/MunamiMascot'
 import GrowthMark from './components/GrowthMark'
-import LanguageToggle from './components/LanguageToggle'
+import SettingsPanel from './components/SettingsPanel'
 import { useLocale } from './lib/LocaleContext'
 import {
   monthKey,
@@ -45,6 +45,7 @@ function App() {
   const [rows, setRows] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   // AI-phrased insight cards — cached by "month+locale" so we don't re-fetch on every render
   const [aiCards, setAiCards] = useState([])
@@ -368,7 +369,22 @@ function App() {
       </div>
 
       <BottomNav active={activeTab} onTabChange={setActiveTab} />
-      <LanguageToggle />
+
+      {/* Hamburger — floats above all tab content, covered by SettingsPanel when open */}
+      <button
+        onClick={() => setSettingsOpen(true)}
+        className="absolute z-30 rounded-full bg-card border-[0.5px] border-card-border flex items-center justify-center"
+        style={{ top: 12, right: 14, width: 32, height: 32, boxShadow: '0 1px 6px rgba(45,106,74,0.10)' }}
+        aria-label="Open settings"
+      >
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+          <path d="M1 1h13M1 6h13M1 11h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      </AnimatePresence>
     </div>
   )
 }
