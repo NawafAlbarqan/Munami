@@ -79,6 +79,14 @@ body {
   --color-text: #1A2B1F;
   --color-muted: #7B7568;
   --color-rewards: #C87E1A;
+  /* Gradient + hero-button tokens — components read these instead of
+     hardcoded hexes, so alternate themes can restyle them wholesale. */
+  --grad-hero-card: linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%);
+  --grad-nav: linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%);
+  --grad-nav-pill: linear-gradient(150deg, #E3F2E9 0%, #CBE6D6 100%);
+  --grad-hero-btn: linear-gradient(145deg, #3E8560 0%, #2D6A4A 58%, #24583D 100%);
+  --hero-btn-ring: #FFFDF8;
+  --hero-btn-icon: #FFFDF8;
   font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;
 }
 

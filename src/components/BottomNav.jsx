@@ -63,9 +63,9 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
       style={{
         height: 74,
         overflow: 'visible',
-        // Soft white→cream vertical sweep so the bar reads as a designed
-        // surface, not a flat default strip.
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%)',
+        // Soft vertical sweep so the bar reads as a designed surface,
+        // not a flat default strip. Themeable via --grad-nav.
+        background: 'var(--grad-nav)',
         boxShadow: '0 -6px 24px rgba(45,106,74,0.07)',
       }}
     >
@@ -86,8 +86,8 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
-                  background: 'linear-gradient(145deg, #3E8560 0%, #2D6A4A 58%, #24583D 100%)',
-                  border: '3px solid #FFFDF8',
+                  background: 'var(--grad-hero-btn)',
+                  border: '3px solid var(--hero-btn-ring)',
                   opacity: isActive ? 1 : 0.88,
                   transform: isActive ? 'scale(1.04)' : 'scale(1)',
                   boxShadow: isActive
@@ -96,7 +96,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                   marginTop: -26,
                 }}
               >
-                <GrowthMark size={23} color="#FFFDF8" />
+                <GrowthMark size={23} color="var(--hero-btn-icon)" />
               </div>
               <span
                 className="text-[9px] font-bold leading-none transition-colors duration-200"
@@ -125,9 +125,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                 width: 44,
                 height: 27,
                 borderRadius: 999,
-                background: isActive
-                  ? 'linear-gradient(150deg, #E3F2E9 0%, #CBE6D6 100%)'
-                  : 'transparent',
+                background: isActive ? 'var(--grad-nav-pill)' : 'transparent',
                 boxShadow: isActive ? '0 2px 10px rgba(45,106,74,0.20)' : 'none',
               }}
             >

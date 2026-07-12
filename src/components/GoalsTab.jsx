@@ -174,7 +174,7 @@ export default function GoalsTab({ rows }) {
       </div>
 
       {/* ── XP / Level ── */}
-      <div className="border-[0.5px] border-card-border rounded-[20px] p-5 mb-4" style={{ background: 'linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%)' }}>
+      <div className="border-[0.5px] border-card-border rounded-[20px] p-5 mb-4" style={{ background: 'var(--grad-hero-card)' }}>
         <XPRing locale={locale} />
       </div>
 

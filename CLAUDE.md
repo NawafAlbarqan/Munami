@@ -239,6 +239,16 @@ instead of flat white. Subtle white→pale-mint sweep that adds premium depth wi
 changing the colour identity. Applied via inline `style` (not a Tailwind class) so it
 can coexist with the `border` and `rounded-[28px]` classes.
 
+**Gradient tokens** — all decorative gradients live as CSS variables on
+`.theme-warm` in `src/index.css`, and components reference the tokens, never
+raw gradient hexes: `--grad-hero-card` (the three hero cards),
+`--grad-nav` (nav surface), `--grad-nav-pill` (active tab fill),
+`--grad-hero-btn` + `--hero-btn-ring` + `--hero-btn-icon` (the منمّي nav
+button). The donut's callout pills follow `--color-card` (passed as
+`cardBg="var(--color-card)"` from App.jsx). To retheme the whole app —
+or preview an alternate palette — override these tokens in one place;
+don't reintroduce hardcoded gradient hexes into components.
+
 **Vibe:** warm cream base, gradient-tinted hero cards, forest green as the growth
 identity color, Space Grotesk geometric type, منمّي character presence throughout,
 tactile depth via subtle green shadows on hero cards.
