@@ -240,7 +240,7 @@ function App() {
 
       {/* Overview tab */}
       <div
-        className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
+        className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
         style={{ display: activeTab === 'overview' ? undefined : 'none' }}
       >
         {/* ── Mascot greeting ── */}
@@ -285,7 +285,7 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
+            className="retro-hero border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
             style={{ background: 'var(--grad-hero-card)', boxShadow: '0 2px 16px rgba(45,106,74,0.10)' }}
           >
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
@@ -294,7 +294,7 @@ function App() {
             <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
 
             <div
-              className="inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
+              className="retro-verdict inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
               style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
             >
               <GrowthMark size={11} color="var(--color-primary)" />
@@ -374,12 +374,17 @@ function App() {
           every tab keeps clear of content; covered by SettingsPanel when open */}
       <button
         onClick={() => setSettingsOpen(true)}
-        className="absolute z-30 rounded-full bg-card border-[0.5px] border-card-border flex items-center justify-center"
-        style={{ top: 18, right: 16, width: 34, height: 34, boxShadow: '0 1px 8px rgba(45,106,74,0.12)' }}
+        className="absolute z-30 flex items-center justify-center"
+        style={{
+          top: 18, right: 16, width: 36, height: 36,
+          background: '#FFFFFF', borderRadius: 11,
+          border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000',
+          color: '#000000',
+        }}
         aria-label="Open settings"
       >
-        <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
-          <path d="M1 1h13M1 6h13M1 11h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <svg width="16" height="13" viewBox="0 0 15 12" fill="none">
+          <path d="M1 1h13M1 6h13M1 11h13" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
       </button>
 

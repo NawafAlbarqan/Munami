@@ -144,11 +144,57 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
   or it will scroll away with the content.
 - Rounded cards, generous spacing, light and airy feel.
 
-**Colors — "Warm Playful" theme (THE OFFICIAL IDENTITY)**
+**═══ RETRO 90s / NEUBRUTALIST THEME (CURRENT OFFICIAL IDENTITY) ═══**
+
+The app was redesigned from the soft "Warm Playful" cream look into a bold
+**retro 90s / neubrutalist** style. Signature traits, applied consistently
+across ALL FIVE tabs:
+- **Dark charcoal ground** (`#1E1E1E`), off-white ink (`#F5F0E6`).
+- **Thick 3px solid black outlines** on every card, button, input, chip, chat
+  bubble, and the mascot face.
+- **Solid offset "sticker" shadows** — flat black blocks offset `5px 5px 0 #000`
+  on cards (`4px 4px 0` on buttons/inputs), never soft/blurred.
+- **Bold saturated flat colors** — vivid category palette, no pastels, no
+  gradients (all `--grad-*` tokens flattened to solids).
+- **Chunky rounded corners** (18–28px) — tactile sticker feel.
+- **Gold hero cards**: the "spent" (Overview) and "total balance" (Accounts)
+  hero cards are solid gold `#FFC93C` with charcoal ink (`.retro-hero`).
+  Chart/ring cards (donut, XP ring) stay dark so their vivid strokes pop.
+- **منمّي mascot**: same character, thicker black linework + vivid leaves.
+- **Contrast rule**: anything sitting ON a colored fill uses a clearly
+  contrasting ink/fill, never a near-tone that blends (e.g. the verdict pill
+  on the gold hero is a charcoal sticker with cream text via `.retro-verdict`;
+  chat bubbles/buttons use charcoal ink on their vivid fills).
+
+**How it's built** — `src/index.css`:
+- `.tab-retro` is added to each tab's scroll container (in `App.jsx` for
+  Overview, and in each tab component for the rest). It overrides the color +
+  gradient tokens to the dark/bold palette for that subtree, and a
+  `.tab-retro [class*="rounded-["]` rule auto-applies the black outline + offset
+  shadow to every rounded card. `button.bg-primary` gets the same on buttons.
+- Shared chrome is retro in its own components: `BottomNav.jsx` (charcoal bar,
+  black top rule, vivid-green active pills + منمّي button, all with black
+  outlines/offset shadows), the hamburger (in `App.jsx`, white sticker), and
+  `MunamiMascot.jsx` (thick outlines).
+- `.retro-hero` = gold fill + charcoal ink; `.retro-verdict` = charcoal pill +
+  cream ink; `[class*="border-primary/"]` inside `.tab-retro` = teal AI chat
+  bubbles/avatars with charcoal ink.
+- The `.theme-warm` token block still exists (the old cream values) and RTL
+  selectors reference `.theme-warm`; `.tab-retro` layers over it. To fully
+  retire warm later, fold the retro values into `.theme-warm` directly.
+
+**Vivid category colors** (root `@theme`, read by `themeColor()` for the donut /
+legend / budget bars): Shopping `#2FBF71`, Bills & Transport `#FF5C39`,
+Entertainment `#FFC93C`, Food & Groceries `#17C3B2`, Other `#A66CFF`.
+
+---
+
+**Colors — "Warm Playful" theme (legacy `.theme-warm` values, layered over by retro)**
 
 The warm theme is applied globally via `.theme-warm` on the PhoneFrame's inner
 screen div (`src/components/PhoneFrame.jsx`). All CSS variables cascade from
-there — every tab and the nav inherit it automatically.
+there — every tab and the nav inherit it automatically. `.tab-retro` overrides
+these per tab for the current retro look.
 
 Root tokens (in `@theme` in `src/index.css`, overridden by `.theme-warm`):
 - Page background (warm cream): `#F6F1EA`
@@ -169,12 +215,12 @@ Root tokens (in `@theme` in `src/index.css`, overridden by `.theme-warm`):
 donut slice, callout pill, and legend dot. Defined in `CATEGORY_COLOR_VAR` in
 `src/lib/finance.js`. These are NOT overridden by `.theme-warm` — they read
 from the root `@theme` and stay consistent (also bumped more saturated from
-their original pastel values for a less washed-out donut):
-  - Shopping → `#8FCFA6` (mint, `--color-primary` root value)
-  - Bills & Transport → `#EBA0A6` (blush, `--color-caution` root value)
-  - Entertainment → `#EDC96F` (butter, `--color-rewards` root value)
-  - Food & Groceries → `#63B4A9` (dusty teal, `--color-teal`)
-  - Other → `#B49FDF` (soft lavender, `--color-lavender`)
+their original pastel values — now the vivid retro palette):
+  - Shopping → `#2FBF71` (vivid green, `--color-primary` root value)
+  - Bills & Transport → `#FF5C39` (vivid coral, `--color-caution` root value)
+  - Entertainment → `#FFC93C` (vivid gold, `--color-rewards` root value)
+  - Food & Groceries → `#17C3B2` (vivid teal, `--color-teal`)
+  - Other → `#A66CFF` (vivid purple, `--color-lavender`)
 
 IMPORTANT: `themeColor()` in components reads from `document.documentElement`,
 which returns the ROOT `@theme` values (dark theme tokens), not the `.theme-warm`
@@ -253,9 +299,10 @@ button). The donut's callout pills follow `--color-card` (passed as
 or preview an alternate palette — override these tokens in one place;
 don't reintroduce hardcoded gradient hexes into components.
 
-**Vibe:** warm cream base, gradient-tinted hero cards, forest green as the growth
-identity color, Space Grotesk geometric type, منمّي character presence throughout,
-tactile depth via subtle green shadows on hero cards.
+**Vibe (current):** bold retro 90s / neubrutalist — charcoal ground, thick black
+outlines, flat solid "sticker" offset shadows, vivid saturated colors, gold hero
+cards, chunky rounded corners, Space Grotesk geometric type, منمّي character
+(thicker linework) present throughout. Confident and playful, not soft/pastel.
 
 ---
 

@@ -161,7 +161,7 @@ export default function GoalsTab({ rows }) {
   const BADGES = getBadges(locale)
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
+    <div className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
 
       {/* ── Page header ── */}
       <div className="mb-5">

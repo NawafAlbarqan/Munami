@@ -144,7 +144,7 @@ export default function AccountsTab() {
   const liveFund = activeFund ? funds.find((f) => f.id === activeFund.id) ?? activeFund : null
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
+    <div className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
 
       {/* ── Total balance hero ── */}
       <motion.div
@@ -155,7 +155,7 @@ export default function AccountsTab() {
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <div
-          className="border border-card-border rounded-[28px] px-6 py-7 text-center"
+          className="retro-hero border border-card-border rounded-[28px] px-6 py-7 text-center"
           style={{ background: 'var(--grad-hero-card)', boxShadow: '0 2px 24px rgba(45,106,74,0.12)' }}
         >
           <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-3">

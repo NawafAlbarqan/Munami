@@ -7,12 +7,13 @@
   --color-card: #1A1A1A;
   --color-card-border: #2A2A2A;
 
-  --color-primary: #8FCFA6;
-  --color-positive: #8FCFA6;
-  --color-caution: #EBA0A6;
-  --color-rewards: #EDC96F;
-  --color-teal: #63B4A9;
-  --color-lavender: #B49FDF;
+  /* Category colors — pushed to vivid, saturated retro versions */
+  --color-primary: #2FBF71;   /* Shopping — vivid green */
+  --color-positive: #2FBF71;
+  --color-caution: #FF5C39;   /* Bills & Transport — vivid coral */
+  --color-rewards: #FFC93C;   /* Entertainment — vivid gold */
+  --color-teal: #17C3B2;      /* Food & Groceries — vivid teal */
+  --color-lavender: #A66CFF;  /* Other — vivid purple */
 
   --color-text: #F5F5F5;
   --color-muted: #9A9A9A;
@@ -89,6 +90,55 @@ body {
   --hero-btn-icon: #FFFDF8;
   font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;
 }
+
+/* ── RETRO 90s / NEUBRUTALIST — per-tab skin ───────────────────────────────
+   Applied one tab at a time by adding `tab-retro` to a tab's scroll container.
+   Overrides tokens to the dark/bold palette for that tab's subtree, and gives
+   every rounded card a thick black outline + solid offset "sticker" shadow.
+   Rolled out tab by tab; shared chrome (nav, hamburger, mascot) is retro in
+   its own components. */
+.tab-retro {
+  --color-page: #1E1E1E;      /* charcoal ground */
+  --color-tint: #2A2A2A;
+  --color-card: #262626;      /* dark card surface */
+  --color-card-border: #000000;
+  --color-text: #F5F0E6;      /* off-white ink */
+  --color-muted: #A79E8E;
+  --color-primary: #2FBF71;   /* vivid green — buttons, active, links */
+  --color-positive: #2FBF71;
+  --color-caution: #FF5C39;
+  --color-rewards: #FFC93C;
+  --grad-hero-card: #262626;  /* flatten warm gradient → dark card */
+}
+/* thick black outline + chunky solid offset shadow on every rounded card
+   (:not(.tab-retro) skips the scroll container itself) */
+.tab-retro [class*="rounded-["]:not(.tab-retro) {
+  border-width: 3px !important;
+  border-style: solid !important;
+  border-color: #000 !important;
+  box-shadow: 5px 5px 0 #000 !important;
+}
+/* solid-fill BUTTONS get the same sticker treatment (not tiny dot spans) */
+.tab-retro button.bg-primary {
+  border: 3px solid #000 !important;
+  box-shadow: 4px 4px 0 #000 !important;
+}
+/* منمّي chat bubbles + avatars (the `border-primary/xx` elements) →
+   vivid teal sticker with charcoal ink, distinct from the dark user bubbles */
+.tab-retro [class*="border-primary/"] {
+  background: #17C3B2 !important;
+  color: #0E1F14 !important;
+  border-color: #000 !important;
+}
+/* solid-fill hero cards → bold gold sticker with charcoal ink on everything */
+.tab-retro .retro-hero { background: #FFC93C !important; }
+.tab-retro .retro-hero *,
+.tab-retro .retro-hero .munami-hero { color: #1E1E1E !important; }
+/* verdict/status pill sitting ON the gold hero — a charcoal sticker with
+   cream ink so it POPS instead of blending into the yellow */
+.tab-retro .retro-hero .retro-verdict { background: #1E1E1E !important; }
+.tab-retro .retro-hero .retro-verdict,
+.tab-retro .retro-hero .retro-verdict * { color: #FFF3D0 !important; }
 
 /* Hero number — Space Grotesk Bold / Noto Sans Arabic Black, very large. */
 .munami-hero {

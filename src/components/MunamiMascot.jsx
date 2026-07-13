@@ -11,15 +11,15 @@ export default function MunamiMascot({ expression = 'happy', size = 52, classNam
       className={className}
       aria-hidden="true"
     >
-      {/* Leaf stalk */}
-      <path d="M26 8V15" stroke="#2D6A4A" strokeWidth="2" strokeLinecap="round" />
-      {/* Left leaf */}
-      <path d="M26 13C26 13 21 11 19 7C22 6 26 9 26 13Z" fill="#4BAF73" />
-      {/* Right leaf — slightly higher, lighter */}
-      <path d="M26 11C26 11 31 8 33 4C30 3 27 6 26 11Z" fill="#2D6A4A" opacity="0.7" />
+      {/* Leaf stalk — thick dark linework */}
+      <path d="M26 8V15" stroke="#0E1F14" strokeWidth="3" strokeLinecap="round" />
+      {/* Left leaf — vivid green with dark outline */}
+      <path d="M26 13C26 13 21 11 19 7C22 6 26 9 26 13Z" fill="#2FBF71" stroke="#0E1F14" strokeWidth="1.4" strokeLinejoin="round" />
+      {/* Right leaf — slightly higher, deeper green */}
+      <path d="M26 11C26 11 31 8 33 4C30 3 27 6 26 11Z" fill="#178A4C" stroke="#0E1F14" strokeWidth="1.4" strokeLinejoin="round" />
 
-      {/* Face circle */}
-      <circle cx="26" cy="35" r="21" fill="#FFFDF8" stroke="#2D6A4A" strokeWidth="1.8" />
+      {/* Face circle — bold black outline (retro sticker) */}
+      <circle cx="26" cy="35" r="21" fill="#FFFDF8" stroke="#000000" strokeWidth="3" />
 
       {/* Celebrating sparkles — appear before eyes so they don't overlap */}
       {expression === 'celebrating' && (

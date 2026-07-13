@@ -188,10 +188,10 @@ export default function CopilotTab({ financialContext }) {
   }
 
   return (
-    <>
+    <div className="tab-retro absolute inset-0 bg-page">
       {/* ── Header ── */}
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
-      <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b border-card-border">
+      <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
             <GrowthMark size={19} color="var(--color-primary)" />
@@ -257,12 +257,13 @@ export default function CopilotTab({ financialContext }) {
 
       {/* ── Input bar ── */}
       <div
-        className="absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[0.5px] border-card-border"
+        className="absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[3px] border-card-border"
         style={{ bottom: 72 }}
       >
         <div
-          className="flex items-center gap-3 bg-card border-[0.5px] border-card-border rounded-full px-4 py-2.5"
+          className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5"
           dir="ltr"
+          style={{ border: '3px solid #000000', boxShadow: '4px 4px 0 #000000' }}
         >
           <input
             ref={inputRef}
@@ -293,6 +294,6 @@ export default function CopilotTab({ financialContext }) {
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }

@@ -59,8 +59,9 @@ export default function BankCardStack({ accounts, locale }) {
                 // Bold, saturated SOLID brand fill — no tint, no gradient
                 backgroundColor: acc.color,
                 // Thick black outline + chunky solid offset "sticker" shadow
+                // (matches the app-wide retro system: 3px outline, 5px offset)
                 border: '3px solid #000000',
-                boxShadow: '7px 7px 0 #000000',
+                boxShadow: '5px 5px 0 #000000',
               }}
               animate={{
                 y: expanded ? i * (CARD_H + GAP) : i * PEEK_Y,

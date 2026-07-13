@@ -59,14 +59,13 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
   const { locale } = useLocale()
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-10 flex items-end border-t-[0.5px] border-card-border"
+      className="absolute bottom-0 left-0 right-0 z-10 flex items-end"
       style={{
         height: 74,
         overflow: 'visible',
-        // Soft vertical sweep so the bar reads as a designed surface,
-        // not a flat default strip. Themeable via --grad-nav.
-        background: 'var(--grad-nav)',
-        boxShadow: '0 -6px 24px rgba(45,106,74,0.07)',
+        // Retro: flat charcoal bar with a thick black top rule
+        background: '#262626',
+        borderTop: '3px solid #000000',
       }}
     >
       {TABS.map((tab) => {
@@ -86,21 +85,19 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
-                  background: 'var(--grad-hero-btn)',
-                  border: '3px solid var(--hero-btn-ring)',
-                  opacity: isActive ? 1 : 0.88,
-                  transform: isActive ? 'scale(1.04)' : 'scale(1)',
-                  boxShadow: isActive
-                    ? '0 -2px 24px rgba(45,106,74,0.40), 0 6px 18px rgba(45,106,74,0.30), inset 0 1px 0 rgba(255,255,255,0.25)'
-                    : '0 -2px 12px rgba(45,106,74,0.20), 0 4px 10px rgba(45,106,74,0.16), inset 0 1px 0 rgba(255,255,255,0.18)',
+                  background: '#2FBF71',
+                  border: '3px solid #000000',
+                  opacity: isActive ? 1 : 0.9,
+                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  boxShadow: isActive ? '4px 4px 0 #000000' : '3px 3px 0 #000000',
                   marginTop: -26,
                 }}
               >
-                <GrowthMark size={23} color="var(--hero-btn-icon)" />
+                <GrowthMark size={23} color="#0E1F14" />
               </div>
               <span
-                className="text-[9px] font-bold leading-none transition-colors duration-200"
-                style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-muted)' }}
+                className="text-[9px] font-extrabold leading-none transition-colors duration-200"
+                style={{ color: isActive ? '#2FBF71' : '#A79E8E' }}
               >
                 منمّي
               </span>
@@ -122,17 +119,18 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
             <span
               className="flex items-center justify-center transition-all duration-200"
               style={{
-                width: 44,
-                height: 27,
-                borderRadius: 999,
-                background: isActive ? 'var(--grad-nav-pill)' : 'transparent',
-                boxShadow: isActive ? '0 2px 10px rgba(45,106,74,0.20)' : 'none',
+                width: 46,
+                height: 28,
+                borderRadius: 10,
+                background: isActive ? '#2FBF71' : 'transparent',
+                border: isActive ? '2.5px solid #000000' : '2.5px solid transparent',
+                boxShadow: isActive ? '2.5px 2.5px 0 #000000' : 'none',
               }}
             >
               <Icon
                 className="transition-transform duration-200"
                 style={{
-                  color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
+                  color: isActive ? '#0E1F14' : '#A79E8E',
                   transform: isActive ? 'scale(1.06)' : 'scale(1)',
                 }}
               />
@@ -140,8 +138,8 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
             <span
               className="text-[10px] leading-none transition-all duration-200"
               style={{
-                color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
-                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#2FBF71' : '#A79E8E',
+                fontWeight: isActive ? 800 : 600,
               }}
             >
               {t(locale, tab.labelKey)}
