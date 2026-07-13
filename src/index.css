@@ -7,12 +7,12 @@
   --color-card: #1A1A1A;
   --color-card-border: #2A2A2A;
 
-  --color-primary: #A8D5BA;
-  --color-positive: #A8D5BA;
-  --color-caution: #E8B4B8;
-  --color-rewards: #E8CF8E;
-  --color-teal: #7FB8B0;
-  --color-lavender: #C4B5E0;
+  --color-primary: #8FCFA6;
+  --color-positive: #8FCFA6;
+  --color-caution: #EBA0A6;
+  --color-rewards: #EDC96F;
+  --color-teal: #63B4A9;
+  --color-lavender: #B49FDF;
 
   --color-text: #F5F5F5;
   --color-muted: #9A9A9A;
@@ -73,18 +73,18 @@ body {
   --color-tint: #EDE5D9;
   --color-card: #FFFFFF;
   --color-card-border: #DDD3C4;
-  --color-primary: #2D6A4A;
-  --color-positive: #2D6A4A;
-  --color-caution: #B5472A;
+  --color-primary: #177A45;
+  --color-positive: #177A45;
+  --color-caution: #C8431E;
   --color-text: #1A2B1F;
   --color-muted: #7B7568;
-  --color-rewards: #C87E1A;
+  --color-rewards: #D9840C;
   /* Gradient + hero-button tokens — components read these instead of
      hardcoded hexes, so alternate themes can restyle them wholesale. */
   --grad-hero-card: linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%);
   --grad-nav: linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%);
   --grad-nav-pill: linear-gradient(150deg, #E3F2E9 0%, #CBE6D6 100%);
-  --grad-hero-btn: linear-gradient(145deg, #3E8560 0%, #2D6A4A 58%, #24583D 100%);
+  --grad-hero-btn: linear-gradient(145deg, #2A9A5E 0%, #177A45 58%, #12643A 100%);
   --hero-btn-ring: #FFFDF8;
   --hero-btn-icon: #FFFDF8;
   font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;

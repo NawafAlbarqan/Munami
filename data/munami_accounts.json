@@ -7,7 +7,8 @@
       "type": "Current",
       "iban_tail": "8842",
       "balance_sar": 15420.5,
-      "color": "#A8D5BA"
+      "color": "#0A2647",
+      "accent": "#0A2647"
     },
     {
       "account_id": "ACC-RAJHI-002",
@@ -15,7 +16,8 @@
       "type": "Current",
       "iban_tail": "1196",
       "balance_sar": 9280.75,
-      "color": "#E8B4B8"
+      "color": "#2323FF",
+      "accent": "#2323FF"
     },
     {
       "account_id": "ACC-SNB-003",
@@ -23,7 +25,8 @@
       "type": "Savings",
       "iban_tail": "5530",
       "balance_sar": 23150.0,
-      "color": "#E8CF8E"
+      "color": "#1B5E3A",
+      "accent": "#6FCF5C"
     }
   ],
   "funds": [

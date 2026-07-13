@@ -155,22 +155,26 @@ Root tokens (in `@theme` in `src/index.css`, overridden by `.theme-warm`):
 - Secondary surface / tint (warm beige): `#EDE5D9`
 - Card background (white): `#FFFFFF`
 - Card border (warm sand): `#DDD3C4`
-- Primary accent / identity color (forest green): `#2D6A4A`
-- Positive / good spending (forest green): `#2D6A4A`
-- Caution / overspend (terracotta): `#B5472A`
-- Rewards / XP / butter gold: `#C87E1A`
+- Primary accent / identity color (vivid forest green): `#177A45`
+- Positive / good spending (vivid forest green): `#177A45`
+- Caution / overspend (vivid terracotta): `#C8431E`
+- Rewards / XP / vivid gold: `#D9840C`
 - Primary text (dark forest): `#1A2B1F`
 - Muted text (warm taupe): `#7B7568`
+
+(The accent trio above was bumped more saturated from the original muted
+`#2D6A4A` / `#B5472A` / `#C87E1A` for more punch, staying in the warm family.)
 
 **Per-category colors** — fixed, not positional. Same color for every category's
 donut slice, callout pill, and legend dot. Defined in `CATEGORY_COLOR_VAR` in
 `src/lib/finance.js`. These are NOT overridden by `.theme-warm` — they read
-from the root `@theme` and stay consistent:
-  - Shopping → `#A8D5BA` (mint, `--color-primary` root value)
-  - Bills & Transport → `#E8B4B8` (blush, `--color-caution` root value)
-  - Entertainment → `#E8CF8E` (butter, `--color-rewards` root value)
-  - Food & Groceries → `#7FB8B0` (dusty teal, `--color-teal`)
-  - Other → `#C4B5E0` (soft lavender, `--color-lavender`)
+from the root `@theme` and stay consistent (also bumped more saturated from
+their original pastel values for a less washed-out donut):
+  - Shopping → `#8FCFA6` (mint, `--color-primary` root value)
+  - Bills & Transport → `#EBA0A6` (blush, `--color-caution` root value)
+  - Entertainment → `#EDC96F` (butter, `--color-rewards` root value)
+  - Food & Groceries → `#63B4A9` (dusty teal, `--color-teal`)
+  - Other → `#B49FDF` (soft lavender, `--color-lavender`)
 
 IMPORTANT: `themeColor()` in components reads from `document.documentElement`,
 which returns the ROOT `@theme` values (dark theme tokens), not the `.theme-warm`
@@ -417,10 +421,23 @@ Bank account aggregation + money buckets. Data from `data/munami_accounts.json`
 - **Total balance hero**: large bold number (count-up animation) inside a white card
   with green ambient shadow (`0 2px 24px rgba(45,106,74,0.10)`), generous top padding,
   and clear vertical rhythm between the label / hero number / subtext.
-- **Bank card carousel** (`BankCarousel` inside `AccountsTab.jsx`): horizontal
-  scroll-snap slider, one card per bank. Each card uses the account's own `color`
-  field as an accent (background tint + border + balance text). Dot indicators below
-  the carousel expand/color to match the active card.
+- **Bank card stack** (`src/components/BankCardStack.jsx`) — replaced the old
+  carousel. The three bank cards sit stacked like a fanned deck (top card fully
+  visible, others peeking out diagonally below-right); **tap the stack to fan
+  out** into a readable vertical spread (Motion, ~420ms staggered), tap again to
+  restack. Hint caption flips between "Tap to see all accounts" / "Tap to stack"
+  (i18n `bankStackExpand` / `bankStackCollapse`).
+- **Real bank logos + brand colors**: actual logo PNGs live in
+  `src/assets/banks/` (`alinma.png`, `alrajhi.png`, `snb.png`), imported as Vite
+  assets and shown on a white chip per card. Each account's `color` (and optional
+  `accent`) in `munami_accounts.json` is the bank's REAL brand color, not our
+  category palette: Alinma navy `#0A2647`, Al Rajhi blue `#2323FF`, SNB green
+  `#1B5E3A` + light-green accent `#6FCF5C`.
+- **Retro/neubrutalist bank cards**: the bank cards specifically use a bold
+  sticker treatment — solid saturated brand fill, 3px black outline, chunky
+  `7px 7px 0 #000` offset solid shadow, 22px corners, white text (SNB's balance
+  in its light-green accent). This is currently a deliberate style island on the
+  bank cards; the rest of the app uses the soft warm theme.
 - **Fund buckets ("pots")**: `data/munami_accounts.json` now contains exactly two
   fund types — **Unallocated** (display-only row) and **Emergency Fund** (the only
   real fund). Vacation and New Car were deleted from the data entirely (not hidden);

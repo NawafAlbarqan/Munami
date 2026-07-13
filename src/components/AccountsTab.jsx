@@ -4,72 +4,10 @@ import { useCountUp } from '../lib/useCountUp'
 import { formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
+import BankCardStack from './BankCardStack'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
 const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
-
-// ─── Bank card carousel ──────────────────────────────────────────────────────
-
-function BankCarousel({ accounts, locale }) {
-  const [activeIdx, setActiveIdx] = useState(0)
-
-  function onScroll(e) {
-    const el = e.currentTarget
-    const step = el.children[0]?.offsetWidth + 12 || 292
-    const idx = Math.round(el.scrollLeft / step)
-    setActiveIdx(Math.max(0, Math.min(accounts.length - 1, idx)))
-  }
-
-  return (
-    <div>
-      <div
-        onScroll={onScroll}
-        className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-thin"
-        style={{ paddingLeft: '1rem', paddingRight: '1rem' }}
-      >
-        {accounts.map((acc, i) => (
-          <motion.div
-            key={acc.account_id}
-            className="shrink-0 w-[280px] snap-center rounded-[20px] p-5 border-[0.5px]"
-            style={{ backgroundColor: acc.color + '18', borderColor: acc.color + '50' }}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: i * 0.07, ease: 'easeOut' }}
-          >
-            <div className="flex items-start justify-between mb-8">
-              <div>
-                <p className="text-text text-sm font-semibold">{acc.bank}</p>
-                <p className="text-muted text-[11px] mt-0.5">
-                  {acc.type} · ···· {acc.iban_tail}
-                </p>
-              </div>
-              <span className="w-3 h-3 rounded-full mt-0.5" style={{ backgroundColor: acc.color }} />
-            </div>
-            <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-1">
-              {t(locale, 'balance')}
-            </p>
-            <p className="text-2xl font-bold tracking-tight" style={{ color: acc.color }}>
-              {formatSAR(acc.balance_sar)}
-            </p>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="flex justify-center gap-1.5 mt-4">
-        {accounts.map((acc, i) => (
-          <span
-            key={i}
-            className="h-1.5 rounded-full transition-all duration-200"
-            style={{
-              width: i === activeIdx ? '20px' : '6px',
-              backgroundColor: i === activeIdx ? acc.color : 'var(--color-card-border)',
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
 
 // ─── Tappable fund bucket ────────────────────────────────────────────────────
 
@@ -232,8 +170,8 @@ export default function AccountsTab() {
         </div>
       </motion.div>
 
-      {/* ── Bank carousel ── */}
-      <BankCarousel accounts={accountsData.accounts} locale={locale} />
+      {/* ── Bank card stack — tap to fan out, tap again to restack ── */}
+      <BankCardStack accounts={accountsData.accounts} locale={locale} />
 
       {/* ── Fund buckets ── */}
       <div className="px-4 mt-8">

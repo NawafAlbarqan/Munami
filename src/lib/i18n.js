@@ -65,6 +65,8 @@ const STRINGS = {
     depositToFund: (name) => `Add to ${name}`,
     withdrawFromFund: (name) => `Withdraw from ${name}`,
     availableToWithdraw: (amt) => `${amt} in fund`,
+    bankStackExpand: 'Tap to see all accounts',
+    bankStackCollapse: 'Tap to stack',
 
     // Settings panel
     settings: 'Settings',
@@ -154,6 +156,8 @@ const STRINGS = {
     depositToFund: (name) => `إضافة إلى ${name}`,
     withdrawFromFund: (name) => `سحب من ${name}`,
     availableToWithdraw: (amt) => `${amt} في الصندوق`,
+    bankStackExpand: 'اضغط لعرض كل الحسابات',
+    bankStackCollapse: 'اضغط للطي',
 
     // Settings panel
     settings: 'الإعدادات',
