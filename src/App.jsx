@@ -10,7 +10,6 @@ import AccountsTab from './components/AccountsTab'
 import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
 import MunamiMascot from './components/MunamiMascot'
-import GrowthMark from './components/GrowthMark'
 import SettingsPanel from './components/SettingsPanel'
 import { useLocale } from './lib/LocaleContext'
 import {
@@ -39,6 +38,15 @@ import {
 } from './lib/aiCoach'
 import { t, monthLabel, monthYearLabel, categoryName, formatSAR, dir } from './lib/i18n'
 import accountsData from '../data/munami_accounts.json'
+
+// Severity split for a "bad" spending trend: a genuinely large swing (>=50%)
+// reads as clearly-flagged overspending (unhappy); anything smaller is just
+// an early/mild warning (concerned). Shared by the insight cards and the
+// Overview greeting mascot so both use the same definition of "significant."
+const SIGNIFICANT_PCT = 50
+function badMood(pctChange) {
+  return Math.abs(pctChange) >= SIGNIFICANT_PCT ? 'unhappy' : 'concerned'
+}
 
 function App() {
   const { locale } = useLocale()
@@ -103,7 +111,7 @@ function App() {
     const summary = summarizePriorMonth(debits, activeMonth)
     if (summary) {
       baseCards.push({
-        mascotMood: isGood(summary.direction) ? 'happy' : 'concerned',
+        mascotMood: isGood(summary.direction) ? 'happy' : badMood(summary.pctChange),
         accent: isGood(summary.direction) ? 'positive' : 'caution',
         text: phrasePriorMonthSummary(locale, {
           priorMonthLabel: monthLabel(locale, summary.priorMonth),
@@ -117,7 +125,7 @@ function App() {
     const changes = computeCategoryChanges(debits, activeMonth)
     baseChanges = topChanges(changes, 3)
     baseCards = baseChanges.map((change) => ({
-      mascotMood: isGood(change.direction) ? 'happy' : 'concerned',
+      mascotMood: isGood(change.direction) ? 'happy' : badMood(change.pctChange),
       category: categoryName(locale, change.category),
       arrow: change.direction === 'down' ? '▼' : '▲',
       pct: Math.abs(change.pctChange),
@@ -214,15 +222,21 @@ function App() {
 
   // ── Mascot expression ─────────────────────────────────────────────────────
   // Three real moods now (no separate "celebrating" art) — happy covers both
-  // plain on-track and a strong-improvement month; unhappy is reserved for
-  // genuinely over budget (spent >= all income), concerned for approaching it.
+  // plain on-track and a strong-improvement month.
+  //   concerned = mild/early warning: approaching the limit (85-99% of
+  //     income spent), or 2+ categories trending up but none severely
+  //   unhappy = serious/clear negative: spent >= all income (genuinely over
+  //     budget), OR any single category surged >=50% (badMood's threshold,
+  //     "significantly and clearly above usual")
   const spendRatio = income > 0 ? spent / income : 0
   const goodCount = cards.filter((c) => c.accent === 'positive').length
-  const badCount = cards.filter((c) => c.accent === 'caution').length
-  const isCelebrating = goodCount >= 2 && !(spendRatio >= 1.0 || spendRatio > 0.85 || badCount >= 2)
+  const badCards = cards.filter((c) => c.accent === 'caution')
+  const badCount = badCards.length
+  const hasSevereCategory = badCards.some((c) => c.mascotMood === 'unhappy')
+  const isCelebrating = goodCount >= 2 && !(spendRatio >= 1.0 || hasSevereCategory || spendRatio > 0.85 || badCount >= 2)
   let mascotExpression = 'happy'
   if (rows.length > 0 && !earlyMonth) {
-    if (spendRatio >= 1.0) mascotExpression = 'unhappy'
+    if (spendRatio >= 1.0 || hasSevereCategory) mascotExpression = 'unhappy'
     else if (spendRatio > 0.85 || badCount >= 2) mascotExpression = 'concerned'
   }
   const mascotVerdict = earlyMonth
@@ -303,7 +317,6 @@ function App() {
               className="retro-verdict inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
               style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
             >
-              <GrowthMark size={11} color="var(--color-primary)" />
               <span className="text-primary text-xs font-semibold">{mascotVerdict}</span>
             </div>
 

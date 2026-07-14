@@ -15,7 +15,7 @@ const STRINGS = {
     youveSpent: "You've spent",
     leftOver: 'Left over',
     mascotEarly: (n) => `${n} day${n !== 1 ? 's' : ''} in — keep it up!`,
-    mascotCelebrating: 'Crushing it this month 🌿',
+    mascotCelebrating: 'Crushing it this month',
     mascotConcerned: "Let's reel it in a bit",
     mascotOnTrack: 'On track, keep going!',
     mascotOverBudget: "Over budget this month — let's fix that",
@@ -28,7 +28,7 @@ const STRINGS = {
 
     // Goals tab
     goalsSubtitle: 'Your progress',
-    goalsHeader: 'Keep growing 🌿',
+    goalsHeader: 'Keep growing',
     level: 'Level',
     xpToLevel: (n) => `XP to Level ${n}`,
     streakLabel: (n) => `${n}-day streak`,
@@ -103,13 +103,13 @@ const STRINGS = {
 
     // Transactions tab
     txSubtitle: 'Your activity',
-    txHeader: 'Every spend, tracked 🌱',
+    txHeader: 'Every spend, tracked',
     txSearchPlaceholder: 'Search merchants or categories…',
     txAllBanks: 'All Banks',
     txEmpty: 'No transactions found.',
 
     // Copilot tab
-    copilotSubtitle: 'Your money, growing 🌿',
+    copilotSubtitle: 'Your money, growing',
     whatsOnYourMind: "What's on your mind?",
     askMunami: 'Ask منمّي...',
   },
@@ -127,7 +127,7 @@ const STRINGS = {
     youveSpent: 'لقد أنفقت',
     leftOver: 'المتبقي',
     mascotEarly: (n) => `مضى ${n} ${n === 1 ? 'يوم' : 'أيام'} — استمر هكذا!`,
-    mascotCelebrating: 'أداء رائع هذا الشهر 🌿',
+    mascotCelebrating: 'أداء رائع هذا الشهر',
     mascotConcerned: 'لنضبط الإنفاق قليلاً',
     mascotOnTrack: 'على المسار، واصل!',
     mascotOverBudget: 'تجاوزت ميزانيتك هذا الشهر — خلنا نصلحها',
@@ -140,7 +140,7 @@ const STRINGS = {
 
     // Goals tab
     goalsSubtitle: 'تقدمك',
-    goalsHeader: 'واصل النمو 🌿',
+    goalsHeader: 'واصل النمو',
     level: 'المستوى',
     xpToLevel: (n) => `نقطة للمستوى ${n}`,
     streakLabel: (n) => `${n} يوم متواصل`,
@@ -215,13 +215,13 @@ const STRINGS = {
 
     // Transactions tab
     txSubtitle: 'نشاطك',
-    txHeader: 'كل إنفاق، موثّق 🌱',
+    txHeader: 'كل إنفاق، موثّق',
     txSearchPlaceholder: 'ابحث عن تاجر أو فئة...',
     txAllBanks: 'كل البنوك',
     txEmpty: 'لا توجد معاملات.',
 
     // Copilot tab
-    copilotSubtitle: 'أموالك، تنمو 🌿',
+    copilotSubtitle: 'أموالك، تنمو',
     whatsOnYourMind: 'ما الذي تودّ معرفته؟',
     askMunami: 'اسأل منمّي...',
   },

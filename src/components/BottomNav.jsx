@@ -1,4 +1,4 @@
-import GrowthMark from './GrowthMark'
+import MunamiMascot from './MunamiMascot'
 import { useLocale } from '../lib/LocaleContext'
 import { t } from '../lib/i18n'
 
@@ -94,7 +94,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                   marginTop: -26,
                 }}
               >
-                <GrowthMark size={23} color="var(--color-on-accent)" />
+                <MunamiMascot expression="happy" size={32} />
               </div>
               <span
                 className="text-[9px] font-extrabold leading-none transition-colors duration-200"

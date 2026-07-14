@@ -89,6 +89,8 @@ function getChallenges(locale) {
     {
       id: 'c1',
       icon: '🍽️',
+      // 'limit' = a cap you want to stay UNDER — approaching/exceeding it is bad
+      mode: 'limit',
       title: locale === 'ar' ? 'الطعام ضمن الميزانية' : 'Dining Under Budget',
       desc: locale === 'ar'
         ? 'أنفق أقل من 300 ريال على الطعام والبقالة هذا الأسبوع'
@@ -98,6 +100,8 @@ function getChallenges(locale) {
     {
       id: 'c2',
       icon: '🎬',
+      // 'goal' = a target you want to REACH — more progress is always good
+      mode: 'goal',
       title: locale === 'ar' ? 'انضباط الترفيه' : 'Entertainment Discipline',
       desc: locale === 'ar'
         ? 'حافظ على الترفيه تحت 200 ريال لمدة 3 أيام'
@@ -107,18 +111,38 @@ function getChallenges(locale) {
   ]
 }
 
+// Concerned = mild/early warning (70-90% used); Unhappy = serious/clear
+// negative (100%+, actually over). Shared by the budget bar color and the
+// budget mood badge so both change at the same point.
+const CONCERNED_PCT = 0.70
+
 function budgetBarColor(pct, categoryColor) {
   if (pct >= 1.0) return '#E8756A'
-  if (pct >= 0.75) return '#E8CF8E'
+  if (pct >= CONCERNED_PCT) return '#E8CF8E'
   return categoryColor
 }
 
-// Same thresholds as budgetBarColor — happy/concerned/unhappy mascot mood
-// for a budget's current spend ratio.
 function budgetMood(pct) {
   if (pct >= 1.0) return 'unhappy'
-  if (pct >= 0.75) return 'concerned'
+  if (pct >= CONCERNED_PCT) return 'concerned'
   return 'happy'
+}
+
+// Challenge mood depends on its mode:
+// - 'limit' challenges (a cap to stay under): approaching it (70-99%) is a
+//   mild warning (concerned); reaching/exceeding it (100%+) means it was
+//   missed/failed (unhappy); comfortably under is happy.
+// - 'goal' challenges (a target to reach): only completed (100%+) shows a
+//   mood (happy) — with no real deadline in the demo data, "in progress"
+//   isn't treated as "at risk" for these.
+function challengeMood(ch) {
+  const pct = ch.target > 0 ? ch.progress / ch.target : 0
+  if (ch.mode === 'limit') {
+    if (pct >= 1.0) return 'unhappy'
+    if (pct >= CONCERNED_PCT) return 'concerned'
+    return 'happy'
+  }
+  return pct >= 1.0 ? 'happy' : null
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -264,6 +288,7 @@ export default function GoalsTab({ rows }) {
         <div className="flex flex-col gap-3">
           {CHALLENGES.map((ch, i) => {
             const barPct = Math.min(ch.progress / ch.target, 1)
+            const mood = challengeMood(ch)
             return (
               <motion.div
                 key={ch.id}
@@ -278,8 +303,10 @@ export default function GoalsTab({ rows }) {
                     <p className="text-text text-sm font-semibold">{ch.title}</p>
                     <p className="text-muted text-[11px] mt-0.5">{ch.desc}</p>
                   </div>
-                  {/* Completed challenges get a small happy منمّي badge next to the XP reward */}
-                  {barPct >= 1 && <MunamiMascot expression="happy" size={22} className="shrink-0" />}
+                  {/* Mood badge next to the XP reward: happy on completion (goal-mode)
+                      or comfortably-under (limit-mode); concerned approaching a limit-mode
+                      cap; unhappy once a limit-mode challenge is actually blown through */}
+                  {mood && <MunamiMascot expression={mood} size={22} className="shrink-0" />}
                   <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
                     +{ch.xp} XP
                   </span>

@@ -7,10 +7,10 @@ import { formatSAR, t } from '../lib/i18n'
 // disconnected number — Level 7 (this demo persona) lands on Tree, the top tier.
 function getTiers(locale) {
   return [
-    { key: 'seed', icon: '🌰', name: locale === 'ar' ? 'البذرة' : 'Seed' },
-    { key: 'sprout', icon: '🌱', name: locale === 'ar' ? 'البرعم' : 'Sprout' },
-    { key: 'branch', icon: '🌿', name: locale === 'ar' ? 'الغصن' : 'Branch' },
-    { key: 'tree', icon: '🌳', name: locale === 'ar' ? 'الشجرة' : 'Tree' },
+    { key: 'seed', num: 1, name: locale === 'ar' ? 'البذرة' : 'Seed' },
+    { key: 'sprout', num: 2, name: locale === 'ar' ? 'البرعم' : 'Sprout' },
+    { key: 'branch', num: 3, name: locale === 'ar' ? 'الغصن' : 'Branch' },
+    { key: 'tree', num: 4, name: locale === 'ar' ? 'الشجرة' : 'Tree' },
   ]
 }
 
@@ -132,13 +132,14 @@ function TierTrack({ locale, tierIndex }) {
           <div key={tier.key} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <span
-                className="w-9 h-9 rounded-[11px] flex items-center justify-center text-base"
+                className="w-9 h-9 rounded-[11px] flex items-center justify-center text-sm font-extrabold tabular-nums"
                 style={{
-                  background: isCurrent ? 'var(--color-primary)' : reached ? 'var(--color-tint)' : 'var(--color-tint)',
+                  background: isCurrent ? 'var(--color-primary)' : 'var(--color-tint)',
+                  color: isCurrent ? 'var(--color-on-accent)' : 'var(--color-muted)',
                   opacity: reached ? 1 : 0.4,
                 }}
               >
-                {tier.icon}
+                {tier.num}
               </span>
               <span
                 className="text-[9px] font-bold uppercase tracking-wide"

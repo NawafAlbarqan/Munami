@@ -66,42 +66,62 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 **The mascot — `src/components/MunamiMascot.jsx`**
 - منمّي is a **real pixel-art robot character** (asset sheet: real logo/mascot
   files, cropped + keyed transparent into `src/assets/mascot/mascot-{mood}.png`,
-  downscaled to ~200px since it's only ever shown at 22–56px). Not an SVG —
+  downscaled to ~200px since it's only ever shown at 20–56px). Not an SVG —
   `MunamiMascot` renders an `<img>`, mapping an `expression` prop to one of
   four real mood images. No circular frame around it anywhere — the art's
   own bold black outline makes a separate retro-card frame redundant.
-- Four expressions: `greeting` (waving hello — chat-open moments, the
-  Accounts total-balance corner emblem), `happy` (on-track/positive/
-  completed), `concerned` (cautionary — approaching a limit, a bad trend),
-  `unhappy` (clearly over budget). There is no separate "celebrating" art;
-  the old celebrating state folded into `happy`.
+- `size` is a MAX bounding box (`width: size, height: size` + `object-fit:
+  contain`), not a fixed width — the character is letterboxed inside it, so
+  it can never grow taller than intended and inflate a flex row's height.
+  This is load-bearing: a wrapper without an explicit height (e.g. `w-10`
+  with no `h-10`) once let the Copilot header grow past the chat thread's
+  hardcoded top offset, overlapping the first message. Always give the
+  wrapping element an explicit height too, not just width.
+- Four expressions: `greeting` (waving hello — chat-open moments only),
+  `happy` (on-track/positive/completed), `concerned` (mild/early warning —
+  approaching a limit, a moderate bad trend), `unhappy` (serious/clear
+  negative — actually over, a significant bad trend, a missed challenge).
+  There is no separate "celebrating" art; the old celebrating state folded
+  into `happy`. **This is now the app's only icon/logo graphic** — the old
+  abstract sprout mark (`GrowthMark.jsx`) was removed entirely, along with
+  every 🌱/🌿 emoji in copy strings (the *words* "grow/growing" stay — منمّي
+  means "the one who grows" — only the plant *graphics* were purged). The
+  bottom nav's منمّي tab icon and the Settings "About منمّي" row now show a
+  real mascot crop instead of the old sprout glyph; DealsWall's tier icons
+  (previously 🌰🌱🌿🌳) are plain numeral badges (1–4) instead.
 - **Overview greeting** expression is derived from real spending data in
-  `App.jsx`: `unhappy` if spend ratio ≥ 100% of income; `concerned` if
-  spend ratio > 85% or 2+ categories trending up; `happy` otherwise (verdict
-  text still distinguishes a plain on-track month from a genuinely
-  `celebrating` one via `isCelebrating`, even though both render the same
-  `happy` art). Early-month mode always = `happy`.
+  `App.jsx`: `unhappy` if spend ratio ≥ 100% of income OR any single
+  category's change is ≥50% in the bad direction (`badMood()`, shared with
+  the insight cards below — this is the "significantly and clearly above
+  usual" case); `concerned` if spend ratio > 85% or 2+ categories trending
+  up (mildly); `happy` otherwise (verdict text still distinguishes a plain
+  on-track month from a genuinely `celebrating` one via `isCelebrating`,
+  even though both render the same `happy` art). Early-month mode = `happy`.
 - **Overview insight cards** (`InsightCard.jsx`) render the mascot instead of
-  a ✅/⚠️ emoji for the good/bad category-change cards (`mascotMood` prop:
-  `happy`/`concerned`) — the neutral pace-projection card keeps its plain
-  📈 emoji since it's informational, not a mood judgment.
+  a ✅/⚠️ emoji for the good/bad category-change cards (`mascotMood` prop) —
+  good is always `happy`; a bad trend is `concerned` if the swing is under
+  50%, `unhappy` if ≥50% (`badMood()` in `App.jsx`). The neutral
+  pace-projection card keeps its plain 📈 emoji since it's informational,
+  not a mood judgment.
 - **Copilot**: header avatar = `greeting` (always); per-message avatar =
   `greeting` for the very first (chat-open) bubble only, `happy` for every
   reply after; the "thinking…" bubble avatar = `happy`.
-- **Goals**: each budget card shows a small (22px) mood badge using the same
-  real-spend thresholds as the progress bar (`budgetMood()`: <75% `happy`,
-  75–99% `concerned`, ≥100% `unhappy`); each weekly challenge shows a small
-  `happy` badge only once it's completed (progress ≥ target).
-- Mascot verdict text appears as a pill below the hero number: "Crushing it 🌿",
+- **Goals**: each budget card shows a small (22px) mood badge using
+  `budgetMood()` — the SAME thresholds as the progress bar's color
+  (`CONCERNED_PCT = 0.70`): <70% `happy`, 70–99% `concerned`, ≥100%
+  `unhappy`. Each weekly challenge shows a mood via `challengeMood()`, which
+  is mode-aware since the two demo challenges have opposite semantics: a
+  `'limit'`-mode challenge (a cap to stay under, e.g. "spend under SAR 300")
+  uses the same 70%/100% thresholds as budgets (approaching the cap =
+  concerned, blowing through it = a genuine miss = unhappy); a `'goal'`-mode
+  challenge (a target to reach, e.g. "hit 3 days") only shows a mood once
+  completed (`happy`) — with no real deadline in the demo data, in-progress
+  isn't treated as "at risk."
+- **Accounts total-balance card**: no mascot — removed after review, it's
+  just the label/number/divider/chip now (see below).
+- Mascot verdict text appears as a pill below the hero number: "Crushing it",
   "Let's reel it in", "Over budget this month — let's fix that",
   "9 days in — keep it up!" etc.
-
-**The growth mark — `src/components/GrowthMark.jsx`**
-- A minimal two-leaf sprout SVG (18×18 viewBox) — a separate, ABSTRACT brand
-  mark, not a face. Deliberately kept (not swapped for the real mascot) at
-  every spot too small/decorative for a detailed pixel-art face to read well:
-  the nav hero button, the tiny inline icon in the Overview verdict pill, and
-  the "منمّي member" line in Settings. Color via `color` prop; default `currentColor`.
 
 **Typography**
 - **Space Grotesk** (Google Fonts, weights 400–700) is the primary display font
@@ -118,19 +138,21 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 
 **Copy voice**
 - Warm and direct, like a smart friend who is good with money — not a bank.
-- Tab headers use personality phrases: "Keep growing 🌿" (Goals), "Every spend,
-  tracked 🌱" (Transactions), "Your money, growing 🌿" (Copilot subtitle).
+- Tab headers use personality phrases: "Keep growing" (Goals), "Every spend,
+  tracked" (Transactions), "Your money, growing" (Copilot subtitle). (No
+  trailing 🌱/🌿 anymore — see "no plant graphics" note above; the wording
+  itself stays since منمّي means "the one who grows.")
 - AI messages in first person, casual: "You've got this." "Nice start." "Done!"
 - Copilot suggested-questions label: "What's on your mind?" (not "Suggested").
 
 **منمّي Personality (Chat)**
 - **Core rule**: chill friend energy in TONE, sharp financial substance in REASONING. Casualness never replaces real reasoning.
-- **English greeting pool** (one picked randomly on each chat load): "Hey, what's up?", "Yo, how's it going?", "Hey! What do you need?", "Sup 🌱", "Hey hey, what's on your mind?", "Hi! Ready when you are."
-- **Arabic greeting pool**: "يالله حياك، كيف أقدر أخدمك اليوم؟", "يا مرحبا 🌱", "سم", "اهلين، وش عندك؟", "حياك، تبي تشوف وضعك المالي؟", "هلا هلا، جاهز أساعدك"
+- **English greeting pool** (one picked randomly on each chat load): "Hey, what's up?", "Yo, how's it going?", "Hey! What do you need?", "Sup", "Hey hey, what's on your mind?", "Hi! Ready when you are."
+- **Arabic greeting pool**: "يالله حياك، كيف أقدر أخدمك اليوم؟", "يا مرحبا", "سم", "اهلين، وش عندك؟", "حياك، تبي تشوف وضعك المالي؟", "هلا هلا، جاهز أساعدك"
 - **Tone in every message**: casual and warm, a little playful. Short sentences, contractions, no corporate-speak. Cheeky when spending is off track, genuinely hype when things go well.
 - **Arabic register**: Saudi Gulf colloquial (وش، زين، خلاص، عادي، يالله) — reads like a friend texting, not a formal report.
 - **Numbers**: only when directly relevant. Never data-dump.
-- **Emoji**: 🌱 occasionally, not as a sign-off on every message.
+- **Emoji**: none of the old plant emoji; keep any other emoji sparing and occasional, not a sign-off on every message.
 
 ---
 
@@ -139,15 +161,28 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 **Layout**
 - Mobile-first. Max content width **400px**, centered on screen.
 - Phone-style framing — the whole app renders inside a `PhoneFrame`
-  (`src/components/PhoneFrame.jsx`): dark bezel, top notch, a screen that is
-  ALWAYS **400×844px internally** (real iPhone proportions). On viewports too
-  short/narrow for the full frame, the whole frame is scaled down with
-  `transform: scale()` (computed in a resize listener) — the layout is never
-  compressed, it just appears smaller. Do NOT go back to `min(844px, 88dvh)`
-  heights: that squished the layout on laptop screens. The browser window
-  itself never scrolls (`html/body/#root` are locked to
-  `height: 100%; overflow: hidden`) — only the content *inside* the phone
-  screen scrolls, with a thin custom scrollbar (`.scroll-thin` in
+  (`src/components/PhoneFrame.jsx`): a screen that is ALWAYS **400×844px
+  internally** (real iPhone proportions). On viewports too short/narrow for
+  the full frame, the whole frame is scaled down with `transform: scale()`
+  (computed in a resize listener) — the layout is never compressed, it just
+  appears smaller. Do NOT go back to `min(844px, 88dvh)` heights: that
+  squished the layout on laptop screens. The browser window itself never
+  scrolls (`html/body/#root` are locked to `height: 100%; overflow: hidden`)
+  — only the content *inside* the phone screen scrolls, with a thin custom
+  scrollbar (`.scroll-thin` in
+  `src/index.css`).
+- **PhoneFrame chrome, made to pop**: a deep, theme-independent vignette
+  backdrop (`radial-gradient(120% 90% at 50% 32%, #232226 0%, #0D0C0E 62%,
+  #050506 100%)`) — deliberately dark enough to contrast against BOTH the
+  dark-theme charcoal screen (`#1E1E1E`) and the light-theme warm-grey
+  screen (`#D8D8D4`). An earlier flat `#1C1C1E` backdrop sat almost the same
+  tone as the dark screen, which is why the phone read as flat in dark mode
+  — don't reintroduce a flat single-color backdrop for this reason. The
+  bezel (`#0C0C0E`, 14px padding, 52px radius) has a layered shadow — inset
+  top-highlight + inset bottom-shadow (metal-edge rim) plus two soft
+  offset-down shadows (device resting on a lit surface) — instead of a
+  generic symmetric `shadow-2xl`. The notch is a Dynamic-Island-style pill
+  with a small camera-lens dot, not a plain black bar.
   `src/index.css`).
 - **System strip (hamburger zone)**: the top ~56px of every tab is reserved.
   The floating hamburger/settings button (in `App.jsx`) sits at
@@ -281,7 +316,7 @@ Other `#A66CFF`.
   (`marginTop: -26`), solid `var(--color-primary)` fill, 3px black border,
   offset shadow (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive).
   Active = full opacity + `scale(1.05)`; inactive = 90% opacity. Contains a
-  `var(--color-on-accent)`-colored `GrowthMark` icon.
+  real `MunamiMascot` (`happy`, 32px) instead of the old abstract sprout icon.
 - **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
   `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
   border, `2.5px 2.5px 0 #000` shadow) + icon in `--color-on-accent` +
@@ -327,7 +362,7 @@ All five tabs are built and use the warm/playful identity consistently.
 
 ### 1. Transactions (leftmost) ← **built**
 Full searchable, scrollable list of all transactions across every linked bank.
-Warm header "Every spend, tracked 🌱", search bar, bank filter chips, grouped by date.
+Warm header "Every spend, tracked", search bar, bank filter chips, grouped by date.
 
 ---
 
@@ -421,7 +456,7 @@ The AI financial advisor chat. This is the **main tab** and should feel like
 the heart of the app. Visually emphasized in the nav (slightly larger icon/label).
 Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful fallback.
 
-- **Header**: منمّي name + 🌱 avatar + "AI" / "Demo" status dot, pinned at top.
+- **Header**: منمّي name + real mascot avatar (`greeting` mood) + "AI" / "Demo" status dot, pinned at top.
 - **Chat opens with only the greeting**: a single منمّي bubble built from real
   financial data (`buildGreeting()`) — total balance, bank count, month spend.
   No pre-seeded messages. No suggested chips. Clean slate, ready for input.
@@ -499,9 +534,8 @@ Bank account aggregation + money buckets. Data from `data/munami_accounts.json`
 - **Total balance hero** (`.retro-hero`, gold fill): asymmetric layout, not
   plain centered text — left-aligned eyebrow label → huge left-aligned number
   → a short thick black divider rule → a `.retro-verdict` chip (charcoal
-  pill, cream text) for "across N accounts". A منمّي `GrowthMark` mark (no
-  circle/outline behind it — just the bare icon in `--color-primary`) is
-  pinned to the top-right corner, overlapping the card edge like a seal/emblem.
+  pill, cream text) for "across N accounts". No mascot/icon on this card —
+  an earlier corner-emblem treatment was tried and removed after review.
 - **Bank card stack** (`src/components/BankCardStack.jsx`) — replaced the old
   carousel. The three bank cards sit stacked like a fanned deck (top card fully
   visible, others peeking out diagonally below-right); **tap the stack to fan

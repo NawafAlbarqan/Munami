@@ -5,7 +5,6 @@ import { formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
 import BankCardStack from './BankCardStack'
-import MunamiMascot from './MunamiMascot'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
 const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
@@ -155,34 +154,22 @@ export default function AccountsTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
-        <div className="relative">
-          <div
-            className="retro-hero rounded-[28px] pl-6 pr-16 pt-8 pb-6"
-            style={{ background: 'var(--grad-hero-card)' }}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-2">
-              {t(locale, 'yourTotalBalance')}
-            </p>
-            <p className="munami-hero tabular-nums">
-              {formatSAR(animatedTotal)}
-            </p>
-            {/* Short thick rule — deliberate typographic break between the
-                number and the supporting caption, not just stacked centered text */}
-            <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: '#1E1E1E' }} />
-            <span className="retro-verdict inline-block rounded-full px-3 py-1 text-[11px] font-bold">
-              {t(locale, 'acrossAccounts', accountsData.accounts.length)}
-            </span>
-          </div>
-          {/* منمّي's real mascot, greeting mood — pinned to the corner like an
-              emblem, no circle behind it (the art's own bold outline makes a
-              separate frame redundant); sits outside the gold card so it
-              isn't affected by the card's forced charcoal ink rule. */}
-          <div
-            className="absolute flex items-end justify-center"
-            style={{ top: -18, right: 12, width: 56, height: 56 }}
-          >
-            <MunamiMascot expression="greeting" size={48} />
-          </div>
+        <div
+          className="retro-hero rounded-[28px] pl-6 pr-6 pt-8 pb-6"
+          style={{ background: 'var(--grad-hero-card)' }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-2">
+            {t(locale, 'yourTotalBalance')}
+          </p>
+          <p className="munami-hero tabular-nums">
+            {formatSAR(animatedTotal)}
+          </p>
+          {/* Short thick rule — deliberate typographic break between the
+              number and the supporting caption, not just stacked centered text */}
+          <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: '#1E1E1E' }} />
+          <span className="retro-verdict inline-block rounded-full px-3 py-1 text-[11px] font-bold">
+            {t(locale, 'acrossAccounts', accountsData.accounts.length)}
+          </span>
         </div>
       </motion.div>
 

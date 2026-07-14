@@ -2,7 +2,7 @@ import { motion } from 'motion/react'
 import { useLocale } from '../lib/LocaleContext'
 import { useTheme } from '../lib/ThemeContext'
 import { t } from '../lib/i18n'
-import GrowthMark from './GrowthMark'
+import MunamiMascot from './MunamiMascot'
 
 // Segmented language picker — always LTR so EN/AR labels stay in fixed order
 function LanguageSwitch({ locale, onChange }) {
@@ -119,10 +119,7 @@ export default function SettingsPanel({ onClose }) {
           </div>
           <div className="min-w-0">
             <p className="text-text text-base font-bold leading-tight">Ahmed</p>
-            <div className="flex items-center gap-1.5 mt-1">
-              <GrowthMark size={11} color="var(--color-primary)" />
-              <p className="text-muted text-xs">{t(locale, 'memberSince')}</p>
-            </div>
+            <p className="text-muted text-xs mt-1">{t(locale, 'memberSince')}</p>
           </div>
         </div>
       </div>
@@ -169,7 +166,7 @@ export default function SettingsPanel({ onClose }) {
           {t(locale, 'settingsApp')}
         </p>
         <div className="bg-card rounded-[20px] overflow-hidden">
-          <SettingsRow icon="🌱" label={t(locale, 'aboutMunami')} value={t(locale, 'comingSoon')} />
+          <SettingsRow icon={<MunamiMascot expression="greeting" size={20} />} label={t(locale, 'aboutMunami')} value={t(locale, 'comingSoon')} />
         </div>
       </div>
     </motion.div>

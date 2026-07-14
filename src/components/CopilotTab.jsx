@@ -17,7 +17,7 @@ const CATEGORY_EMOJI = {
 // Randomized casual greetings — one picked at random each time the chat opens
 const GREETINGS_AR = [
   'يالله حياك، كيف أقدر أخدمك اليوم؟',
-  'يا مرحبا 🌱',
+  'يا مرحبا',
   'سم',
   'اهلين، وش عندك؟',
   'حياك، تبي تشوف وضعك المالي؟',
@@ -28,7 +28,7 @@ const GREETINGS_EN = [
   "Hey, what's up?",
   "Yo, how's it going?",
   "Hey! What do you need?",
-  "Sup 🌱",
+  "Sup",
   "Hey hey, what's on your mind?",
   "Hi! Ready when you are.",
 ]
@@ -62,7 +62,7 @@ function extractMerchant(text) {
 function ThinkingBubble() {
   return (
     <div className="flex items-end gap-2">
-      <div className="w-8 flex items-end justify-center shrink-0 mb-0.5">
+      <div className="w-8 h-8 flex items-end justify-center shrink-0 mb-0.5">
         <MunamiMascot size={30} expression="happy" />
       </div>
       <div className="bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] px-4 py-3">
@@ -124,8 +124,8 @@ export default function CopilotTab({ financialContext }) {
     if (!USE_AI) {
       setTimeout(() => {
         const fallback = locale === 'ar'
-          ? 'منمّي في وضع العرض التجريبي. فعّل VITE_USE_AI لردود حية! 🌱'
-          : 'منمّي is in demo mode right now — enable AI for live responses! 🌱'
+          ? 'منمّي في وضع العرض التجريبي. فعّل VITE_USE_AI لردود حية!'
+          : 'منمّي is in demo mode right now — enable AI for live responses!'
         setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
       }, 600)
       return
@@ -152,8 +152,8 @@ export default function CopilotTab({ financialContext }) {
       } catch (err) {
         console.warn('[CopilotTab] categorize error:', err.message)
         const fallback = locale === 'ar'
-          ? 'لم أتمكن من التصنيف الآن. حاول مرة أخرى! 🌱'
-          : "Couldn't categorize that right now — try again in a moment! 🌱"
+          ? 'لم أتمكن من التصنيف الآن. حاول مرة أخرى!'
+          : "Couldn't categorize that right now — try again in a moment!"
         setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
       } finally {
         setIsThinking(false)
@@ -178,8 +178,8 @@ export default function CopilotTab({ financialContext }) {
     } catch (err) {
       console.warn('[CopilotTab] chat error:', err.message)
       const fallback = locale === 'ar'
-        ? 'أواجه بعض الصعوبة في الاتصال الآن. حاول مرة أخرى قريباً! 🌱'
-        : "I'm having a bit of trouble connecting right now. Please try again in a moment! 🌱"
+        ? 'أواجه بعض الصعوبة في الاتصال الآن. حاول مرة أخرى قريباً!'
+        : "I'm having a bit of trouble connecting right now. Please try again in a moment!"
       setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
     } finally {
       setIsThinking(false)
@@ -192,7 +192,7 @@ export default function CopilotTab({ financialContext }) {
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
       <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 flex items-center justify-center shrink-0">
             <MunamiMascot expression="greeting" size={36} />
           </div>
           <div className="flex-1 min-w-0">
@@ -209,7 +209,7 @@ export default function CopilotTab({ financialContext }) {
       {/* ── Message thread — always LTR layout (AI left, user right is universal) ── */}
       <div
         ref={scrollRef}
-        className="absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[78px] pb-36"
+        className="absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[92px] pb-36"
         dir="ltr"
       >
         <div className="flex flex-col gap-3 py-2">
@@ -222,7 +222,7 @@ export default function CopilotTab({ financialContext }) {
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
               {msg.role === 'ai' && (
-                <div className="w-8 flex items-end justify-center shrink-0 mb-0.5">
+                <div className="w-8 h-8 flex items-end justify-center shrink-0 mb-0.5">
                   {/* The very first bubble is always the chat-open greeting —
                       every later AI reply uses the steady-state happy mood. */}
                   <MunamiMascot size={30} expression={i === 0 ? 'greeting' : 'happy'} />

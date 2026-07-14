@@ -14,6 +14,10 @@ const MOOD_IMAGES = {
   unhappy: mascotUnhappy,
 }
 
+// `size` is a MAX bounding box (size×size), not a fixed width — the character
+// is letterboxed inside it via object-fit, so it can never grow taller than
+// intended and inflate a flex row's height (this caused a real layout bug:
+// the Copilot header grew past the chat thread's hardcoded top offset).
 export default function MunamiMascot({ expression = 'happy', size = 52, className = '' }) {
   const src = MOOD_IMAGES[expression] || MOOD_IMAGES.happy
   return (
@@ -22,7 +26,7 @@ export default function MunamiMascot({ expression = 'happy', size = 52, classNam
       alt=""
       aria-hidden="true"
       className={`object-contain shrink-0 ${className}`}
-      style={{ width: size, height: 'auto' }}
+      style={{ width: size, height: size }}
     />
   )
 }
