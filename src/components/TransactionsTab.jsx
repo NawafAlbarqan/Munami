@@ -76,7 +76,7 @@ export default function TransactionsTab({ rows }) {
   }, [sorted])
 
   return (
-    <div className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
       <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">{t(locale, 'txSubtitle')}</p>
       <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Space Grotesk', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
         {t(locale, 'txHeader')}
@@ -97,7 +97,7 @@ export default function TransactionsTab({ rows }) {
           onClick={() => setBankFilter(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium border-[0.5px] transition-colors ${
             !bankFilter
-              ? 'bg-primary text-page border-primary'
+              ? 'bg-primary text-on-accent border-primary'
               : 'bg-card border-card-border text-muted'
           }`}
         >
@@ -109,7 +109,7 @@ export default function TransactionsTab({ rows }) {
             onClick={() => setBankFilter(bankFilter === bank ? null : bank)}
             className={`px-3 py-1 rounded-full text-xs font-medium border-[0.5px] transition-colors ${
               bankFilter === bank
-                ? 'bg-primary text-page border-primary'
+                ? 'bg-primary text-on-accent border-primary'
                 : 'bg-card border-card-border text-muted'
             }`}
           >

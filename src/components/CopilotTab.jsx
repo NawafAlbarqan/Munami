@@ -188,7 +188,7 @@ export default function CopilotTab({ financialContext }) {
   }
 
   return (
-    <div className="tab-retro absolute inset-0 bg-page">
+    <div className="absolute inset-0 bg-page">
       {/* ── Header ── */}
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
       <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">

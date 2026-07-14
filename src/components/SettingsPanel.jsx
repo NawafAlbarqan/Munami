@@ -1,12 +1,13 @@
 import { motion } from 'motion/react'
 import { useLocale } from '../lib/LocaleContext'
+import { useTheme } from '../lib/ThemeContext'
 import { t } from '../lib/i18n'
 import GrowthMark from './GrowthMark'
 
 // Segmented language picker — always LTR so EN/AR labels stay in fixed order
 function LanguageSwitch({ locale, onChange }) {
   return (
-    <div dir="ltr" className="flex bg-tint rounded-full p-0.5">
+    <div dir="ltr" className="flex bg-tint rounded-full p-0.5" style={{ border: '2px solid #000000' }}>
       {[{ l: 'en', label: 'EN' }, { l: 'ar', label: 'AR' }].map(({ l, label }) => (
         <button
           key={l}
@@ -14,13 +15,43 @@ function LanguageSwitch({ locale, onChange }) {
           className="px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200"
           style={{
             backgroundColor: locale === l ? 'var(--color-primary)' : 'transparent',
-            color: locale === l ? '#FFFDF8' : 'var(--color-muted)',
+            color: locale === l ? 'var(--color-on-accent)' : 'var(--color-muted)',
           }}
         >
           {label}
         </button>
       ))}
     </div>
+  )
+}
+
+// Dark/light sliding toggle — a proper switch (distinct from the segmented
+// language picker) since this is a genuine binary on/off, not a multi-option pick.
+function ThemeSwitch({ theme, onChange }) {
+  const isLight = theme === 'light'
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(isLight ? 'dark' : 'light')}
+      aria-label="Toggle light/dark theme"
+      className="flex items-center shrink-0"
+      style={{
+        width: 54, height: 30, borderRadius: 999,
+        background: isLight ? 'var(--color-tint)' : '#141414',
+        border: '2.5px solid #000000',
+        padding: '0 3px',
+        justifyContent: isLight ? 'flex-end' : 'flex-start',
+      }}
+    >
+      <motion.div
+        layout
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        className="rounded-full flex items-center justify-center text-[11px] leading-none"
+        style={{ width: 22, height: 22, background: 'var(--color-primary)', border: '2px solid #000000' }}
+      >
+        {isLight ? '☀️' : '🌙'}
+      </motion.div>
+    </button>
   )
 }
 
@@ -34,7 +65,7 @@ function SettingsRow({ icon, label, value }) {
       </div>
       <div className="flex items-center gap-2">
         {value && <span className="text-muted text-xs">{value}</span>}
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0" style={{ opacity: 0.3 }}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0" style={{ opacity: 0.4 }}>
           <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
@@ -44,6 +75,7 @@ function SettingsRow({ icon, label, value }) {
 
 export default function SettingsPanel({ onClose }) {
   const { locale, setLocale } = useLocale()
+  const { theme, setTheme } = useTheme()
   const isAr = locale === 'ar'
 
   return (
@@ -59,8 +91,8 @@ export default function SettingsPanel({ onClose }) {
       <div className="flex items-center gap-3 px-4 pt-5 pb-4">
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-card border-[0.5px] border-card-border flex items-center justify-center shrink-0"
-          style={{ boxShadow: '0 1px 6px rgba(45,106,74,0.08)' }}
+          className="bg-card flex items-center justify-center shrink-0"
+          style={{ width: 34, height: 34, borderRadius: 11, border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000' }}
         >
           {/* Arrow flips in RTL via scaleX */}
           <svg
@@ -75,16 +107,13 @@ export default function SettingsPanel({ onClose }) {
 
       {/* ── Profile card ── */}
       <div className="px-4 mb-6">
-        <div
-          className="bg-card border border-card-border rounded-[24px] px-5 py-5 flex items-center gap-4"
-          style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.08)' }}
-        >
+        <div className="bg-card rounded-[24px] px-5 py-5 flex items-center gap-4">
           {/* Avatar circle */}
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: 'var(--color-primary)' }}
+            style={{ backgroundColor: 'var(--color-primary)', border: '3px solid #000000' }}
           >
-            <span className="text-2xl font-bold" style={{ color: '#FFFDF8', fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="text-2xl font-bold" style={{ color: 'var(--color-on-accent)', fontFamily: "'Space Grotesk', sans-serif" }}>
               A
             </span>
           </div>
@@ -103,13 +132,21 @@ export default function SettingsPanel({ onClose }) {
         <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2 px-1">
           {t(locale, 'preferences')}
         </p>
-        <div className="bg-card border-[0.5px] border-card-border rounded-[20px]">
+        <div className="bg-card rounded-[20px]">
           <div className="flex items-center justify-between px-4 py-3.5">
             <div className="flex items-center gap-3">
               <span className="text-lg leading-none">🌐</span>
               <span className="text-text text-sm font-medium">{t(locale, 'language')}</span>
             </div>
             <LanguageSwitch locale={locale} onChange={setLocale} />
+          </div>
+          <div className="border-t-[2.5px]" style={{ borderColor: '#000000' }} />
+          <div className="flex items-center justify-between px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <span className="text-lg leading-none">{theme === 'light' ? '☀️' : '🌙'}</span>
+              <span className="text-text text-sm font-medium">{t(locale, 'appearance')}</span>
+            </div>
+            <ThemeSwitch theme={theme} onChange={setTheme} />
           </div>
         </div>
       </div>
@@ -119,9 +156,9 @@ export default function SettingsPanel({ onClose }) {
         <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2 px-1">
           {t(locale, 'settingsAccount')}
         </p>
-        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] overflow-hidden">
+        <div className="bg-card rounded-[20px] overflow-hidden">
           <SettingsRow icon="🔔" label={t(locale, 'notifications')} value={t(locale, 'comingSoon')} />
-          <div className="border-t border-card-border" />
+          <div className="border-t-[2.5px]" style={{ borderColor: '#000000' }} />
           <SettingsRow icon="🏦" label={t(locale, 'linkedAccounts')} value={t(locale, 'comingSoon')} />
         </div>
       </div>
@@ -131,7 +168,7 @@ export default function SettingsPanel({ onClose }) {
         <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2 px-1">
           {t(locale, 'settingsApp')}
         </p>
-        <div className="bg-card border-[0.5px] border-card-border rounded-[20px] overflow-hidden">
+        <div className="bg-card rounded-[20px] overflow-hidden">
           <SettingsRow icon="🌱" label={t(locale, 'aboutMunami')} value={t(locale, 'comingSoon')} />
         </div>
       </div>

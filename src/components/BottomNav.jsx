@@ -63,8 +63,9 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
       style={{
         height: 74,
         overflow: 'visible',
-        // Retro: flat charcoal bar with a thick black top rule
-        background: '#262626',
+        // Retro: flat card-toned bar with a thick black top rule.
+        // Tokenized so it adapts between dark charcoal / light cream.
+        background: 'var(--color-card)',
         borderTop: '3px solid #000000',
       }}
     >
@@ -85,7 +86,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
-                  background: '#2FBF71',
+                  background: 'var(--color-primary)',
                   border: '3px solid #000000',
                   opacity: isActive ? 1 : 0.9,
                   transform: isActive ? 'scale(1.05)' : 'scale(1)',
@@ -93,11 +94,11 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                   marginTop: -26,
                 }}
               >
-                <GrowthMark size={23} color="#0E1F14" />
+                <GrowthMark size={23} color="var(--color-on-accent)" />
               </div>
               <span
                 className="text-[9px] font-extrabold leading-none transition-colors duration-200"
-                style={{ color: isActive ? '#2FBF71' : '#A79E8E' }}
+                style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-muted)' }}
               >
                 منمّي
               </span>
@@ -122,7 +123,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                 width: 46,
                 height: 28,
                 borderRadius: 10,
-                background: isActive ? '#2FBF71' : 'transparent',
+                background: isActive ? 'var(--color-primary)' : 'transparent',
                 border: isActive ? '2.5px solid #000000' : '2.5px solid transparent',
                 boxShadow: isActive ? '2.5px 2.5px 0 #000000' : 'none',
               }}
@@ -130,7 +131,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               <Icon
                 className="transition-transform duration-200"
                 style={{
-                  color: isActive ? '#0E1F14' : '#A79E8E',
+                  color: isActive ? 'var(--color-on-accent)' : 'var(--color-muted)',
                   transform: isActive ? 'scale(1.06)' : 'scale(1)',
                 }}
               />
@@ -138,7 +139,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
             <span
               className="text-[10px] leading-none transition-all duration-200"
               style={{
-                color: isActive ? '#2FBF71' : '#A79E8E',
+                color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
                 fontWeight: isActive ? 800 : 600,
               }}
             >

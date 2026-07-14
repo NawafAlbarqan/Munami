@@ -36,7 +36,6 @@ const STRINGS = {
     streakBestDays: (n) => `${n} days`,
     monthlyBudgets: 'Monthly Budgets',
     weeklyChallenges: 'Weekly Challenges',
-    badges: 'Badges',
     overBudget: 'Over budget!',
     budgetSpent: 'spent',
     budgetOf: 'of',
@@ -44,6 +43,26 @@ const STRINGS = {
     addBudgetBtn: 'Add Budget',
     categoryLabel: 'Category',
     monthlyLimit: 'Monthly Limit (SAR)',
+
+    // Deals Wall (Goals tab)
+    dealsWallHeader: 'Deals Wall',
+    yourTier: 'Your tier',
+    howItWorks: 'How it works',
+    step1Title: 'Hit the milestone',
+    step1Desc: 'Reach your tier + finish the linked goal',
+    step2Title: 'Badge unlocks',
+    step2Desc: 'Becomes a real SAR-value voucher',
+    step3Title: 'Redeem at partner',
+    step3Desc: 'Show your code at checkout',
+    partnerPrivacyNote: 'The partner only sees the redemption — never your منمّي data.',
+    unlockedLabel: 'Unlocked',
+    redeem: 'Redeem',
+    redeemed: 'Redeemed ✓',
+    illustrativePricing: 'Illustrative pricing',
+    originalPrice: 'Original price',
+    munamiDeal: 'منمّي deal',
+    youPay: 'You pay',
+    youSave: (amt) => `You save ${amt}`,
 
     // Accounts tab
     yourTotalBalance: 'Your total balance',
@@ -70,6 +89,7 @@ const STRINGS = {
 
     // Settings panel
     settings: 'Settings',
+    appearance: 'Appearance',
     memberSince: 'منمّي member',
     preferences: 'Preferences',
     language: 'Language',
@@ -127,7 +147,6 @@ const STRINGS = {
     streakBestDays: (n) => `${n} يوم`,
     monthlyBudgets: 'الميزانيات الشهرية',
     weeklyChallenges: 'التحديات الأسبوعية',
-    badges: 'الشارات',
     overBudget: 'تجاوز الميزانية!',
     budgetSpent: 'أُنفق',
     budgetOf: 'من',
@@ -135,6 +154,26 @@ const STRINGS = {
     addBudgetBtn: 'إضافة',
     categoryLabel: 'الفئة',
     monthlyLimit: 'الحد الشهري (ريال)',
+
+    // Deals Wall (Goals tab)
+    dealsWallHeader: 'حائط العروض',
+    yourTier: 'مستواك',
+    howItWorks: 'كيف تعمل؟',
+    step1Title: 'حقق الهدف',
+    step1Desc: 'وصول لمستواك + إتمام الهدف المرتبط',
+    step2Title: 'تُفتح الشارة',
+    step2Desc: 'تتحول إلى قسيمة بقيمة ريالية حقيقية',
+    step3Title: 'استبدلها لدى الشريك',
+    step3Desc: 'اعرض الكود عند الدفع',
+    partnerPrivacyNote: 'الشريك يرى الاستبدال فقط — لا يرى بياناتك في منمّي أبداً.',
+    unlockedLabel: 'مفتوح',
+    redeem: 'استبدال',
+    redeemed: 'تم الاستبدال ✓',
+    illustrativePricing: 'أسعار توضيحية',
+    originalPrice: 'السعر الأصلي',
+    munamiDeal: 'عرض منمّي',
+    youPay: 'تدفع',
+    youSave: (amt) => `توفّر ${amt}`,
 
     // Accounts tab
     yourTotalBalance: 'إجمالي رصيدك',
@@ -161,6 +200,7 @@ const STRINGS = {
 
     // Settings panel
     settings: 'الإعدادات',
+    appearance: 'المظهر',
     memberSince: 'عضو منمّي',
     preferences: 'التفضيلات',
     language: 'اللغة',

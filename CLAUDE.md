@@ -88,7 +88,7 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
   hero numbers, and the nav.
 - **DM Sans** is the secondary body font — clean and readable at small sizes.
 - **Nunito** has been replaced by Space Grotesk and is no longer loaded.
-- `font-family` for the whole app is set via `.theme-warm` in `src/index.css`.
+- `font-family` for the whole app is set via `.theme-dark, .theme-light` in `src/index.css`.
 - Hero numbers (the dominant number per screen) use `.munami-hero`: Space Grotesk
   700, 44px, letter-spacing -1px. Apply to: SPENT (Overview), Total Balance
   (Accounts), Level (Goals).
@@ -147,93 +147,95 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 **═══ RETRO 90s / NEUBRUTALIST THEME (CURRENT OFFICIAL IDENTITY) ═══**
 
 The app was redesigned from the soft "Warm Playful" cream look into a bold
-**retro 90s / neubrutalist** style. Signature traits, applied consistently
-across ALL FIVE tabs:
-- **Dark charcoal ground** (`#1E1E1E`), off-white ink (`#F5F0E6`).
+**retro 90s / neubrutalist** style — now with a real **light/dark mode
+switch**. Signature traits, applied consistently across ALL FIVE tabs +
+Settings, in BOTH themes:
 - **Thick 3px solid black outlines** on every card, button, input, chip, chat
-  bubble, and the mascot face.
+  bubble, and the mascot face. Black outlines/shadows never change between themes.
 - **Solid offset "sticker" shadows** — flat black blocks offset `5px 5px 0 #000`
   on cards (`4px 4px 0` on buttons/inputs), never soft/blurred.
-- **Bold saturated flat colors** — vivid category palette, no pastels, no
-  gradients (all `--grad-*` tokens flattened to solids).
+- **Bold saturated flat colors** — vivid category palette, no pastels, no gradients.
 - **Chunky rounded corners** (18–28px) — tactile sticker feel.
 - **Gold hero cards**: the "spent" (Overview) and "total balance" (Accounts)
-  hero cards are solid gold `#FFC93C` with charcoal ink (`.retro-hero`).
-  Chart/ring cards (donut, XP ring) stay dark so their vivid strokes pop.
+  hero cards are solid gold `#FFC93C` with charcoal ink (`.retro-hero`) —
+  a FIXED color island, identical in both themes (not a surface color).
+  Chart/ring cards (donut, XP ring) stay in the theme's card tone so their
+  vivid strokes pop.
 - **منمّي mascot**: same character, thicker black linework + vivid leaves.
 - **Contrast rule**: anything sitting ON a colored fill uses a clearly
   contrasting ink/fill, never a near-tone that blends (e.g. the verdict pill
   on the gold hero is a charcoal sticker with cream text via `.retro-verdict`;
-  chat bubbles/buttons use charcoal ink on their vivid fills).
+  chat bubbles/buttons use a dedicated `--color-on-accent` ink, never the
+  page/text color, since those differ between themes).
 
-**How it's built** — `src/index.css`:
-- `.tab-retro` is added to each tab's scroll container (in `App.jsx` for
-  Overview, and in each tab component for the rest). It overrides the color +
-  gradient tokens to the dark/bold palette for that subtree, and a
-  `.tab-retro [class*="rounded-["]` rule auto-applies the black outline + offset
-  shadow to every rounded card. `button.bg-primary` gets the same on buttons.
-- Shared chrome is retro in its own components: `BottomNav.jsx` (charcoal bar,
-  black top rule, vivid-green active pills + منمّي button, all with black
-  outlines/offset shadows), the hamburger (in `App.jsx`, white sticker), and
-  `MunamiMascot.jsx` (thick outlines).
+**How it's built** — `src/index.css` + `src/lib/ThemeContext.jsx`:
+- **One root, one class.** `ThemeProvider` (wraps the whole app in `main.jsx`)
+  holds `theme: 'dark' | 'light'` in React state (default `'dark'`, no
+  persistence — mirrors `LocaleProvider`'s pattern). `PhoneFrame.jsx` puts
+  `theme-dark` or `theme-light` on the phone screen's single root div —
+  **not** per-tab. Every tab, the bottom nav, the hamburger, and Settings all
+  live inside that one root, so the whole app reskins from one class. (An
+  earlier per-tab `.tab-retro` opt-in was retired for exactly this reason —
+  it left Settings unstyled since it lived outside every tab's scope.)
+- `ThemeProvider` also mirrors the theme class onto `<html>` in a `useEffect`,
+  because `themeColor()` helpers (GoalsTab/TransactionsTab) read
+  `getComputedStyle(document.documentElement)` for the donut/legend/budget-bar
+  colors — they need the class on `<html>`, not just the screen div.
+  Category colors (`--color-teal`, `--color-lavender`) are the same in both
+  themes; primary/positive/caution/rewards differ (see below), so this
+  mirroring is what keeps those reads correct.
+- `.theme-dark, .theme-light [class*="rounded-["]` auto-applies the black
+  outline + offset shadow to every rounded-bracket card, app-wide (this now
+  reaches Settings automatically — no per-component opt-in needed).
+  `button.bg-primary` gets the same treatment on buttons.
 - `.retro-hero` = gold fill + charcoal ink; `.retro-verdict` = charcoal pill +
-  cream ink; `[class*="border-primary/"]` inside `.tab-retro` = teal AI chat
-  bubbles/avatars with charcoal ink.
-- The `.theme-warm` token block still exists (the old cream values) and RTL
-  selectors reference `.theme-warm`; `.tab-retro` layers over it. To fully
-  retire warm later, fold the retro values into `.theme-warm` directly.
+  cream ink; `[class*="border-primary/"]` = teal AI chat bubbles/avatars with
+  charcoal ink. All three are fixed color islands, identical in both themes.
+- `--color-on-accent: #0E1F14` (near-black) is a THEME-INDEPENDENT token for
+  ink that sits on a vivid accent fill (buttons, chips, the hero nav button).
+  Use `text-on-accent` / `var(--color-on-accent)` for this — never `text-page`
+  or `var(--color-page)`, since page color differs between themes and using
+  it as button-ink breaks contrast in light mode (this was a real bug, fixed
+  across AccountsTab/GoalsTab/TransactionsTab).
+
+**Dark theme tokens** (`.theme-dark` in `src/index.css`, the default):
+- Page `#1E1E1E`, tint `#2A2A2A`, card `#262626`, border `#000000`
+- Text `#F5F0E6` (off-white), muted `#A79E8E`
+- Primary/positive `#2FBF71`, caution `#FF5C39`, rewards `#FFC93C` — full-bright
+
+**Light theme tokens** (`.theme-light`) — a real second theme, not an
+afterthought:
+- Page `#D8D8D4` (warm medium grey — deliberately NOT white/pale, still reads
+  as retro), tint `#EBE5D6`, card `#F7F3EA` (warm cream), border `#000000`
+  (same black as dark — only the base colors shift)
+- Text `#1A1A1A`, muted `#5C5C52`
+- Primary/positive `#0F6B3A`, caution `#AC2E12`, rewards `#7A5200` — **deepened,
+  not desaturated**, versions of the dark-theme hues. The dark theme's
+  full-bright hex values fail WCAG text contrast on a light ground (as low as
+  ~2:1); these were computed to hit ≥4.5:1 against BOTH the page and card
+  colors while staying fully saturated (deep ≠ muted — a deep emerald/rust/
+  amber still reads as bold, just calibrated for a light surface instead of
+  a dark one). If you add a new place that uses `--color-primary`/etc. as a
+  TEXT color, sanity-check contrast in light mode before shipping it — fills
+  with dark ink on top (buttons, badges) are always safe regardless.
+- Category colors (`--color-teal`, `--color-lavender`) and the fixed color
+  islands (gold hero, teal chat bubbles, real bank brand colors) are
+  IDENTICAL in both themes — only page/card/text/muted/primary/positive/
+  caution/rewards actually change between `.theme-dark` and `.theme-light`.
+
+**Toggling themes**: a sliding switch in Settings → Preferences → Appearance
+(`ThemeSwitch` in `SettingsPanel.jsx`, next to the language toggle — a real
+binary switch, visually distinct from the segmented EN/AR control).
 
 **Vivid category colors** (root `@theme`, read by `themeColor()` for the donut /
-legend / budget bars): Shopping `#2FBF71`, Bills & Transport `#FF5C39`,
-Entertainment `#FFC93C`, Food & Groceries `#17C3B2`, Other `#A66CFF`.
+legend / budget bars — same in both themes): Shopping `#2FBF71`, Bills &
+Transport `#FF5C39`, Entertainment `#FFC93C`, Food & Groceries `#17C3B2`,
+Other `#A66CFF`.
 
----
-
-**Colors — "Warm Playful" theme (legacy `.theme-warm` values, layered over by retro)**
-
-The warm theme is applied globally via `.theme-warm` on the PhoneFrame's inner
-screen div (`src/components/PhoneFrame.jsx`). All CSS variables cascade from
-there — every tab and the nav inherit it automatically. `.tab-retro` overrides
-these per tab for the current retro look.
-
-Root tokens (in `@theme` in `src/index.css`, overridden by `.theme-warm`):
-- Page background (warm cream): `#F6F1EA`
-- Secondary surface / tint (warm beige): `#EDE5D9`
-- Card background (white): `#FFFFFF`
-- Card border (warm sand): `#DDD3C4`
-- Primary accent / identity color (vivid forest green): `#177A45`
-- Positive / good spending (vivid forest green): `#177A45`
-- Caution / overspend (vivid terracotta): `#C8431E`
-- Rewards / XP / vivid gold: `#D9840C`
-- Primary text (dark forest): `#1A2B1F`
-- Muted text (warm taupe): `#7B7568`
-
-(The accent trio above was bumped more saturated from the original muted
-`#2D6A4A` / `#B5472A` / `#C87E1A` for more punch, staying in the warm family.)
-
-**Per-category colors** — fixed, not positional. Same color for every category's
-donut slice, callout pill, and legend dot. Defined in `CATEGORY_COLOR_VAR` in
-`src/lib/finance.js`. These are NOT overridden by `.theme-warm` — they read
-from the root `@theme` and stay consistent (also bumped more saturated from
-their original pastel values — now the vivid retro palette):
-  - Shopping → `#2FBF71` (vivid green, `--color-primary` root value)
-  - Bills & Transport → `#FF5C39` (vivid coral, `--color-caution` root value)
-  - Entertainment → `#FFC93C` (vivid gold, `--color-rewards` root value)
-  - Food & Groceries → `#17C3B2` (vivid teal, `--color-teal`)
-  - Other → `#A66CFF` (vivid purple, `--color-lavender`)
-
-IMPORTANT: `themeColor()` in components reads from `document.documentElement`,
-which returns the ROOT `@theme` values (dark theme tokens), not the `.theme-warm`
-overridden values. Tailwind classes like `text-primary`, `bg-card` DO cascade
-correctly. For components that call `themeColor()` and need the warm-theme UI
-color (not a category color), pass it as an explicit prop (e.g. `cardBg="#FFFFFF"`
-in `SpendingDonut`).
-
-**Shape language — soft, rounded, tactile**
-- Cards: `border-radius: 20–28px`, white background, subtle `0.5px` border in
-  `#DDD3C4`, faint green ambient shadow (`0 2px 16px rgba(45,106,74,0.08)`).
-- Hero card (Overview spent): `rounded-[28px]` with a slightly stronger green shadow.
-- Buttons: pill-shaped (fully rounded). Primary = forest green `#2D6A4A`.
+**Shape language — bold, chunky, tactile**
+- Cards: `border-radius: 18–28px`, 3px black outline, `5px 5px 0 #000` offset shadow.
+- Hero card (Overview spent, Accounts total balance): `rounded-[28px]`, gold fill.
+- Buttons: pill-shaped (fully rounded) or chunky rounded-rect. Primary = vivid green.
 - Charts stay circular (donut, XP ring, badge circles).
 - **Donut chart** (`src/components/SpendingDonut.jsx`) is a hand-rolled SVG:
   - Segments in fixed `CATEGORY_RING_ORDER` (Shopping → Food → Bills → Entertainment
@@ -246,63 +248,46 @@ in `SpendingDonut`).
     outward. Segments < 2% of total are skipped (truly negligible slivers).
   - The legend below shows ALL categories with amount + % in the category color.
   - The ring draws in on mount via `strokeDashoffset` animation (600ms staggered).
-- Track rings / progress bar backgrounds: use `var(--color-card-border)` (`#DDD3C4`
-  in warm theme), NOT hardcoded `#2A2A2A`. This is important — hardcoded dark hex
-  in track elements looks broken on the warm cream background.
+- Track rings / progress bar backgrounds: use `var(--color-card-border)`
+  (always black in both themes), NOT a hardcoded hex.
 
 **Bottom nav — `src/components/BottomNav.jsx`**
-- Height: 74px, `overflow: visible` (hero button floats above).
-- Nav background: white→cream vertical gradient
-  (`linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%)`) + soft green upward
-  shadow (`0 -6px 24px rgba(45,106,74,0.07)`). Border-top `border-card-border`.
+- Height: 74px, `overflow: visible` (hero button floats above). Fully
+  tokenized (no hardcoded hex except black outlines/shadows and the fixed
+  `--color-on-accent` ink) so it adapts automatically between themes.
+- Nav background: `var(--color-card)` + thick `3px solid #000` top rule.
 - **منمّي center tab (hero)**: a 58×58px circle raised 26px above the nav line
-  (`marginTop: -26`) with a forest-green **gradient** fill
-  (`145deg, #3E8560 → #2D6A4A → #24583D`), a 3px cream ring
-  (`border: 3px solid #FFFDF8`) so it reads as a floating cut-out button, and
-  an inner top highlight. Active = full opacity + `scale(1.04)` + stronger
-  glow; inactive = 88% opacity. Contains a cream `GrowthMark` icon.
-- **Regular tabs**: small SVG icon (18×18) + label. Active = a soft mint
-  **pill fill behind the icon** (44×27px, `150deg, #E3F2E9 → #CBE6D6`, subtle
-  green shadow — the "tubelight" treatment) + icon/text in `--color-primary` +
-  icon `scale(1.06)`. Inactive = muted icon on transparent, weight 500 label.
-  There is no separate pill-line indicator anymore — the fill IS the indicator.
+  (`marginTop: -26`), solid `var(--color-primary)` fill, 3px black border,
+  offset shadow (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive).
+  Active = full opacity + `scale(1.05)`; inactive = 90% opacity. Contains a
+  `var(--color-on-accent)`-colored `GrowthMark` icon.
+- **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
+  `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
+  border, `2.5px 2.5px 0 #000` shadow) + icon in `--color-on-accent` +
+  label in `--color-primary`. Inactive = `--color-muted` icon/label on
+  transparent.
 - The Overview donut icon is drawn as a true annular sector (no
   background-colored masking circle) so it renders correctly on any fill.
 
 **Type**
-- Space Grotesk is the app's default font (set in `.theme-warm`). All headings,
-  hero numbers, and body copy inherit it from the `.theme-warm` root.
+- Space Grotesk is the app's default font (set on `.theme-dark, .theme-light`
+  in `src/index.css`). All headings, hero numbers, and body copy inherit it.
 - Page-level section headers follow the pattern:
   - Muted tiny uppercase label: `text-muted text-xs font-medium uppercase tracking-widest`
   - Bold heading below it: Space Grotesk, 26px, `font-bold`, with a personality emoji.
 - The app is **bilingual (EN/AR)**. All UI strings go through `src/lib/i18n.js`.
-  Language switching is via the **Settings screen** (hamburger icon → top-right corner,
-  present on all tabs). The old floating EN/AR pill (`LanguageToggle.jsx`) is removed —
-  language only lives in Settings. `SettingsPanel.jsx` (`src/components/SettingsPanel.jsx`)
-  slides in from the right (`x: 100% → 0` via Motion), contains a profile header
-  (placeholder: Ahmed), the language segmented control, and placeholder rows for
+  Language switching is via the **Settings screen** (hamburger icon → top-right
+  corner, present on all tabs). `SettingsPanel.jsx` slides in from the right
+  (`x: 100% → 0` via Motion), fully retro-styled (see theme section above),
+  and contains: a profile header (placeholder: Ahmed), the language segmented
+  control, the light/dark `ThemeSwitch`, and placeholder rows for
   Notifications / Linked Accounts / About (dimmed, `comingSoon` label, non-functional).
 
-**Hero card gradients** — the three main hero cards (Overview spent, Accounts
-total balance, Goals XP/level) use `linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%)`
-instead of flat white. Subtle white→pale-mint sweep that adds premium depth without
-changing the colour identity. Applied via inline `style` (not a Tailwind class) so it
-can coexist with the `border` and `rounded-[28px]` classes.
-
-**Gradient tokens** — all decorative gradients live as CSS variables on
-`.theme-warm` in `src/index.css`, and components reference the tokens, never
-raw gradient hexes: `--grad-hero-card` (the three hero cards),
-`--grad-nav` (nav surface), `--grad-nav-pill` (active tab fill),
-`--grad-hero-btn` + `--hero-btn-ring` + `--hero-btn-icon` (the منمّي nav
-button). The donut's callout pills follow `--color-card` (passed as
-`cardBg="var(--color-card)"` from App.jsx). To retheme the whole app —
-or preview an alternate palette — override these tokens in one place;
-don't reintroduce hardcoded gradient hexes into components.
-
-**Vibe (current):** bold retro 90s / neubrutalist — charcoal ground, thick black
-outlines, flat solid "sticker" offset shadows, vivid saturated colors, gold hero
-cards, chunky rounded corners, Space Grotesk geometric type, منمّي character
-(thicker linework) present throughout. Confident and playful, not soft/pastel.
+**Vibe (current):** bold retro 90s / neubrutalist, with a real light/dark
+switch — thick black outlines, flat solid "sticker" offset shadows, vivid
+saturated colors, gold hero cards, chunky rounded corners, Space Grotesk
+geometric type, منمّي character (thicker linework) present throughout.
+Confident and playful in both themes, never soft/pastel or washed out.
 
 ---
 
@@ -457,7 +442,32 @@ Sections top to bottom:
   (healthy) → butter yellow (≥75%) → coral red (≥100%). "+" opens a bottom sheet
   to add a new budget for any un-budgeted category; local state only.
 - **Weekly Challenges**: two static challenge cards with progress bars and +XP labels.
-- **Badges**: 3×2 grid — 3 earned (colored), 3 locked (greyed, 🔒 icon). Static.
+- **Deals Wall** (`src/components/DealsWall.jsx`) — Lane 1 of the gamification
+  pitch: badges became real partner deals with SAR/percentage value, replacing
+  the old plain badge grid.
+  - **Tier ladder**: Seed → Sprout → Branch → Tree, derived from the same
+    `LEVEL` constant the XP ring uses (`tierIndexForLevel()` — Level 7 → Tree,
+    the top tier). Shown as a connected row above the deals, current tier lit
+    up in `--color-primary`.
+  - **Deal cards**: icon, partner name (placeholder brands), category, a bold
+    SAR/% value badge, and either an "Unlocked" tag + Redeem button, or a
+    muted (55% opacity) card with a `🔒 {tier} + {requirement}` line. Demo
+    persona ("the deal redeemer"): one deal (🚗 Car, −SAR 10,000) is
+    genuinely unlocked — Tree tier + a completed "Car Down Payment" goal —
+    the other three are locked on real, specific, almost-there requirements
+    (`DEMO` object in `DealsWall.jsx`).
+  - **"How it works"**: a "?" icon in the section header opens a standalone
+    3-step visual explainer (🎯 Hit the milestone → 🏅 Badge unlocks → 🛍️
+    Redeem at partner, icon + short title + one-line caption, connecting
+    arrows). The same steps (icon + title only, no caption) are embedded in
+    every deal's detail sheet.
+  - **Worked example**: tapping the car deal's detail sheet shows a concrete
+    price breakdown — original price, "منمّي deal" discount, "You pay" total —
+    labeled "Illustrative pricing" per the pitch's own convention.
+  - Scoped to Lane 1 only: no rate simulator, no SIMAH/credit-builder, no
+    internal partner-split math (no "dealer gets / Alinma gets" breakdown).
+  - Tap-to-redeem is local UI state only (`redeemedIds` in `DealsWall.jsx`) —
+    no persistence, no backend.
 
 ---
 
@@ -465,26 +475,31 @@ Sections top to bottom:
 Bank account aggregation + money buckets. Data from `data/munami_accounts.json`
 (imported directly as a Vite JSON import — not fetched from public/).
 
-- **Total balance hero**: large bold number (count-up animation) inside a white card
-  with green ambient shadow (`0 2px 24px rgba(45,106,74,0.10)`), generous top padding,
-  and clear vertical rhythm between the label / hero number / subtext.
+- **Total balance hero** (`.retro-hero`, gold fill): asymmetric layout, not
+  plain centered text — left-aligned eyebrow label → huge left-aligned number
+  → a short thick black divider rule → a `.retro-verdict` chip (charcoal
+  pill, cream text) for "across N accounts". A منمّي `GrowthMark` mark (no
+  circle/outline behind it — just the bare icon in `--color-primary`) is
+  pinned to the top-right corner, overlapping the card edge like a seal/emblem.
 - **Bank card stack** (`src/components/BankCardStack.jsx`) — replaced the old
   carousel. The three bank cards sit stacked like a fanned deck (top card fully
   visible, others peeking out diagonally below-right); **tap the stack to fan
   out** into a readable vertical spread (Motion, ~420ms staggered), tap again to
-  restack. Hint caption flips between "Tap to see all accounts" / "Tap to stack"
-  (i18n `bankStackExpand` / `bankStackCollapse`).
+  restack. No visible hint text — a small chevron below the stack (rotates
+  180° on expand) is the only tap cue; the expand/collapse action is still
+  announced via `aria-label` (i18n `bankStackExpand` / `bankStackCollapse`)
+  for screen readers.
 - **Real bank logos + brand colors**: actual logo PNGs live in
   `src/assets/banks/` (`alinma.png`, `alrajhi.png`, `snb.png`), imported as Vite
   assets and shown on a white chip per card. Each account's `color` (and optional
   `accent`) in `munami_accounts.json` is the bank's REAL brand color, not our
   category palette: Alinma navy `#0A2647`, Al Rajhi blue `#2323FF`, SNB green
-  `#1B5E3A` + light-green accent `#6FCF5C`.
-- **Retro/neubrutalist bank cards**: the bank cards specifically use a bold
-  sticker treatment — solid saturated brand fill, 3px black outline, chunky
-  `7px 7px 0 #000` offset solid shadow, 22px corners, white text (SNB's balance
-  in its light-green accent). This is currently a deliberate style island on the
-  bank cards; the rest of the app uses the soft warm theme.
+  `#1B5E3A` + light-green accent `#6FCF5C`. These are FIXED brand colors —
+  identical in both light and dark theme, same as the gold hero cards.
+- **Retro bank cards**: solid saturated brand fill, 3px black outline,
+  `5px 5px 0 #000` offset shadow (matches the app-wide retro system exactly —
+  this was tightened from an earlier one-off `7px 7px 0` treatment), 22px
+  corners, white text (SNB's balance in its light-green accent).
 - **Fund buckets ("pots")**: `data/munami_accounts.json` now contains exactly two
   fund types — **Unallocated** (display-only row) and **Emergency Fund** (the only
   real fund). Vacation and New Car were deleted from the data entirely (not hidden);
@@ -603,15 +618,23 @@ Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
 
 - [x] Project scaffolded (React + Vite + Tailwind)
 - [x] Data files placed in /data
-- [x] **Warm/playful design identity** — MunamiMascot, Space Grotesk font, cream palette, gradient hero cards, warm theme global
+- [x] **Retro 90s / neubrutalist design identity** — MunamiMascot, Space Grotesk
+      font, thick black outlines + offset sticker shadows, vivid saturated
+      colors, gold hero cards, applied consistently across all 5 tabs + Settings
+- [x] **Light/dark theme system** — `ThemeContext` + `ThemeSwitch` in Settings,
+      warm-grey light mode with contrast-safe deepened accents, real bank
+      colors and gold hero cards fixed across both themes
 - [x] **Overview tab** — mascot greeting, hero card, donut + callouts, insight cards, month switcher
 - [x] **Transactions tab** — scrollable list, grouped by date, bank filter, search
-- [x] **Accounts tab** — Space Grotesk hero balance, bank carousel, fund buckets, + sheet
-- [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges, badges
+- [x] **Accounts tab** — asymmetric badge-treatment hero balance, tap-to-fan bank
+      card stack with real logos/brand colors, fund buckets, + sheet
+- [x] **Goals tab** — XP ring, streak, category budgets (real spend), challenges,
+      Deals Wall (Lane 1 gamification: tiered partner deals, worked example, redeem flow)
 - [x] **منمّي / Copilot tab** — real AI chat with context, live categorization demo, scripted fallback
-- [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout
+- [x] **Bottom nav** — hero منمّي circle, active indicators, clean 5-tab layout, theme-tokenized
 - [x] **EN/AR bilingual** — full RTL support, Noto Sans Arabic, language toggle in Settings
-- [x] **Settings screen** — hamburger icon (top-right, all tabs), slides in from right, profile header + language switch + placeholder rows
+- [x] **Settings screen** — hamburger icon (top-right, all tabs), slides in from
+      right, fully retro-styled, profile header + language switch + theme switch + placeholder rows
 - [x] **AI backend** — Express server, Gemini wired, security pattern, fallback switch
 - [ ] Mock "Connect bank" consent screen
 - [ ] Demo polish + rehearsal

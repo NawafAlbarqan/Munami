@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useCountUp } from '../lib/useCountUp'
 import { formatSAR, t, categoryName } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
+import DealsWall from './DealsWall'
 import {
   getDebits,
   applyCategoryMap,
@@ -105,20 +106,6 @@ function getChallenges(locale) {
   ]
 }
 
-function getBadges(locale) {
-  const names = locale === 'ar'
-    ? { 'First Saver': 'أول مدخر', 'Budget Starter': 'بداية الميزانية', 'Streak Starter': 'بداية المتتالية', 'Budget Master': 'محترف الميزانية', 'Streak Legend': 'أسطورة المتتالية', 'No-Spend Champ': 'بطل التوفير' }
-    : { 'First Saver': 'First Saver', 'Budget Starter': 'Budget Starter', 'Streak Starter': 'Streak Starter', 'Budget Master': 'Budget Master', 'Streak Legend': 'Streak Legend', 'No-Spend Champ': 'No-Spend Champ' }
-  return [
-    { id: 'b1', icon: '⭐', name: names['First Saver'], earned: true },
-    { id: 'b2', icon: '🎯', name: names['Budget Starter'], earned: true },
-    { id: 'b3', icon: '🔥', name: names['Streak Starter'], earned: true },
-    { id: 'b4', icon: '🏆', name: names['Budget Master'], earned: false },
-    { id: 'b5', icon: '🌟', name: names['Streak Legend'], earned: false },
-    { id: 'b6', icon: '💎', name: names['No-Spend Champ'], earned: false },
-  ]
-}
-
 function budgetBarColor(pct, categoryColor) {
   if (pct >= 1.0) return '#E8756A'
   if (pct >= 0.75) return '#E8CF8E'
@@ -158,10 +145,9 @@ export default function GoalsTab({ rows }) {
   }
 
   const CHALLENGES = getChallenges(locale)
-  const BADGES = getBadges(locale)
 
   return (
-    <div className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
 
       {/* ── Page header ── */}
       <div className="mb-5">
@@ -205,7 +191,7 @@ export default function GoalsTab({ rows }) {
           {availableCategories.length > 0 && (
             <button
               onClick={openSheet}
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-page text-xl font-bold leading-none"
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-accent text-xl font-bold leading-none"
             >
               +
             </button>
@@ -310,26 +296,8 @@ export default function GoalsTab({ rows }) {
         </div>
       </div>
 
-      {/* ── Badges ── */}
-      <div className="mb-4">
-        <h2 className="text-text font-semibold mb-3">{t(locale, 'badges')}</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {BADGES.map((badge, i) => (
-            <motion.div
-              key={badge.id}
-              className="bg-card border-[0.5px] border-card-border rounded-[20px] py-4 px-2 flex flex-col items-center gap-1.5"
-              initial={{ opacity: 0, scale: 0.88 }}
-              animate={{ opacity: badge.earned ? 1 : 0.4, scale: 1 }}
-              transition={{ duration: 0.25, delay: i * 0.05, ease: 'easeOut' }}
-            >
-              <span className="text-2xl">{badge.earned ? badge.icon : '🔒'}</span>
-              <p className="text-text text-[11px] font-medium text-center leading-tight">
-                {badge.name}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+      {/* ── Deals Wall (Lane 1: badges → real partner deals with SAR value) ── */}
+      <DealsWall locale={locale} level={LEVEL} />
 
       {/* ── Add budget bottom sheet ── */}
       <AnimatePresence>
@@ -393,7 +361,7 @@ export default function GoalsTab({ rows }) {
 
                 <button
                   onClick={handleAddBudget}
-                  className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
+                  className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
                 >
                   {t(locale, 'addBudgetBtn')}
                 </button>

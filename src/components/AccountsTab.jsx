@@ -5,6 +5,7 @@ import { formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
 import BankCardStack from './BankCardStack'
+import GrowthMark from './GrowthMark'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
 const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
@@ -144,9 +145,9 @@ export default function AccountsTab() {
   const liveFund = activeFund ? funds.find((f) => f.id === activeFund.id) ?? activeFund : null
 
   return (
-    <div className="tab-retro absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
 
-      {/* ── Total balance hero ── */}
+      {/* ── Total balance hero — asymmetric, badge/seal treatment ── */}
       <motion.div
         className="px-4 pb-6"
         style={{ paddingTop: 60 }}
@@ -154,19 +155,33 @@ export default function AccountsTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
-        <div
-          className="retro-hero border border-card-border rounded-[28px] px-6 py-7 text-center"
-          style={{ background: 'var(--grad-hero-card)', boxShadow: '0 2px 24px rgba(45,106,74,0.12)' }}
-        >
-          <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-3">
-            {t(locale, 'yourTotalBalance')}
-          </p>
-          <p className="text-text munami-hero tabular-nums">
-            {formatSAR(animatedTotal)}
-          </p>
-          <p className="text-muted text-xs mt-3">
-            {t(locale, 'acrossAccounts', accountsData.accounts.length)}
-          </p>
+        <div className="relative">
+          <div
+            className="retro-hero rounded-[28px] pl-6 pr-16 pt-8 pb-6"
+            style={{ background: 'var(--grad-hero-card)' }}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2">
+              {t(locale, 'yourTotalBalance')}
+            </p>
+            <p className="munami-hero tabular-nums">
+              {formatSAR(animatedTotal)}
+            </p>
+            {/* Short thick rule — deliberate typographic break between the
+                number and the supporting caption, not just stacked centered text */}
+            <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: '#1E1E1E' }} />
+            <span className="retro-verdict inline-block rounded-full px-3 py-1 text-[11px] font-bold">
+              {t(locale, 'acrossAccounts', accountsData.accounts.length)}
+            </span>
+          </div>
+          {/* منمّي mark — pinned to the corner like an emblem, no circle behind
+              it; sitting outside the gold card so its color stays brand green
+              regardless of the card's forced charcoal ink. */}
+          <div
+            className="absolute flex items-center justify-center"
+            style={{ top: -6, right: 20, width: 48, height: 48 }}
+          >
+            <GrowthMark size={26} color="var(--color-primary)" />
+          </div>
         </div>
       </motion.div>
 
@@ -180,7 +195,7 @@ export default function AccountsTab() {
           {/* + only creates a new fund — each fund card handles deposits/withdrawals */}
           <button
             onClick={openCreateSheet}
-            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-page text-xl font-bold leading-none"
+            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-accent text-xl font-bold leading-none"
           >
             +
           </button>
@@ -283,7 +298,7 @@ export default function AccountsTab() {
 
                   <button
                     onClick={handleFundAction}
-                    className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
+                    className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
                   >
                     {fundAction === 'add'
                       ? t(locale, 'depositToFund', liveFund.name)
@@ -323,7 +338,7 @@ export default function AccountsTab() {
 
                   <button
                     onClick={handleCreateFund}
-                    className="w-full py-3.5 rounded-full bg-primary text-page text-sm font-semibold"
+                    className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
                   >
                     {t(locale, 'createBucket')}
                   </button>

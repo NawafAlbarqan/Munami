@@ -1,22 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  /* Dark Premium theme — change colors here, they cascade everywhere */
-  --color-page: #0E0E0E;
-  --color-tint: #141414;
-  --color-card: #1A1A1A;
-  --color-card-border: #2A2A2A;
+  /* Fallback tokens (only relevant before the .theme-dark/.theme-light class
+     lands on the screen root — see PhoneFrame.jsx). Kept in sync with dark. */
+  --color-page: #1E1E1E;
+  --color-tint: #2A2A2A;
+  --color-card: #262626;
+  --color-card-border: #000000;
 
-  /* Category colors — pushed to vivid, saturated retro versions */
-  --color-primary: #2FBF71;   /* Shopping — vivid green */
+  --color-primary: #2FBF71;
   --color-positive: #2FBF71;
-  --color-caution: #FF5C39;   /* Bills & Transport — vivid coral */
-  --color-rewards: #FFC93C;   /* Entertainment — vivid gold */
-  --color-teal: #17C3B2;      /* Food & Groceries — vivid teal */
-  --color-lavender: #A66CFF;  /* Other — vivid purple */
+  --color-caution: #FF5C39;
+  --color-rewards: #FFC93C;
+  --color-teal: #17C3B2;      /* Food & Groceries — vivid teal, same both themes */
+  --color-lavender: #A66CFF;  /* Other — vivid purple, same both themes */
 
-  --color-text: #F5F5F5;
-  --color-muted: #9A9A9A;
+  --color-text: #F5F0E6;
+  --color-muted: #A79E8E;
+
+  /* Ink that always sits ON a vivid accent fill (buttons, chips, hero button).
+     Deliberately theme-independent — a solid green/gold fill always needs a
+     near-black ink regardless of whether the page around it is light or dark. */
+  --color-on-accent: #0E1F14;
 }
 
 html,
@@ -42,103 +47,87 @@ body {
   display: none;
 }
 
-/* Rich page background — near-black base with a barely-visible mint gradient
-   at the top and a faint dot-grid texture for depth. Used inside the phone screen. */
-.bg-page-rich {
-  background-color: #0E0E0E;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px),
-    radial-gradient(ellipse 160% 45% at 50% -5%, #131A15 0%, transparent 60%);
-  background-size: 24px 24px, 100% 100%;
-}
+/* ── RETRO 90s / NEUBRUTALIST — the app's one design system, two themes ────
+   Applied ONCE at the phone screen root (PhoneFrame.jsx picks `.theme-dark`
+   or `.theme-light` from ThemeContext). Every tab, the bottom nav, the
+   hamburger, and Settings all live inside this single root, so the whole
+   app reskins from one place — no per-tab opt-in needed.
+   Structural elements (black outlines, offset shadows) are IDENTICAL in both
+   themes; only the base surface/text/accent colors shift. */
 
-/* Elevated card — faint inner rim + soft depth shadow */
-.card-elevated {
-  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.35);
-}
-
-/* Mint ambient glow — adds a soft green halo behind the donut chart card */
-.glow-mint {
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.04) inset,
-    0 8px 24px rgba(0,0,0,0.35),
-    0 0 48px rgba(168,213,186,0.08);
-}
-
-/* ── Warm "منمّي character" theme — Overview tab proof-of-concept ──────────
-   Overrides the global dark tokens on the Overview scrollable div only.
-   CSS custom properties cascade, so all Tailwind color classes inside
-   .theme-warm automatically pick up these warmer values.               */
-.theme-warm {
-  --color-page: #F6F1EA;
-  --color-tint: #EDE5D9;
-  --color-card: #FFFFFF;
-  --color-card-border: #DDD3C4;
-  --color-primary: #177A45;
-  --color-positive: #177A45;
-  --color-caution: #C8431E;
-  --color-text: #1A2B1F;
-  --color-muted: #7B7568;
-  --color-rewards: #D9840C;
-  /* Gradient + hero-button tokens — components read these instead of
-     hardcoded hexes, so alternate themes can restyle them wholesale. */
-  --grad-hero-card: linear-gradient(150deg, #FFFFFF 0%, #E9F4EE 100%);
-  --grad-nav: linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 100%);
-  --grad-nav-pill: linear-gradient(150deg, #E3F2E9 0%, #CBE6D6 100%);
-  --grad-hero-btn: linear-gradient(145deg, #2A9A5E 0%, #177A45 58%, #12643A 100%);
-  --hero-btn-ring: #FFFDF8;
-  --hero-btn-icon: #FFFDF8;
+.theme-dark, .theme-light {
   font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;
 }
+.theme-dark[dir="rtl"], .theme-dark [dir="rtl"],
+.theme-light[dir="rtl"], .theme-light [dir="rtl"] {
+  font-family: 'Noto Sans Arabic', 'Space Grotesk', ui-sans-serif, sans-serif;
+}
 
-/* ── RETRO 90s / NEUBRUTALIST — per-tab skin ───────────────────────────────
-   Applied one tab at a time by adding `tab-retro` to a tab's scroll container.
-   Overrides tokens to the dark/bold palette for that tab's subtree, and gives
-   every rounded card a thick black outline + solid offset "sticker" shadow.
-   Rolled out tab by tab; shared chrome (nav, hamburger, mascot) is retro in
-   its own components. */
-.tab-retro {
-  --color-page: #1E1E1E;      /* charcoal ground */
+/* Dark (default) — charcoal ground, off-white ink, full-bright accents. */
+.theme-dark {
+  --color-page: #1E1E1E;
   --color-tint: #2A2A2A;
-  --color-card: #262626;      /* dark card surface */
+  --color-card: #262626;
   --color-card-border: #000000;
-  --color-text: #F5F0E6;      /* off-white ink */
+  --color-text: #F5F0E6;
   --color-muted: #A79E8E;
-  --color-primary: #2FBF71;   /* vivid green — buttons, active, links */
+  --color-primary: #2FBF71;
   --color-positive: #2FBF71;
   --color-caution: #FF5C39;
   --color-rewards: #FFC93C;
-  --grad-hero-card: #262626;  /* flatten warm gradient → dark card */
+  --grad-hero-card: #262626;
 }
-/* thick black outline + chunky solid offset shadow on every rounded card
-   (:not(.tab-retro) skips the scroll container itself) */
-.tab-retro [class*="rounded-["]:not(.tab-retro) {
+
+/* Light — warm medium-grey ground (not white), warm cream cards, deepened
+   (never desaturated) accents so small text stays legible on a light ground.
+   Same black outlines/shadows as dark — only the base colors shift. */
+.theme-light {
+  --color-page: #D8D8D4;
+  --color-tint: #EBE5D6;
+  --color-card: #F7F3EA;
+  --color-card-border: #000000;
+  --color-text: #1A1A1A;
+  --color-muted: #5C5C52;
+  --color-primary: #0F6B3A;   /* deep saturated green — passes 4.5:1 on page+card */
+  --color-positive: #0F6B3A;
+  --color-caution: #AC2E12;   /* deep saturated rust-coral */
+  --color-rewards: #7A5200;   /* deep saturated amber-gold */
+  --grad-hero-card: #F7F3EA;
+}
+
+/* Thick black outline + chunky solid offset "sticker" shadow on every
+   rounded card, app-wide (nav, Settings, all five tabs — one root, one rule). */
+.theme-dark [class*="rounded-["],
+.theme-light [class*="rounded-["] {
   border-width: 3px !important;
   border-style: solid !important;
   border-color: #000 !important;
   box-shadow: 5px 5px 0 #000 !important;
 }
 /* solid-fill BUTTONS get the same sticker treatment (not tiny dot spans) */
-.tab-retro button.bg-primary {
+.theme-dark button.bg-primary,
+.theme-light button.bg-primary {
   border: 3px solid #000 !important;
   box-shadow: 4px 4px 0 #000 !important;
 }
 /* منمّي chat bubbles + avatars (the `border-primary/xx` elements) →
-   vivid teal sticker with charcoal ink, distinct from the dark user bubbles */
-.tab-retro [class*="border-primary/"] {
+   vivid teal sticker with charcoal ink, distinct from the plain card bubbles */
+.theme-dark [class*="border-primary/"],
+.theme-light [class*="border-primary/"] {
   background: #17C3B2 !important;
   color: #0E1F14 !important;
   border-color: #000 !important;
 }
-/* solid-fill hero cards → bold gold sticker with charcoal ink on everything */
-.tab-retro .retro-hero { background: #FFC93C !important; }
-.tab-retro .retro-hero *,
-.tab-retro .retro-hero .munami-hero { color: #1E1E1E !important; }
+/* solid-fill hero cards → bold gold sticker with charcoal ink on everything.
+   Fixed treatment in both themes — the hero is its own color island. */
+.theme-dark .retro-hero, .theme-light .retro-hero { background: #FFC93C !important; }
+.theme-dark .retro-hero *, .theme-light .retro-hero *,
+.theme-dark .retro-hero .munami-hero, .theme-light .retro-hero .munami-hero { color: #1E1E1E !important; }
 /* verdict/status pill sitting ON the gold hero — a charcoal sticker with
    cream ink so it POPS instead of blending into the yellow */
-.tab-retro .retro-hero .retro-verdict { background: #1E1E1E !important; }
-.tab-retro .retro-hero .retro-verdict,
-.tab-retro .retro-hero .retro-verdict * { color: #FFF3D0 !important; }
+.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict { background: #1E1E1E !important; }
+.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict,
+.theme-dark .retro-hero .retro-verdict *, .theme-light .retro-hero .retro-verdict * { color: #FFF3D0 !important; }
 
 /* Hero number — Space Grotesk Bold / Noto Sans Arabic Black, very large. */
 .munami-hero {
@@ -147,10 +136,4 @@ body {
   font-weight: 700;
   letter-spacing: -1px;
   line-height: 1;
-}
-
-/* RTL mode: switch to Noto Sans Arabic as the primary font */
-.theme-warm[dir="rtl"],
-.theme-warm [dir="rtl"] {
-  font-family: 'Noto Sans Arabic', 'Space Grotesk', ui-sans-serif, sans-serif;
 }

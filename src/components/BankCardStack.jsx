@@ -107,10 +107,18 @@ export default function BankCardStack({ accounts, locale }) {
         })}
       </motion.div>
 
-      {/* Hint caption — tells the user the stack is tappable */}
-      <p className="text-muted text-[11px] text-center mt-3 select-none">
-        {t(locale, expanded ? 'bankStackCollapse' : 'bankStackExpand')}
-      </p>
+      {/* Subtle chevron — the only cue that the stack is tappable, no text.
+          Points down when collapsed ("more below"), flips up when expanded. */}
+      <div className="flex justify-center mt-2.5">
+        <motion.svg
+          width="14" height="14" viewBox="0 0 14 14" fill="none"
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+          style={{ opacity: 0.55 }}
+        >
+          <path d="M3 5.5l4 4 4-4" stroke="var(--color-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </motion.svg>
+      </div>
     </div>
   )
 }

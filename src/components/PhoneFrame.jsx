@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTheme } from '../lib/ThemeContext'
 
 // Demo chrome only — wraps the app in a realistic phone device frame so it
 // reads as "an app on a phone" on a presentation screen. Purely presentational;
@@ -13,6 +14,7 @@ const SCREEN_H = 844
 const BEZEL = 12 // matches p-3 on the frame div
 
 export default function PhoneFrame({ children }) {
+  const { theme } = useTheme()
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function PhoneFrame({ children }) {
         {/* Fixed-size, non-scrolling "screen" — its children (App's content
             area and bottom nav) handle their own scrolling/positioning so
             the nav can stay pinned while content scrolls behind it. */}
-        <div className="theme-warm rounded-[36px] overflow-hidden relative bg-page" style={{ width: SCREEN_W, height: SCREEN_H }}>
+        <div className={`theme-${theme} rounded-[36px] overflow-hidden relative bg-page`} style={{ width: SCREEN_W, height: SCREEN_H }}>
           {children}
         </div>
       </div>
