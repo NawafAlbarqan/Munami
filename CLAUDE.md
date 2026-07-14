@@ -64,23 +64,44 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
 "corporate bank portal." Premium and trustworthy, but sunny and approachable.
 
 **The mascot — `src/components/MunamiMascot.jsx`**
-- منمّي is a **friendly sprout character**: a round cream face with a two-leaf
-  stalk growing from the top. This ties to the name "the one who grows."
-- Three expressions: `happy` (default smile), `concerned` (worry brows + slight
-  frown), `celebrating` (squinting joy eyes + cheek blush + sparkle lines).
-- Expression is **derived from real spending data** in `App.jsx`: `concerned` if
-  spend ratio > 85% of income or 2+ categories trending up; `celebrating` if 2+
-  categories trending down; `happy` otherwise. Early-month mode always = `happy`.
-- Used at 54px in the Overview greeting, 26px in Copilot chat avatar bubbles,
-  and 28px (via GrowthMark) in the nav hero button.
+- منمّي is a **real pixel-art robot character** (asset sheet: real logo/mascot
+  files, cropped + keyed transparent into `src/assets/mascot/mascot-{mood}.png`,
+  downscaled to ~200px since it's only ever shown at 22–56px). Not an SVG —
+  `MunamiMascot` renders an `<img>`, mapping an `expression` prop to one of
+  four real mood images. No circular frame around it anywhere — the art's
+  own bold black outline makes a separate retro-card frame redundant.
+- Four expressions: `greeting` (waving hello — chat-open moments, the
+  Accounts total-balance corner emblem), `happy` (on-track/positive/
+  completed), `concerned` (cautionary — approaching a limit, a bad trend),
+  `unhappy` (clearly over budget). There is no separate "celebrating" art;
+  the old celebrating state folded into `happy`.
+- **Overview greeting** expression is derived from real spending data in
+  `App.jsx`: `unhappy` if spend ratio ≥ 100% of income; `concerned` if
+  spend ratio > 85% or 2+ categories trending up; `happy` otherwise (verdict
+  text still distinguishes a plain on-track month from a genuinely
+  `celebrating` one via `isCelebrating`, even though both render the same
+  `happy` art). Early-month mode always = `happy`.
+- **Overview insight cards** (`InsightCard.jsx`) render the mascot instead of
+  a ✅/⚠️ emoji for the good/bad category-change cards (`mascotMood` prop:
+  `happy`/`concerned`) — the neutral pace-projection card keeps its plain
+  📈 emoji since it's informational, not a mood judgment.
+- **Copilot**: header avatar = `greeting` (always); per-message avatar =
+  `greeting` for the very first (chat-open) bubble only, `happy` for every
+  reply after; the "thinking…" bubble avatar = `happy`.
+- **Goals**: each budget card shows a small (22px) mood badge using the same
+  real-spend thresholds as the progress bar (`budgetMood()`: <75% `happy`,
+  75–99% `concerned`, ≥100% `unhappy`); each weekly challenge shows a small
+  `happy` badge only once it's completed (progress ≥ target).
 - Mascot verdict text appears as a pill below the hero number: "Crushing it 🌿",
-  "Let's reel it in", "9 days in — keep it up!" etc.
+  "Let's reel it in", "Over budget this month — let's fix that",
+  "9 days in — keep it up!" etc.
 
 **The growth mark — `src/components/GrowthMark.jsx`**
-- A minimal two-leaf sprout SVG (18×18 viewBox). Used as the brand icon where
-  the full mascot face is too large: nav hero button (cream on forest green),
-  copilot header avatar, the verdict pill in the Overview hero card.
-- Color via `color` prop; default is `currentColor`.
+- A minimal two-leaf sprout SVG (18×18 viewBox) — a separate, ABSTRACT brand
+  mark, not a face. Deliberately kept (not swapped for the real mascot) at
+  every spot too small/decorative for a detailed pixel-art face to read well:
+  the nav hero button, the tiny inline icon in the Overview verdict pill, and
+  the "منمّي member" line in Settings. Color via `color` prop; default `currentColor`.
 
 **Typography**
 - **Space Grotesk** (Google Fonts, weights 400–700) is the primary display font

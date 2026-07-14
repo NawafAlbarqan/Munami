@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import GrowthMark from './GrowthMark'
 import MunamiMascot from './MunamiMascot'
 import { useLocale } from '../lib/LocaleContext'
 import { t } from '../lib/i18n'
@@ -63,8 +62,8 @@ function extractMerchant(text) {
 function ThinkingBubble() {
   return (
     <div className="flex items-end gap-2">
-      <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 mb-0.5 overflow-hidden">
-        <MunamiMascot size={26} expression="happy" />
+      <div className="w-8 flex items-end justify-center shrink-0 mb-0.5">
+        <MunamiMascot size={30} expression="happy" />
       </div>
       <div className="bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] px-4 py-3">
         <div className="flex gap-1.5 items-center">
@@ -193,8 +192,8 @@ export default function CopilotTab({ financialContext }) {
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
       <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
-            <GrowthMark size={19} color="var(--color-primary)" />
+          <div className="w-10 flex items-center justify-center shrink-0">
+            <MunamiMascot expression="greeting" size={36} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 leading-none">
@@ -223,8 +222,10 @@ export default function CopilotTab({ financialContext }) {
               transition={{ duration: 0.25, ease: 'easeOut' }}
             >
               {msg.role === 'ai' && (
-                <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center shrink-0 mb-0.5 overflow-hidden">
-                  <MunamiMascot size={26} expression="happy" />
+                <div className="w-8 flex items-end justify-center shrink-0 mb-0.5">
+                  {/* The very first bubble is always the chat-open greeting —
+                      every later AI reply uses the steady-state happy mood. */}
+                  <MunamiMascot size={30} expression={i === 0 ? 'greeting' : 'happy'} />
                 </div>
               )}
               <div

@@ -103,7 +103,7 @@ function App() {
     const summary = summarizePriorMonth(debits, activeMonth)
     if (summary) {
       baseCards.push({
-        icon: isGood(summary.direction) ? '✅' : '⚠️',
+        mascotMood: isGood(summary.direction) ? 'happy' : 'concerned',
         accent: isGood(summary.direction) ? 'positive' : 'caution',
         text: phrasePriorMonthSummary(locale, {
           priorMonthLabel: monthLabel(locale, summary.priorMonth),
@@ -117,7 +117,7 @@ function App() {
     const changes = computeCategoryChanges(debits, activeMonth)
     baseChanges = topChanges(changes, 3)
     baseCards = baseChanges.map((change) => ({
-      icon: isGood(change.direction) ? '✅' : '⚠️',
+      mascotMood: isGood(change.direction) ? 'happy' : 'concerned',
       category: categoryName(locale, change.category),
       arrow: change.direction === 'down' ? '▼' : '▲',
       pct: Math.abs(change.pctChange),
@@ -213,21 +213,27 @@ function App() {
   }, [rows, spent, income, daysElapsed, earlyMonth, activeMonth, chartData, spendByCategory, locale])
 
   // ── Mascot expression ─────────────────────────────────────────────────────
+  // Three real moods now (no separate "celebrating" art) — happy covers both
+  // plain on-track and a strong-improvement month; unhappy is reserved for
+  // genuinely over budget (spent >= all income), concerned for approaching it.
   const spendRatio = income > 0 ? spent / income : 0
   const goodCount = cards.filter((c) => c.accent === 'positive').length
   const badCount = cards.filter((c) => c.accent === 'caution').length
+  const isCelebrating = goodCount >= 2 && !(spendRatio >= 1.0 || spendRatio > 0.85 || badCount >= 2)
   let mascotExpression = 'happy'
   if (rows.length > 0 && !earlyMonth) {
-    if (spendRatio > 0.85 || badCount >= 2) mascotExpression = 'concerned'
-    else if (goodCount >= 2) mascotExpression = 'celebrating'
+    if (spendRatio >= 1.0) mascotExpression = 'unhappy'
+    else if (spendRatio > 0.85 || badCount >= 2) mascotExpression = 'concerned'
   }
   const mascotVerdict = earlyMonth
     ? t(locale, 'mascotEarly', daysElapsed)
-    : mascotExpression === 'celebrating'
-      ? t(locale, 'mascotCelebrating')
+    : mascotExpression === 'unhappy'
+      ? t(locale, 'mascotOverBudget')
       : mascotExpression === 'concerned'
         ? t(locale, 'mascotConcerned')
-        : t(locale, 'mascotOnTrack')
+        : isCelebrating
+          ? t(locale, 'mascotCelebrating')
+          : t(locale, 'mascotOnTrack')
 
   const appDir = dir(locale)
 

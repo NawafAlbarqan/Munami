@@ -18,6 +18,7 @@ const STRINGS = {
     mascotCelebrating: 'Crushing it this month 🌿',
     mascotConcerned: "Let's reel it in a bit",
     mascotOnTrack: 'On track, keep going!',
+    mascotOverBudget: "Over budget this month — let's fix that",
 
     // Bottom nav
     navTransactions: 'Transactions',
@@ -129,6 +130,7 @@ const STRINGS = {
     mascotCelebrating: 'أداء رائع هذا الشهر 🌿',
     mascotConcerned: 'لنضبط الإنفاق قليلاً',
     mascotOnTrack: 'على المسار، واصل!',
+    mascotOverBudget: 'تجاوزت ميزانيتك هذا الشهر — خلنا نصلحها',
 
     // Bottom nav
     navTransactions: 'المعاملات',

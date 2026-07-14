@@ -5,7 +5,7 @@ import { formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 import accountsData from '../../data/munami_accounts.json'
 import BankCardStack from './BankCardStack'
-import GrowthMark from './GrowthMark'
+import MunamiMascot from './MunamiMascot'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
 const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
@@ -173,14 +173,15 @@ export default function AccountsTab() {
               {t(locale, 'acrossAccounts', accountsData.accounts.length)}
             </span>
           </div>
-          {/* منمّي mark — pinned to the corner like an emblem, no circle behind
-              it; sitting outside the gold card so its color stays brand green
-              regardless of the card's forced charcoal ink. */}
+          {/* منمّي's real mascot, greeting mood — pinned to the corner like an
+              emblem, no circle behind it (the art's own bold outline makes a
+              separate frame redundant); sits outside the gold card so it
+              isn't affected by the card's forced charcoal ink rule. */}
           <div
-            className="absolute flex items-center justify-center"
-            style={{ top: -6, right: 20, width: 48, height: 48 }}
+            className="absolute flex items-end justify-center"
+            style={{ top: -18, right: 12, width: 56, height: 56 }}
           >
-            <GrowthMark size={26} color="var(--color-primary)" />
+            <MunamiMascot expression="greeting" size={48} />
           </div>
         </div>
       </motion.div>

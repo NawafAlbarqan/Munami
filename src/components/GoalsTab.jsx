@@ -4,6 +4,7 @@ import { useCountUp } from '../lib/useCountUp'
 import { formatSAR, t, categoryName } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 import DealsWall from './DealsWall'
+import MunamiMascot from './MunamiMascot'
 import {
   getDebits,
   applyCategoryMap,
@@ -112,6 +113,14 @@ function budgetBarColor(pct, categoryColor) {
   return categoryColor
 }
 
+// Same thresholds as budgetBarColor — happy/concerned/unhappy mascot mood
+// for a budget's current spend ratio.
+function budgetMood(pct) {
+  if (pct >= 1.0) return 'unhappy'
+  if (pct >= 0.75) return 'concerned'
+  return 'happy'
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function GoalsTab({ rows }) {
@@ -214,6 +223,7 @@ export default function GoalsTab({ rows }) {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2.5">
+                    <MunamiMascot expression={budgetMood(pct)} size={22} />
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: catColor }} />
                     <span className="text-text text-sm font-medium">
                       {categoryName(locale, budget.category)}
@@ -268,6 +278,8 @@ export default function GoalsTab({ rows }) {
                     <p className="text-text text-sm font-semibold">{ch.title}</p>
                     <p className="text-muted text-[11px] mt-0.5">{ch.desc}</p>
                   </div>
+                  {/* Completed challenges get a small happy منمّي badge next to the XP reward */}
+                  {barPct >= 1 && <MunamiMascot expression="happy" size={22} className="shrink-0" />}
                   <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
                     +{ch.xp} XP
                   </span>
