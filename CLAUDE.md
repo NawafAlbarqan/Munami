@@ -304,6 +304,14 @@ Other `#A66CFF`.
     outward. Segments < 2% of total are skipped (truly negligible slivers).
   - The legend below shows ALL categories with amount + % in the category color.
   - The ring draws in on mount via `strokeDashoffset` animation (600ms staggered).
+  - **Callout anchor angle**: each segment's arc gradient runs from its own
+    color at the segment's start to the NEXT segment's color at its end, so
+    the exact angular midpoint of any sweep is always a 50/50 blend — a pill
+    anchored there (via a naive `midAngle`) sits next to a ring pixel that
+    isn't its pure color at all, reading as a color mismatch. `labelAngle`
+    (`SpendingDonut.jsx`) instead sits at 22% into the segment's own sweep,
+    where the gradient is still ~85% the segment's own color, so the pill's
+    solid category-colored fill honestly matches the ring right under it.
 - Track rings / progress bar backgrounds: use `var(--color-card-border)`
   (always black in both themes), NOT a hardcoded hex.
 
@@ -317,6 +325,11 @@ Other `#A66CFF`.
   offset shadow (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive).
   Active = full opacity + `scale(1.05)`; inactive = 90% opacity. Contains a
   real `MunamiMascot` (`happy`, 32px) instead of the old abstract sprout icon.
+  The gap between the circle and its "منمّي" label is `gap-2` (8px), not
+  tighter — the active state's `4px 4px 0 #000` offset shadow paints below
+  the circle's own box, and with only 2px of gap that shadow bled into the
+  label glyphs underneath it (a real bug, fixed). Keep this gap comfortably
+  bigger than the largest active-state shadow offset used on the circle.
 - **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
   `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
   border, `2.5px 2.5px 0 #000` shadow) + icon in `--color-on-accent` +

@@ -49,6 +49,14 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
       fraction,
       cumulativeBefore,
       midAngle: (startAngle + endAngle) / 2,
+      // Each segment's arc is drawn as a gradient from its own color into the
+      // NEXT segment's color, so the exact midpoint of the sweep is always a
+      // 50/50 blend of the two — anchoring the callout there made a pure
+      // category-colored pill sit next to a ring pixel that wasn't that
+      // color at all. Anchoring closer to the segment's start (where the
+      // gradient is still ~85% its own color) keeps the pill's color an
+      // honest match for the ring right under it.
+      labelAngle: startAngle + fraction * 360 * 0.22,
       color: ringColors[i],
     })
     return acc
@@ -61,13 +69,13 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
   const placed = []
   for (const seg of segments) {
     if (seg.fraction < 0.02) continue // skip truly negligible slivers
-    const anchor = polarToCartesian(seg.midAngle, RING_RADIUS + STROKE_WIDTH / 2)
+    const anchor = polarToCartesian(seg.labelAngle, RING_RADIUS + STROKE_WIDTH / 2)
     let labelRadius = LABEL_RADIUS
-    let center = polarToCartesian(seg.midAngle, labelRadius)
+    let center = polarToCartesian(seg.labelAngle, labelRadius)
     for (let attempt = 0; attempt < 8; attempt++) {
       if (!placed.some((p) => Math.hypot(center.x - p.x, center.y - p.y) < 54)) break
       labelRadius += 16
-      center = polarToCartesian(seg.midAngle, labelRadius)
+      center = polarToCartesian(seg.labelAngle, labelRadius)
     }
     center = { x: clamp(center.x, 32, CANVAS - 32), y: clamp(center.y, 16, CANVAS - 16) }
     placed.push(center)

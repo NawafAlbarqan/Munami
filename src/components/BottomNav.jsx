@@ -78,11 +78,14 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               key={tab.key}
               type="button"
               onClick={() => onTabChange?.(tab.key)}
-              className="flex-1 flex flex-col items-center pb-2 gap-0.5"
+              className="flex-1 flex flex-col items-center pb-2 gap-2"
               style={{ overflow: 'visible', marginBottom: 0 }}
             >
               {/* Raised circle — floats up above the nav line. Cream ring makes
-                  it read as a cut-out floating button; gradient adds depth. */}
+                  it read as a cut-out floating button; gradient adds depth.
+                  gap-2 (not gap-0.5) — the active state's 4px offset shadow
+                  paints below the circle's own box, and with only 2px of gap
+                  that shadow bled into the "منمّي" label glyphs below it. */}
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
