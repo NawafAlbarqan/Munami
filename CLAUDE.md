@@ -346,12 +346,18 @@ Other `#A66CFF`.
 - **منمّي center tab (hero)**: icon-only — no text label under it, unlike the
   other 4 tabs (a deliberate call: it's visually distinct enough as the
   raised, larger, colored circle that a label was redundant). A 58×58px
-  circle raised 20px above the nav line (`marginTop: -20`; was -26 before the
-  label was removed — sitting a touch lower now that there's no label
-  competing for space below it reads as better balanced), solid
-  `var(--color-primary)` fill, 3px black border, offset shadow (`4px 4px 0
-  #000` active / `3px 3px 0 #000` inactive). Active = full opacity +
-  `scale(1.05)`; inactive = 90% opacity. Contains a real `MunamiMascot`
+  circle floats above the nav line via `position: absolute; top: -22px` on a
+  `position: relative; h-full` button — **not** flex `items-center` +
+  negative `margin-top` on the circle (a real bug: `align-items: center`
+  centers a negative-margined child by its shrunk *effective* margin-box
+  size, which "eats" about half of any margin change, so tuning the
+  margin-top barely moved the actual float amount). Absolute positioning
+  makes "how far above the bar" a single, directly-verifiable `top` value.
+  Solid `var(--color-primary)` fill, 3px black border, offset shadow
+  (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive). Active = full
+  opacity + `scale(1.05)`; inactive = 90% opacity (combined with the
+  centering `translateX(-50%)` in one `transform`, since the circle is
+  absolutely positioned at `left: 50%`). Contains a real `MunamiMascot`
   (`happy`, 32px) instead of the old abstract sprout icon.
 - **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
   `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
@@ -518,10 +524,26 @@ Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful 
 - **"Ask منمّي..." input bar**: pinned above the bottom nav, fully functional.
   Sends to `/api/chat` with the full message history + financial context object.
   The context includes the **full monthly history** (spend + income for every month
-  in the dataset, precomputed in `App.jsx`), plus average monthly spend, highest
+  in the dataset, precomputed in `App.jsx`), a **per-month category breakdown for
+  every month** (`categoriesByMonth`), plus average monthly spend, highest
   and lowest spending months. This lets منمّي answer historical questions ("highest
-  spending month", "how does this month compare", "my average") using real data.
-  Code computes all aggregates; the AI only reads finished numbers, never raw rows.
+  spending month", "how does this month compare", "my biggest category in April")
+  using real data. Code computes all aggregates; the AI only reads finished
+  numbers, never raw rows.
+  **Independent of the Overview tab's month switcher — this is load-bearing.**
+  `financialContext` (`App.jsx`) is a `useMemo` keyed only on `[rows, locale]`,
+  never on `activeMonth` (Overview's selected month). "This month" for the chat
+  (`context.month`, `context.spent`, `context.income`, `context.topCategories`,
+  etc.) is always derived from `getLatestMonth(rows)` — the data's own true
+  latest month, same logic used everywhere else for "today" — computed as
+  `currentMonth` inside the memo, completely separate from Overview's
+  `selectedMonth` state. This was a real bug: the context used to reuse the
+  Overview tab's `activeMonth`/`chartData`/`spendByCategory` variables, so
+  switching Overview to an old month made منمّي think that old month was
+  "now," and `topCategories` only ever covered whatever month Overview had
+  selected. `categoriesByMonth` fixes the second half by sending every
+  month's category breakdown up front, so a question about any month works
+  regardless of what's currently shown in Overview.
 - **Conversational categorization**: if the user asks "what category is X?" or
   "categorize STARBUCKS RIYADH SA", `isCategoryQuestion()` detects the intent,
   extracts the merchant via `extractMerchant()`, calls `/api/categorize`, and

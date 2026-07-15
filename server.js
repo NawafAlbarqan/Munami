@@ -73,7 +73,9 @@ ${(context.funds || []).map((f) => `  · ${f.name}: SAR ${f.balance?.toLocaleStr
 - Highest spending month: ${context.highestMonth?.month} — SAR ${context.highestMonth?.spend?.toLocaleString()}
 - Lowest spending month: ${context.lowestMonth?.month} — SAR ${context.lowestMonth?.spend?.toLocaleString()}
 - Monthly history (${context.monthlyHistory?.length} months, YYYY-MM format):
-${(context.monthlyHistory || []).map((m) => `  ${m.month}: spent SAR ${m.spend?.toLocaleString()}, income SAR ${m.income?.toLocaleString()}`).join('\n')}` : ''
+${(context.monthlyHistory || []).map((m) => `  ${m.month}: spent SAR ${m.spend?.toLocaleString()}, income SAR ${m.income?.toLocaleString()}`).join('\n')}
+- Category breakdown by month (YYYY-MM format — use this for ANY month asked about, not just the current one):
+${(context.categoriesByMonth || []).map((m) => `  ${m.month}: ${m.categories.map((c) => `${c.category} SAR ${c.amount?.toLocaleString()} (${c.pct}%)`).join(', ')}`).join('\n')}` : ''
 
   const personalityBlock = locale === 'ar'
     ? `أنت منمّي — صاحب ذكي في المال، تعرف وضع المستخدم بالضبط. رد دايماً بالعربي فقط — ممنوع تخلط أي كلمة إنجليزية في ردودك.

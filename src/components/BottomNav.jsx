@@ -78,23 +78,28 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               key={tab.key}
               type="button"
               onClick={() => onTabChange?.(tab.key)}
-              className="flex-1 flex items-center justify-center"
+              className="flex-1 h-full relative"
               style={{ overflow: 'visible' }}
               aria-label="منمّي"
             >
               {/* Icon-only hero tab — no text label under it (unlike the other
-                  4 tabs). Raised circle floats up above the nav line; the
-                  -20 raise (was -26) sits a touch lower for better balance
-                  now that there's no label competing for space below it. */}
+                  4 tabs). Absolutely positioned (not flex-centered + negative
+                  margin) so how far it floats above the bar is a single,
+                  directly-verifiable `top` value — flex `align-items: center`
+                  centers a negative-margined child by its EFFECTIVE (shrunk)
+                  margin-box size, which "eats" half of any margin change and
+                  made the float amount barely move when tuned that way. */}
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: -22,
                   background: 'var(--color-primary)',
                   border: '3px solid #000000',
                   opacity: isActive ? 1 : 0.9,
-                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                  transform: isActive ? 'translateX(-50%) scale(1.05)' : 'translateX(-50%) scale(1)',
                   boxShadow: isActive ? '4px 4px 0 #000000' : '3px 3px 0 #000000',
-                  marginTop: -20,
                 }}
               >
                 <MunamiMascot expression="happy" size={32} />

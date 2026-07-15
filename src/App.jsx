@@ -159,6 +159,11 @@ function App() {
   const cards = aiCards.length ? aiCards : baseCards
 
   // ── Financial context for the Copilot chat ────────────────────────────────
+  // Deliberately independent of `activeMonth` (the Overview tab's month
+  // switcher) — Copilot must always reason from the TRUE current month
+  // (the data's own latest month, `latestMonth`) and have every month's
+  // category breakdown on hand, regardless of whatever month the user
+  // happens to have selected in Overview. Only depends on `rows`/`locale`.
   const financialContext = useMemo(() => {
     if (!rows.length) return null
 
@@ -166,6 +171,7 @@ function App() {
     const allDebits = applyCategoryMap(getDebits(rows))
     const allCredits = getCredits(rows)
     const allMonths = listMonths(rows)
+    const currentMonth = getLatestMonth(rows)
 
     const monthlyHistory = allMonths.map((m) => {
       const mDebits = allDebits.filter((r) => monthKey(r.date) === m)
@@ -177,6 +183,25 @@ function App() {
       }
     })
 
+    // Category breakdown for EVERY month, not just whatever is selected in
+    // Overview — lets منمّي answer "what's my biggest category in April"
+    // no matter what's currently showing on the Overview tab.
+    const categoriesByMonth = allMonths.map((m) => {
+      const mDebits = allDebits.filter((r) => monthKey(r.date) === m)
+      const mSpend = sumAmount(mDebits)
+      const byCategory = groupByCategory(mDebits)
+      return {
+        month: m,
+        categories: Object.entries(byCategory)
+          .map(([category, amount]) => ({
+            category,
+            amount: Math.round(amount),
+            pct: mSpend > 0 ? Math.round((amount / mSpend) * 100) : 0,
+          }))
+          .sort((a, b) => b.amount - a.amount),
+      }
+    })
+
     // Full (non-partial) months only for averages and extremes
     const fullMonthHistory = monthlyHistory.filter((mh) => !isEarlyMonth(rows, mh.month))
     const avgMonthlySpend = fullMonthHistory.length
@@ -184,26 +209,29 @@ function App() {
       : 0
     const sortedBySpend = [...fullMonthHistory].sort((a, b) => b.spend - a.spend)
 
+    // "This month" for the chat is always the TRUE current month — never
+    // the Overview tab's selected month.
+    const currentMonthDebits = allDebits.filter((r) => monthKey(r.date) === currentMonth)
+    const currentMonthSpend = sumAmount(currentMonthDebits)
+    const { income: currentMonthIncome } = resolveMonthIncome(allCredits, currentMonth)
+    const currentMonthEntry = categoriesByMonth.find((c) => c.month === currentMonth)
+
     return {
       totalBalance: accountsData.total_balance_sar,
       unallocated: accountsData.unallocated_sar,
       allocated: accountsData.allocated_sar,
       accounts: accountsData.accounts.map((a) => ({ bank: a.bank, balance: a.balance_sar })),
       funds: accountsData.funds.map((f) => ({ name: f.name, balance: f.balance_sar, target: f.target_sar })),
-      month: monthYearLabel(locale, activeMonth) || 'current month',
-      spent: Math.round(spent),
-      income,
-      daysElapsed,
-      isEarlyMonth: earlyMonth,
-      topCategories: chartData.slice(0, 4).map((d) => ({
-        category: d.category,
-        amount: d.amount,
-        pct: spent > 0 ? Math.round((d.amount / spent) * 100) : 0,
-      })),
+      month: monthYearLabel(locale, currentMonth) || 'current month',
+      spent: Math.round(currentMonthSpend),
+      income: currentMonthIncome,
+      daysElapsed: daysWithDataInMonth(allDebits, currentMonth),
+      isEarlyMonth: isEarlyMonth(rows, currentMonth),
+      topCategories: (currentMonthEntry?.categories || []).slice(0, 4),
       budgets: [
-        { category: 'Shopping', limit: 2000, spent: Math.round(spendByCategory['Shopping'] || 0) },
-        { category: 'Food & Groceries', limit: 1500, spent: Math.round(spendByCategory['Food & Groceries'] || 0) },
-        { category: 'Entertainment', limit: 800, spent: Math.round(spendByCategory['Entertainment'] || 0) },
+        { category: 'Shopping', limit: 2000, spent: Math.round(groupByCategory(currentMonthDebits)['Shopping'] || 0) },
+        { category: 'Food & Groceries', limit: 1500, spent: Math.round(groupByCategory(currentMonthDebits)['Food & Groceries'] || 0) },
+        { category: 'Entertainment', limit: 800, spent: Math.round(groupByCategory(currentMonthDebits)['Entertainment'] || 0) },
       ],
       goals: {
         emergencyFund: { current: 6000, target: 15000 },
@@ -212,13 +240,15 @@ function App() {
         xpMax: 3000,
         streak: 7,
       },
-      // Full spending history across all months in the dataset
+      // Full spending history across all months in the dataset, independent
+      // of Overview's month switcher.
       monthlyHistory,
+      categoriesByMonth,
       avgMonthlySpend,
       highestMonth: sortedBySpend[0] || null,
       lowestMonth: sortedBySpend[sortedBySpend.length - 1] || null,
     }
-  }, [rows, spent, income, daysElapsed, earlyMonth, activeMonth, chartData, spendByCategory, locale])
+  }, [rows, locale])
 
   // ── Mascot expression ─────────────────────────────────────────────────────
   // Three real moods now (no separate "celebrating" art) — happy covers both
