@@ -185,8 +185,14 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
   with a small camera-lens dot, not a plain black bar.
   `src/index.css`).
 - **System strip (hamburger zone)**: the top ~56px of every tab is reserved.
-  The floating hamburger/settings button (in `App.jsx`) sits at
-  `top: 18, right: 16` (34×34px). Every scrollable tab starts its content at
+  The floating hamburger/settings button (in `App.jsx`) is `position: fixed`
+  (not `absolute`) so it never moves with any tab's own scroll container —
+  it sits at `top: 32, right: 30`, which looks like `18, 16` visually: since
+  PhoneFrame's bezel div is the one with `transform: scale()`, it becomes the
+  containing block for `fixed` descendants (per spec), and that bezel is
+  14px bigger on every side than the screen itself, so the offsets carry a
+  +14 compensation baked in. If PhoneFrame's bezel padding ever changes,
+  update this compensation too. Every scrollable tab starts its content at
   **60px top padding** (Overview greeting `paddingTop: 40` on top of the
   scroller's `pt-5`; Transactions/Goals/Accounts `paddingTop: 60`). The
   Copilot tab is the exception — its pinned header uses `pr-16` so the title
@@ -303,7 +309,11 @@ Other `#A66CFF`.
     so they always match. Multi-pass collision detection pushes overlapping pills
     outward. Segments < 2% of total are skipped (truly negligible slivers).
   - The legend below shows ALL categories with amount + % in the category color.
-  - The ring draws in on mount via `strokeDashoffset` animation (600ms staggered).
+  - The ring draws in on mount via a plain CSS `stroke-dashoffset` transition
+    (600ms staggered by `transitionDelay`) toggled by a `drawn` state flip on
+    mount — not Motion's `initial`/`animate` on the raw SVG attribute, which
+    could get stuck mid-transition in some environments; a native CSS
+    transition is guaranteed by the browser to reach and hold its final value.
   - **Callout anchor angle**: each segment's arc gradient runs from its own
     color at the segment's start to the NEXT segment's color at its end, so
     the exact angular midpoint of any sweep is always a 50/50 blend — a pill
@@ -312,6 +322,19 @@ Other `#A66CFF`.
     (`SpendingDonut.jsx`) instead sits at 22% into the segment's own sweep,
     where the gradient is still ~85% the segment's own color, so the pill's
     solid category-colored fill honestly matches the ring right under it.
+  - **Gradient rotation bug (real root cause of a color/slice mismatch)**:
+    each `<linearGradient>` uses `gradientUnits="userSpaceOnUse"`, and it's
+    referenced by a `<circle>` that carries its own `transform="rotate(-90
+    ...)"` — per the SVG spec, that transform ALSO applies to the gradient's
+    vector, since a `userSpaceOnUse` gradient inherits the coordinate system
+    of the element that references it. The gradient's `x1,y1,x2,y2` must
+    therefore be computed WITHOUT the `-90` baked in (unlike the callout
+    anchor/label angles, which have no such transform and do need it) — the
+    circle's own transform supplies that rotation. Baking `-90` into both
+    double-rotated the gradient a further 90° away from the arc's real
+    on-screen position, so a segment's "pure" color rendered nowhere near
+    that segment's actual visible arc, even though the callout position math
+    (anchor angle, label placement) was already correct on its own.
 - Track rings / progress bar backgrounds: use `var(--color-card-border)`
   (always black in both themes), NOT a hardcoded hex.
 
@@ -320,16 +343,16 @@ Other `#A66CFF`.
   tokenized (no hardcoded hex except black outlines/shadows and the fixed
   `--color-on-accent` ink) so it adapts automatically between themes.
 - Nav background: `var(--color-card)` + thick `3px solid #000` top rule.
-- **منمّي center tab (hero)**: a 58×58px circle raised 26px above the nav line
-  (`marginTop: -26`), solid `var(--color-primary)` fill, 3px black border,
-  offset shadow (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive).
-  Active = full opacity + `scale(1.05)`; inactive = 90% opacity. Contains a
-  real `MunamiMascot` (`happy`, 32px) instead of the old abstract sprout icon.
-  The gap between the circle and its "منمّي" label is `gap-2` (8px), not
-  tighter — the active state's `4px 4px 0 #000` offset shadow paints below
-  the circle's own box, and with only 2px of gap that shadow bled into the
-  label glyphs underneath it (a real bug, fixed). Keep this gap comfortably
-  bigger than the largest active-state shadow offset used on the circle.
+- **منمّي center tab (hero)**: icon-only — no text label under it, unlike the
+  other 4 tabs (a deliberate call: it's visually distinct enough as the
+  raised, larger, colored circle that a label was redundant). A 58×58px
+  circle raised 20px above the nav line (`marginTop: -20`; was -26 before the
+  label was removed — sitting a touch lower now that there's no label
+  competing for space below it reads as better balanced), solid
+  `var(--color-primary)` fill, 3px black border, offset shadow (`4px 4px 0
+  #000` active / `3px 3px 0 #000` inactive). Active = full opacity +
+  `scale(1.05)`; inactive = 90% opacity. Contains a real `MunamiMascot`
+  (`happy`, 32px) instead of the old abstract sprout icon.
 - **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
   `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
   border, `2.5px 2.5px 0 #000` shadow) + icon in `--color-on-accent` +
@@ -469,10 +492,27 @@ The AI financial advisor chat. This is the **main tab** and should feel like
 the heart of the app. Visually emphasized in the nav (slightly larger icon/label).
 Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful fallback.
 
-- **Header**: منمّي name + real mascot avatar (`greeting` mood) + "AI" / "Demo" status dot, pinned at top.
-- **Chat opens with only the greeting**: a single منمّي bubble built from real
+- **Header**: منمّي name + real mascot avatar (`greeting` mood) + "AI" / "Demo" status dot,
+  plus a "past chats" (clock icon) button and a "new chat" (+ icon) button, pinned at top.
+- **A fresh chat opens with only the greeting**: a single منمّي bubble built from real
   financial data (`buildGreeting()`) — total balance, bank count, month spend.
   No pre-seeded messages. No suggested chips. Clean slate, ready for input.
+- **Persistence — `src/lib/chatStorage.js`**: the current conversation is saved to
+  `localStorage` (key `munami_chat_current`) on every change and reloaded on mount,
+  so switching tabs and coming back to Copilot resumes exactly where you left off —
+  CopilotTab unmounts when another tab is active, so this is real persistence, not
+  just React state surviving a re-render. Starting a genuinely new conversation is
+  a **deliberate action only** (the "+" button, `handleNewChat`) — it never happens
+  automatically on tab switch. Tapping "new chat" archives the current conversation
+  into history first, but only if the user actually said something in it (a chat
+  that's still just the opening greeting isn't worth keeping).
+- **History — up to the last 5 conversations** (`munami_chat_history` in
+  `localStorage`, capped by `MAX_HISTORY` in `chatStorage.js`, newest first).
+  The clock-icon button opens a bottom sheet listing each past conversation's
+  first user message + timestamp; tapping one restores it as the current
+  conversation (archiving whatever was on screen first, same "only if it has
+  real content" rule). No backend — plain `localStorage`, matching the rest
+  of the demo's "no real backend" data strategy.
 - **Chat thread**: منمّي bubbles left-aligned (mint-tinted bg), user bubbles
   right-aligned (white card bg). Messages animate in on send (not on mount).
 - **"Ask منمّي..." input bar**: pinned above the bottom nav, fully functional.

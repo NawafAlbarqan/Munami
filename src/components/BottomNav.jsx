@@ -78,14 +78,14 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               key={tab.key}
               type="button"
               onClick={() => onTabChange?.(tab.key)}
-              className="flex-1 flex flex-col items-center pb-2 gap-2"
-              style={{ overflow: 'visible', marginBottom: 0 }}
+              className="flex-1 flex items-center justify-center"
+              style={{ overflow: 'visible' }}
+              aria-label="منمّي"
             >
-              {/* Raised circle — floats up above the nav line. Cream ring makes
-                  it read as a cut-out floating button; gradient adds depth.
-                  gap-2 (not gap-0.5) — the active state's 4px offset shadow
-                  paints below the circle's own box, and with only 2px of gap
-                  that shadow bled into the "منمّي" label glyphs below it. */}
+              {/* Icon-only hero tab — no text label under it (unlike the other
+                  4 tabs). Raised circle floats up above the nav line; the
+                  -20 raise (was -26) sits a touch lower for better balance
+                  now that there's no label competing for space below it. */}
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
@@ -94,17 +94,11 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
                   opacity: isActive ? 1 : 0.9,
                   transform: isActive ? 'scale(1.05)' : 'scale(1)',
                   boxShadow: isActive ? '4px 4px 0 #000000' : '3px 3px 0 #000000',
-                  marginTop: -26,
+                  marginTop: -20,
                 }}
               >
                 <MunamiMascot expression="happy" size={32} />
               </div>
-              <span
-                className="text-[9px] font-extrabold leading-none transition-colors duration-200"
-                style={{ color: isActive ? 'var(--color-primary)' : 'var(--color-muted)' }}
-              >
-                منمّي
-              </span>
             </button>
           )
         }

@@ -112,6 +112,10 @@ const STRINGS = {
     copilotSubtitle: 'Your money, growing',
     whatsOnYourMind: "What's on your mind?",
     askMunami: 'Ask منمّي...',
+    chatHistory: 'Past chats',
+    newChat: 'New chat',
+    close: 'Close',
+    noPastChats: 'No past chats yet.',
   },
 
   ar: {
@@ -224,6 +228,10 @@ const STRINGS = {
     copilotSubtitle: 'أموالك، تنمو',
     whatsOnYourMind: 'ما الذي تودّ معرفته؟',
     askMunami: 'اسأل منمّي...',
+    chatHistory: 'المحادثات السابقة',
+    newChat: 'محادثة جديدة',
+    close: 'إغلاق',
+    noPastChats: 'لا توجد محادثات سابقة بعد.',
   },
 }
 

@@ -3,6 +3,15 @@ import { motion, AnimatePresence } from 'motion/react'
 import MunamiMascot from './MunamiMascot'
 import { useLocale } from '../lib/LocaleContext'
 import { t } from '../lib/i18n'
+import {
+  loadCurrentConversation,
+  saveCurrentConversation,
+  loadHistory,
+  makeConversation,
+  startNewConversation,
+  restoreConversation,
+  conversationPreview,
+} from '../lib/chatStorage'
 
 const USE_AI = import.meta.env.VITE_USE_AI === 'true'
 
@@ -88,11 +97,32 @@ export default function CopilotTab({ financialContext }) {
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: pickRandomGreeting(locale) },
-  ])
+  // Chat persists in localStorage (see src/lib/chatStorage.js) so it survives
+  // switching tabs and returning — CopilotTab unmounts when another tab is
+  // active, so React state alone wouldn't survive that. Loaded once on mount;
+  // if there's no saved conversation yet, start with just the greeting.
+  const [conversation, setConversation] = useState(
+    () => loadCurrentConversation() || makeConversation(pickRandomGreeting(locale))
+  )
+  const [history, setHistory] = useState(() => loadHistory())
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const messages = conversation.messages
+
+  function setMessages(update) {
+    setConversation((prev) => ({
+      ...prev,
+      messages: typeof update === 'function' ? update(prev.messages) : update,
+      updatedAt: Date.now(),
+    }))
+  }
+
   const [input, setInput] = useState('')
   const [isThinking, setIsThinking] = useState(false)
+
+  // Every change to the current conversation is saved immediately.
+  useEffect(() => {
+    saveCurrentConversation(conversation)
+  }, [conversation])
 
   // On locale switch, swap greeting to the new language (only if still at the opening message)
   useEffect(() => {
@@ -103,6 +133,28 @@ export default function CopilotTab({ financialContext }) {
       return prev
     })
   }, [locale])
+
+  // Starting a new conversation is a deliberate action (the "new chat"
+  // button) — never automatic on tab switch. Archives the current
+  // conversation into history first (only if the user actually said
+  // something in it).
+  function handleNewChat() {
+    const fresh = startNewConversation(conversation, pickRandomGreeting(locale))
+    setConversation(fresh)
+    setHistory(loadHistory())
+  }
+
+  function openHistory() {
+    setHistory(loadHistory())
+    setHistoryOpen(true)
+  }
+
+  function handleRestore(picked) {
+    const restored = restoreConversation(conversation, picked)
+    setConversation(restored)
+    setHistory(loadHistory())
+    setHistoryOpen(false)
+  }
 
   // Auto-scroll to bottom when messages or thinking state changes
   useEffect(() => {
@@ -203,8 +255,86 @@ export default function CopilotTab({ financialContext }) {
             </div>
             <p className="text-muted text-[11px] mt-1">{t(locale, 'copilotSubtitle')}</p>
           </div>
+          <button
+            type="button"
+            onClick={openHistory}
+            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            aria-label={t(locale, 'chatHistory')}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <circle cx="7.5" cy="7.5" r="6.25" stroke="currentColor" strokeWidth="1.4" className="text-muted" />
+              <path d="M7.5 4v3.5L10 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className="text-muted" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleNewChat}
+            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            aria-label={t(locale, 'newChat')}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M7.5 2.5v10M2.5 7.5h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="text-muted" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      {/* ── History panel — bottom sheet listing up to the last 5 archived
+          conversations. Picking one restores it as the current conversation
+          (archiving whatever was on screen first); this is the only other
+          way (besides "new chat") the current conversation ever changes. ── */}
+      <AnimatePresence>
+        {historyOpen && (
+          <motion.div
+            className="absolute inset-0 z-20 flex flex-col justify-end"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setHistoryOpen(false)}
+            />
+            <motion.div
+              className="relative bg-card border-t-[3px] border-card-border rounded-t-[24px] px-5 pt-4 pb-6 max-h-[70%] overflow-y-auto scroll-thin"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-text text-sm font-bold">{t(locale, 'chatHistory')}</p>
+                <button type="button" onClick={() => setHistoryOpen(false)} className="text-muted text-xs font-semibold">
+                  {t(locale, 'close')}
+                </button>
+              </div>
+              {history.length === 0 ? (
+                <p className="text-muted text-sm py-6 text-center">{t(locale, 'noPastChats')}</p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {history.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => handleRestore(c)}
+                      className="text-left bg-tint border border-card-border rounded-[16px] px-4 py-3"
+                      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+                    >
+                      <p className="text-text text-sm font-semibold truncate">{conversationPreview(c)}</p>
+                      <p className="text-muted text-[11px] mt-1">
+                        {new Date(c.updatedAt).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+                          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                        })}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Message thread — always LTR layout (AI left, user right is universal) ── */}
       <div

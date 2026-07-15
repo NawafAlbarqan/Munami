@@ -390,12 +390,22 @@ function App() {
       <BottomNav active={activeTab} onTabChange={setActiveTab} />
 
       {/* Hamburger — lives in the reserved "system strip" (top 0–56px) that
-          every tab keeps clear of content; covered by SettingsPanel when open */}
+          every tab keeps clear of content; covered by SettingsPanel when open.
+          position:fixed (not absolute) so it never moves with any tab's own
+          scroll container, on every tab. PhoneFrame's own transform:scale()
+          wrapper becomes the containing block for fixed descendants, so this
+          stays pinned to the phone screen, not the real browser viewport. */}
       <button
         onClick={() => setSettingsOpen(true)}
-        className="absolute z-30 flex items-center justify-center"
+        className="z-30 flex items-center justify-center"
         style={{
-          top: 18, right: 16, width: 36, height: 36,
+          // +14 on each offset compensates for PhoneFrame's bezel padding: a
+          // fixed element's containing block becomes the nearest ancestor
+          // with a transform (PhoneFrame's scaled bezel div, 14px bigger on
+          // every side than the screen itself), not the screen div, so a
+          // bare top:18/right:16 would land 14px closer to the bezel's edge
+          // than intended.
+          position: 'fixed', top: 32, right: 30, width: 36, height: 36,
           background: '#FFFFFF', borderRadius: 11,
           border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000',
           color: '#000000',

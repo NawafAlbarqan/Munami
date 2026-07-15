@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { formatSAR, t, categoryName } from '../lib/i18n'
 import { useCountUp } from '../lib/useCountUp'
@@ -85,6 +86,20 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
 
   const animatedTotal = useCountUp(total)
 
+  // Draw-in animation: a plain CSS transition (not Motion's per-frame JS
+  // animation of the raw stroke-dashoffset attribute) — the browser
+  // guarantees a CSS transition reaches and HOLDS its final value. The
+  // Motion version could get stuck mid-transition in some environments,
+  // leaving the ring's actual arc boundaries out of sync with the callouts
+  // (which are computed straight from the data, not from animation state) —
+  // so a callout could end up pointing at a slice that hadn't finished
+  // drawing into its real position yet.
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setDrawn(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   return (
     <div className="flex flex-col items-center">
       <motion.div
@@ -97,8 +112,15 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
           <defs>
             {segments.map((seg, i) => {
               const nextColor = ringColors[(i + 1) % ringColors.length]
-              const start = polarToCartesian(-90 + seg.cumulativeBefore * 360, RING_RADIUS)
-              const end = polarToCartesian(-90 + (seg.cumulativeBefore + seg.fraction) * 360, RING_RADIUS)
+              // NOT "-90 + ...": these coordinates feed a gradientUnits="userSpaceOnUse"
+              // gradient referenced by the ring <circle>, which already carries its own
+              // `transform="rotate(-90 ...)"` — that transform applies to the gradient's
+              // vector too (userSpaceOnUse inherits the referencing element's transform).
+              // Baking another -90 in here double-rotated the color direction a further
+              // 90° away from the arc's real on-screen position, so the pure color for
+              // a segment landed nowhere near that segment's actual visible arc.
+              const start = polarToCartesian(seg.cumulativeBefore * 360, RING_RADIUS)
+              const end = polarToCartesian((seg.cumulativeBefore + seg.fraction) * 360, RING_RADIUS)
               return (
                 <linearGradient
                   key={seg.category}
@@ -122,7 +144,7 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
             const arcLength = seg.fraction * CIRCUMFERENCE
             const cumulativeLength = seg.cumulativeBefore * CIRCUMFERENCE
             return (
-              <motion.circle
+              <circle
                 key={seg.category}
                 cx={CENTER}
                 cy={CENTER}
@@ -132,10 +154,12 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
                 strokeWidth={STROKE_WIDTH}
                 strokeLinecap="round"
                 strokeDasharray={`${arcLength} ${CIRCUMFERENCE - arcLength}`}
+                strokeDashoffset={drawn ? -cumulativeLength : arcLength - cumulativeLength}
                 transform={`rotate(-90 ${CENTER} ${CENTER})`}
-                initial={{ strokeDashoffset: arcLength - cumulativeLength }}
-                animate={{ strokeDashoffset: -cumulativeLength }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: i * 0.08 }}
+                style={{
+                  transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                  transitionDelay: `${i * 0.08}s`,
+                }}
               />
             )
           })}
