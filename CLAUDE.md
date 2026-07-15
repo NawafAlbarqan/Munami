@@ -345,20 +345,20 @@ Other `#A66CFF`.
 - Nav background: `var(--color-card)` + thick `3px solid #000` top rule.
 - **منمّي center tab (hero)**: icon-only — no text label under it, unlike the
   other 4 tabs (a deliberate call: it's visually distinct enough as the
-  raised, larger, colored circle that a label was redundant). A 58×58px
-  circle floats above the nav line via `position: absolute; top: -22px` on a
-  `position: relative; h-full` button — **not** flex `items-center` +
-  negative `margin-top` on the circle (a real bug: `align-items: center`
-  centers a negative-margined child by its shrunk *effective* margin-box
-  size, which "eats" about half of any margin change, so tuning the
-  margin-top barely moved the actual float amount). Absolute positioning
-  makes "how far above the bar" a single, directly-verifiable `top` value.
-  Solid `var(--color-primary)` fill, 3px black border, offset shadow
-  (`4px 4px 0 #000` active / `3px 3px 0 #000` inactive). Active = full
-  opacity + `scale(1.05)`; inactive = 90% opacity (combined with the
-  centering `translateX(-50%)` in one `transform`, since the circle is
-  absolutely positioned at `left: 50%`). Contains a real `MunamiMascot`
-  (`happy`, 32px) instead of the old abstract sprout icon.
+  larger, colored circle that a label was redundant). A 58×58px circle sits
+  dead-center in a `position: relative; h-full` button via
+  `position: absolute; top: 50%; left: 50%` + `translate(-50%, -50%)` — true
+  centering in the box, not a hand-tuned offset `top`/`margin-top` pixel
+  value. (Two earlier attempts got this wrong: flex `items-center` +
+  negative `margin-top` centers a negative-margined child by its shrunk
+  *effective* margin-box size, which "eats" about half of any margin
+  change and barely moved the position when tuned; a fixed `top: -22px`
+  offset then overshot into "floating too high.") Solid
+  `var(--color-primary)` fill, 3px black border, offset shadow (`4px 4px 0
+  #000` active / `3px 3px 0 #000` inactive). Active = full opacity +
+  `scale(1.05)`; inactive = 90% opacity (combined with the centering
+  `translate(-50%, -50%)` in one `transform`). Contains a real
+  `MunamiMascot` (`happy`, 32px) instead of the old abstract sprout icon.
 - **Regular tabs**: small SVG icon (18×18) + label. Active = a solid
   `var(--color-primary)` **pill fill behind the icon** (46×28px, 2.5px black
   border, `2.5px 2.5px 0 #000` shadow) + icon in `--color-on-accent` +

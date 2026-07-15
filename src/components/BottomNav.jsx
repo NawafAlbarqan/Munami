@@ -83,22 +83,22 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               aria-label="منمّي"
             >
               {/* Icon-only hero tab — no text label under it (unlike the other
-                  4 tabs). Absolutely positioned (not flex-centered + negative
-                  margin) so how far it floats above the bar is a single,
-                  directly-verifiable `top` value — flex `align-items: center`
-                  centers a negative-margined child by its EFFECTIVE (shrunk)
-                  margin-box size, which "eats" half of any margin change and
-                  made the float amount barely move when tuned that way. */}
+                  4 tabs). Absolutely positioned at top:50%/left:50% with a
+                  translate(-50%,-50%) — true dead-center in the button's box
+                  (which spans the nav's full height), not an offset `top`
+                  pixel value tuned by eye. That's what makes it reliably
+                  centered regardless of nav height/border tweaks, rather
+                  than floating above the bar by a fixed guessed amount. */}
               <div
                 className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
                 style={{
                   position: 'absolute',
                   left: '50%',
-                  top: -22,
+                  top: '50%',
                   background: 'var(--color-primary)',
                   border: '3px solid #000000',
                   opacity: isActive ? 1 : 0.9,
-                  transform: isActive ? 'translateX(-50%) scale(1.05)' : 'translateX(-50%) scale(1)',
+                  transform: isActive ? 'translate(-50%, -50%) scale(1.05)' : 'translate(-50%, -50%) scale(1)',
                   boxShadow: isActive ? '4px 4px 0 #000000' : '3px 3px 0 #000000',
                 }}
               >
