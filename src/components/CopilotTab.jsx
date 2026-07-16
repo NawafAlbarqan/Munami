@@ -239,10 +239,10 @@ export default function CopilotTab({ financialContext }) {
   }
 
   return (
-    <div className="absolute inset-0 bg-page">
+    <div className="absolute inset-0 bg-page assistant-screen">
       {/* ── Header ── */}
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
-      <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
+      <div className="assistant-header absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 flex items-center justify-center shrink-0">
             <MunamiMascot expression="greeting" size={36} />
@@ -339,7 +339,7 @@ export default function CopilotTab({ financialContext }) {
       {/* ── Message thread — always LTR layout (AI left, user right is universal) ── */}
       <div
         ref={scrollRef}
-        className="absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[92px] pb-36"
+        className="assistant-thread absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[92px] pb-36"
         dir="ltr"
       >
         <div className="flex flex-col gap-3 py-2">
@@ -388,13 +388,13 @@ export default function CopilotTab({ financialContext }) {
 
       {/* ── Input bar ── */}
       <div
-        className="absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[3px] border-card-border"
-        style={{ bottom: 72 }}
+        className="assistant-composer absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[3px] border-card-border"
+        style={{ bottom: 'calc(72px + var(--safe-bottom))', borderTopWidth: 1 }}
       >
         <div
           className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5"
           dir="ltr"
-          style={{ border: '3px solid #000000', boxShadow: '4px 4px 0 #000000' }}
+          style={{ border: '1px solid var(--color-card-border)', boxShadow: '0 10px 26px rgba(16,38,63,0.10)' }}
         >
           <input
             ref={inputRef}

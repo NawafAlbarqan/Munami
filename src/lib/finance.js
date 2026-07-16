@@ -50,7 +50,7 @@ export function applyCategoryMap(rows) {
 // src/index.css; change which category gets which color here.
 const CATEGORY_COLOR_VAR = {
   'Food & Groceries': '--color-teal',
-  'Bills & Transport': '--color-caution',
+  'Bills & Transport': '--color-bills',
   Shopping: '--color-primary',
   Entertainment: '--color-rewards',
   Other: '--color-lavender',

@@ -14,8 +14,20 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      globals: globals.browser,
+      globals: { ...globals.browser, ...globals.node },
       parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+  {
+    files: ['src/App.jsx', 'src/components/CopilotTab.jsx'],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  {
+    files: ['src/components/DealsWall.jsx', 'src/lib/*Context.jsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

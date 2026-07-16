@@ -7,9 +7,9 @@ import MonthSwitcher from './components/MonthSwitcher'
 import BottomNav from './components/BottomNav'
 import TransactionsTab from './components/TransactionsTab'
 import AccountsTab from './components/AccountsTab'
+import BudgetTab from './components/BudgetTab'
 import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
-import MunamiMascot from './components/MunamiMascot'
 import SettingsPanel from './components/SettingsPanel'
 import { useLocale } from './lib/LocaleContext'
 import {
@@ -38,6 +38,17 @@ import {
 } from './lib/aiCoach'
 import { t, monthLabel, monthYearLabel, categoryName, formatSAR, dir } from './lib/i18n'
 import accountsData from '../data/munami_accounts.json'
+import {
+  ArrowLeft,
+  ArrowLeftRight,
+  Bell,
+  Bot,
+  Eye,
+  EyeOff,
+  Menu,
+  Plus,
+  ReceiptText,
+} from 'lucide-react'
 
 // Severity split for a "bad" spending trend: a genuinely large swing (>=50%)
 // reads as clearly-flagged overspending (unhappy); anything smaller is just
@@ -52,8 +63,15 @@ function App() {
   const { locale } = useLocale()
   const [rows, setRows] = useState([])
   const [selectedMonth, setSelectedMonth] = useState(null)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('home')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [accountsOpen, setAccountsOpen] = useState(false)
+  const [balanceHidden, setBalanceHidden] = useState(false)
+  const [cashBalance, setCashBalance] = useState(() => {
+    if (typeof window === 'undefined') return 0
+    const stored = Number(window.localStorage.getItem('munami-primary-cash'))
+    return Number.isFinite(stored) && stored >= 0 ? stored : 0
+  })
 
   // AI-phrased insight cards — cached by "month+locale" so we don't re-fetch on every render
   const [aiCards, setAiCards] = useState([])
@@ -69,6 +87,10 @@ function App() {
     })
   }, [])
 
+  useEffect(() => {
+    window.localStorage.setItem('munami-primary-cash', String(cashBalance))
+  }, [cashBalance])
+
   const debits = applyCategoryMap(getDebits(rows))
   const credits = getCredits(rows)
 
@@ -80,11 +102,21 @@ function App() {
   const canGoNext = monthIndex >= 0 && monthIndex < months.length - 1
 
   const monthDebits = debits.filter((r) => monthKey(r.date) === activeMonth)
-  const spendByCategory = useMemo(() => groupByCategory(monthDebits), [monthDebits])
-
-  const { income, isCarriedOver, incomeMonth } = resolveMonthIncome(credits, activeMonth)
+  const { income } = resolveMonthIncome(credits, activeMonth)
   const spent = sumAmount(monthDebits)
   const net = income - spent
+  const previousMonth = monthIndex > 0 ? months[monthIndex - 1] : null
+  const previousSpent = previousMonth
+    ? sumAmount(debits.filter((row) => monthKey(row.date) === previousMonth))
+    : 0
+  const spendDelta = previousSpent > 0 ? Math.round(((spent - previousSpent) / previousSpent) * 100) : 0
+  const savings = Math.max(net, 0)
+  const savingsRate = income > 0 ? Math.round((savings / income) * 100) : 0
+  const totalBalance = accountsData.total_balance_sar + cashBalance
+  const accountCount = accountsData.accounts.length + 1
+  const todayLabel = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date())
 
   const chartData = Object.entries(groupByCategory(monthDebits))
     .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
@@ -250,35 +282,6 @@ function App() {
     }
   }, [rows, locale])
 
-  // ── Mascot expression ─────────────────────────────────────────────────────
-  // Three real moods now (no separate "celebrating" art) — happy covers both
-  // plain on-track and a strong-improvement month.
-  //   concerned = mild/early warning: approaching the limit (85-99% of
-  //     income spent), or 2+ categories trending up but none severely
-  //   unhappy = serious/clear negative: spent >= all income (genuinely over
-  //     budget), OR any single category surged >=50% (badMood's threshold,
-  //     "significantly and clearly above usual")
-  const spendRatio = income > 0 ? spent / income : 0
-  const goodCount = cards.filter((c) => c.accent === 'positive').length
-  const badCards = cards.filter((c) => c.accent === 'caution')
-  const badCount = badCards.length
-  const hasSevereCategory = badCards.some((c) => c.mascotMood === 'unhappy')
-  const isCelebrating = goodCount >= 2 && !(spendRatio >= 1.0 || hasSevereCategory || spendRatio > 0.85 || badCount >= 2)
-  let mascotExpression = 'happy'
-  if (rows.length > 0 && !earlyMonth) {
-    if (spendRatio >= 1.0 || hasSevereCategory) mascotExpression = 'unhappy'
-    else if (spendRatio > 0.85 || badCount >= 2) mascotExpression = 'concerned'
-  }
-  const mascotVerdict = earlyMonth
-    ? t(locale, 'mascotEarly', daysElapsed)
-    : mascotExpression === 'unhappy'
-      ? t(locale, 'mascotOverBudget')
-      : mascotExpression === 'concerned'
-        ? t(locale, 'mascotConcerned')
-        : isCelebrating
-          ? t(locale, 'mascotCelebrating')
-          : t(locale, 'mascotOnTrack')
-
   const appDir = dir(locale)
 
   return (
@@ -286,48 +289,41 @@ function App() {
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <GoalsTab rows={rows} />}
       {activeTab === 'copilot' && <CopilotTab financialContext={financialContext} />}
-      {activeTab === 'accounts' && <AccountsTab />}
+      {activeTab === 'budget' && <BudgetTab rows={rows} />}
 
       {/* Overview tab */}
       <div
-        className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pt-5 pb-24"
-        style={{ display: activeTab === 'overview' ? undefined : 'none' }}
+        className="monami-page home-page scroll-thin"
+        style={{ display: activeTab === 'home' ? undefined : 'none' }}
       >
-        {/* ── Mascot greeting ── */}
-        <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 40 }}>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-          >
-            <MunamiMascot expression={mascotExpression} size={54} />
-          </motion.div>
-          <div>
-            <p className="text-muted text-xs">{monthYearLabel(locale, activeMonth) || '...'}</p>
-            <p className="text-text text-lg font-bold leading-tight">{t(locale, 'greeting', 'Ahmed')}</p>
+        <header className="reference-home-head">
+          <button type="button" className="header-action menu-action" onClick={() => setSettingsOpen(true)} aria-label={t(locale, 'settings')}>
+            <Menu size={26} />
+          </button>
+          <div className="greeting-copy">
+            <p>{todayLabel}</p>
+            <h1>{locale === 'ar' ? 'مرحباً، طاهر' : 'Welcome, Taher'}</h1>
           </div>
-        </div>
-
-        {/* ── Title + month switcher ── */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-text text-base font-semibold tracking-tight">
-            {earlyMonth
-              ? t(locale, 'summaryTitlePartial', monthLabel(locale, activeMonth) || '...')
-              : t(locale, 'summaryTitle', monthLabel(locale, activeMonth) || '...')}
-          </h1>
-          {months.length > 0 && (
-            <MonthSwitcher
-              label={monthYearLabel(locale, activeMonth)}
-              canPrev={canGoPrev}
-              canNext={canGoNext}
-              onPrev={() => canGoPrev && setSelectedMonth(months[monthIndex - 1])}
-              onNext={() => canGoNext && setSelectedMonth(months[monthIndex + 1])}
-              locale={locale}
-            />
-          )}
-        </div>
+          <button type="button" className="header-action notification-action" onClick={() => setSettingsOpen(true)} aria-label={t(locale, 'notifications')}>
+            <Bell size={23} />
+            <i />
+          </button>
+        </header>
 
         {/* ── Spent hero card ── */}
+        <section
+          className="wallet-stack"
+          role="button"
+          tabIndex={0}
+          aria-label={locale === 'ar' ? 'فتح جميع الحسابات' : 'Open all accounts'}
+          onClick={() => setAccountsOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') setAccountsOpen(true)
+          }}
+        >
+          <div className="wallet-account-peek peek-snb"><span>SNB</span></div>
+          <div className="wallet-account-peek peek-rajhi"><span>Al Rajhi</span></div>
+          <div className="wallet-account-peek peek-cash"><span>{locale === 'ar' ? 'النقد الأساسي' : 'Primary Cash'}</span></div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeMonth}
@@ -335,45 +331,58 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="retro-hero border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
-            style={{ background: 'var(--grad-hero-card)', boxShadow: '0 2px 16px rgba(45,106,74,0.10)' }}
+            className="balance-card"
           >
-            <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
-              {t(locale, 'youveSpent')}
-            </p>
-            <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
-
-            <div
-              className="retro-verdict inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
-              style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
-            >
-              <span className="text-primary text-xs font-semibold">{mascotVerdict}</span>
+            <div className="balance-label">
+              <span>{t(locale, 'yourTotalBalance')}</span>
+              <button type="button" onClick={(event) => { event.stopPropagation(); setBalanceHidden((value) => !value) }} aria-label={balanceHidden ? 'Show balance' : 'Hide balance'}>
+                {balanceHidden ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-
-            <div className="flex pt-4 border-t border-card-border">
-              <div className="text-center flex-1">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {isCarriedOver
-                    ? t(locale, 'incomeCarriedOver', monthLabel(locale, incomeMonth))
-                    : t(locale, 'income')}
-                </p>
-                <p className="text-positive text-sm font-bold tabular-nums">{formatSAR(income)}</p>
-              </div>
-              <div className="w-px bg-card-border self-stretch" />
-              <div className="text-center flex-1">
-                <p className="text-muted text-[10px] font-medium uppercase tracking-wide mb-1">
-                  {t(locale, 'leftOver')}
-                </p>
-                <p className="text-text text-sm font-bold tabular-nums">{formatSAR(net)}</p>
-              </div>
+            <p className="balance-value">{balanceHidden ? '••••••' : formatSAR(totalBalance)}</p>
+            <div className="balance-foot">
+              <span className="balance-change">{spendDelta <= 0 ? '+' : '-'}{Math.abs(spendDelta)}% {locale === 'ar' ? 'عن الشهر الماضي' : 'from last month'}</span>
+              <button type="button" onClick={(event) => { event.stopPropagation(); setAccountsOpen(true) }}>{t(locale, 'acrossAccounts', accountCount)}</button>
             </div>
           </motion.div>
         </AnimatePresence>
+        </section>
+
+        <section className="quick-section">
+          <h2>{locale === 'ar' ? 'إجراءات سريعة' : 'Quick actions'}</h2>
+          <div className="quick-actions">
+            <button type="button" onClick={() => setAccountsOpen(true)}><span><ArrowLeftRight /></span><strong>{locale === 'ar' ? 'تحويل سريع' : 'Quick transfer'}</strong></button>
+            <button type="button" onClick={() => setActiveTab('transactions')}><span><ReceiptText /></span><strong>{locale === 'ar' ? 'دفع فاتورة' : 'Pay a bill'}</strong></button>
+            <button type="button" onClick={() => setActiveTab('transactions')}><span><Plus /></span><strong>{locale === 'ar' ? 'إضافة مصروف' : 'Add expense'}</strong></button>
+            <button type="button" onClick={() => setActiveTab('copilot')}><span><Bot /></span><strong>{locale === 'ar' ? 'طلب مساعدة' : 'Ask for help'}</strong></button>
+          </div>
+        </section>
+
+        <section className="month-overview">
+          <div className="month-overview-head">
+            <h2>{locale === 'ar' ? 'نظرة هذا الشهر' : 'This month'}</h2>
+            {months.length > 0 && (
+              <MonthSwitcher
+                label={monthYearLabel(locale, activeMonth)}
+                canPrev={canGoPrev}
+                canNext={canGoNext}
+                onPrev={() => canGoPrev && setSelectedMonth(months[monthIndex - 1])}
+                onNext={() => canGoNext && setSelectedMonth(months[monthIndex + 1])}
+                locale={locale}
+              />
+            )}
+          </div>
+          <div className="metric-grid">
+            <article><span>{t(locale, 'income')}</span><strong>{formatSAR(income)}</strong><small className="metric-positive">{savingsRate}%+</small></article>
+            <article><span>{t(locale, 'spent')}</span><strong>{formatSAR(spent)}</strong><small className={spendDelta > 0 ? 'metric-alert' : 'metric-positive'}>{Math.abs(spendDelta)}%{spendDelta > 0 ? '+' : '-'}</small></article>
+            <article><span>{locale === 'ar' ? 'الادخار' : 'Savings'}</span><strong>{formatSAR(savings)}</strong></article>
+            <article><span>{t(locale, 'leftOver')}</span><strong>{formatSAR(net)}</strong></article>
+          </div>
+        </section>
 
         {/* ── Donut chart ── */}
         <div
-          className="bg-card border border-card-border rounded-[28px] p-5 mb-4"
-          style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.06)' }}
+          className="spending-panel"
         >
           <AnimatePresence mode="wait" initial={false}>
             {chartData.length > 0 ? (
@@ -405,7 +414,7 @@ function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="flex flex-col gap-3"
+            className="insight-list"
           >
             {insightsLoading && !aiCards.length && baseCards.map((card, i) => (
               <InsightCard key={i} index={i} {...card} loading />
@@ -417,7 +426,7 @@ function App() {
         </AnimatePresence>
       </div>
 
-      <BottomNav active={activeTab} onTabChange={setActiveTab} />
+      {!accountsOpen && <BottomNav active={activeTab} onTabChange={setActiveTab} />}
 
       {/* Hamburger — lives in the reserved "system strip" (top 0–56px) that
           every tab keeps clear of content; covered by SettingsPanel when open.
@@ -425,9 +434,9 @@ function App() {
           scroll container, on every tab. PhoneFrame's own transform:scale()
           wrapper becomes the containing block for fixed descendants, so this
           stays pinned to the phone screen, not the real browser viewport. */}
-      <button
+      {!accountsOpen && activeTab !== 'home' && <button
         onClick={() => setSettingsOpen(true)}
-        className="z-30 flex items-center justify-center"
+        className={`settings-trigger ${appDir === 'rtl' ? 'settings-trigger-rtl' : ''}`}
         style={{
           // +14 on each offset compensates for PhoneFrame's bezel padding: a
           // fixed element's containing block becomes the nearest ancestor
@@ -435,17 +444,25 @@ function App() {
           // every side than the screen itself), not the screen div, so a
           // bare top:18/right:16 would land 14px closer to the bezel's edge
           // than intended.
-          position: 'fixed', top: 32, right: 30, width: 36, height: 36,
-          background: '#FFFFFF', borderRadius: 11,
-          border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000',
-          color: '#000000',
+          position: 'fixed', width: 38, height: 38,
+          background: 'var(--color-card)', borderRadius: 13,
+          border: '1px solid var(--color-card-border)',
+          boxShadow: '0 8px 24px rgba(17, 35, 58, 0.10)',
+          color: 'var(--color-navy)',
         }}
         aria-label="Open settings"
       >
-        <svg width="16" height="13" viewBox="0 0 15 12" fill="none">
-          <path d="M1 1h13M1 6h13M1 11h13" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-        </svg>
-      </button>
+        <Menu size={19} />
+      </button>}
+
+      <AnimatePresence>
+        {accountsOpen && (
+          <motion.div className="accounts-flow" initial={{ x: appDir === 'rtl' ? '-100%' : '100%', opacity: 0.88 }} animate={{ x: 0, opacity: 1 }} exit={{ x: appDir === 'rtl' ? '-100%' : '100%', opacity: 0.88 }} transition={{ type: 'spring', stiffness: 330, damping: 34, mass: 0.82 }}>
+            <button className="flow-back" type="button" onClick={() => setAccountsOpen(false)} aria-label={t(locale, 'close')}><ArrowLeft size={21} /></button>
+            <AccountsTab cashBalance={cashBalance} onCashBalanceChange={setCashBalance} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}

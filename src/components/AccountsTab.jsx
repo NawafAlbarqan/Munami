@@ -60,7 +60,7 @@ function FundBucket({ fund, index, onTap }) {
 
 // ─── Main tab ────────────────────────────────────────────────────────────────
 
-export default function AccountsTab() {
+export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
   const { locale } = useLocale()
   const [funds, setFunds] = useState(accountsData.funds)
   const [unallocated, setUnallocated] = useState(accountsData.unallocated_sar)
@@ -71,14 +71,27 @@ export default function AccountsTab() {
 
   // Fund detail sheet
   const [activeFund, setActiveFund] = useState(null)
+  const [activeAccount, setActiveAccount] = useState(null)
   const [fundAction, setFundAction] = useState('add') // 'add' | 'withdraw'
   const [amount, setAmount] = useState('')
 
   // New fund form
   const [newName, setNewName] = useState('')
   const [newTarget, setNewTarget] = useState('')
+  const [cashDraft, setCashDraft] = useState(String(cashBalance || ''))
 
-  const animatedTotal = useCountUp(accountsData.total_balance_sar, 0.8)
+  const totalBalance = accountsData.total_balance_sar + cashBalance
+  const animatedTotal = useCountUp(totalBalance, 0.8)
+  const cashAccount = {
+    account_id: 'CASH-PRIMARY',
+    bank: t(locale, 'primaryCash'),
+    type: t(locale, 'manualBalance'),
+    balance_sar: cashBalance,
+    color: '#F46F5B',
+    accent: '#FFFFFF',
+    manual: true,
+  }
+  const allAccounts = [cashAccount, ...accountsData.accounts]
 
   function openFundSheet(fund) {
     setActiveFund(fund)
@@ -95,9 +108,28 @@ export default function AccountsTab() {
     setSheetOpen(true)
   }
 
+  function openAccountSheet(account) {
+    setActiveAccount(account)
+    if (account.manual) {
+      setCashDraft(String(cashBalance || ''))
+      setSheetMode('cash')
+    } else {
+      setSheetMode('account')
+    }
+    setSheetOpen(true)
+  }
+
+  function handleSaveCash() {
+    const value = Number(cashDraft)
+    if (!Number.isFinite(value) || value < 0) return
+    onCashBalanceChange?.(value)
+    closeSheet()
+  }
+
   function closeSheet() {
     setSheetOpen(false)
     setActiveFund(null)
+    setActiveAccount(null)
     setAmount('')
   }
 
@@ -144,7 +176,7 @@ export default function AccountsTab() {
   const liveFund = activeFund ? funds.find((f) => f.id === activeFund.id) ?? activeFund : null
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-24">
+    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-10 accounts-page">
 
       {/* ── Total balance hero — asymmetric, badge/seal treatment ── */}
       <motion.div
@@ -166,15 +198,15 @@ export default function AccountsTab() {
           </p>
           {/* Short thick rule — deliberate typographic break between the
               number and the supporting caption, not just stacked centered text */}
-          <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: '#1E1E1E' }} />
+          <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: 'rgba(255,255,255,.72)' }} />
           <span className="retro-verdict inline-block rounded-full px-3 py-1 text-[11px] font-bold">
-            {t(locale, 'acrossAccounts', accountsData.accounts.length)}
+            {t(locale, 'acrossAccounts', allAccounts.length)}
           </span>
         </div>
       </motion.div>
 
       {/* ── Bank card stack — tap to fan out, tap again to restack ── */}
-      <BankCardStack accounts={accountsData.accounts} locale={locale} />
+      <BankCardStack accounts={allAccounts} locale={locale} onAccountSelect={openAccountSheet} initialExpanded />
 
       {/* ── Fund buckets ── */}
       <div className="px-4 mt-8">
@@ -236,7 +268,57 @@ export default function AccountsTab() {
             >
               <div className="w-10 h-1 bg-card-border rounded-full mx-auto mb-5" />
 
-              {sheetMode === 'fund' && liveFund ? (
+              {sheetMode === 'cash' && activeAccount ? (
+                <div className="cash-sheet">
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="cash-sheet-icon"><span>﷼</span></span>
+                    <div>
+                      <p className="text-muted text-xs">{t(locale, 'manualBalance')}</p>
+                      <p className="text-text text-base font-bold">{t(locale, 'primaryCash')}</p>
+                    </div>
+                  </div>
+                  <label className="cash-input-label" htmlFor="primary-cash">{t(locale, 'amountSAR')}</label>
+                  <div className="cash-input-wrap">
+                    <input
+                      id="primary-cash"
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      value={cashDraft}
+                      onChange={(event) => setCashDraft(event.target.value)}
+                      placeholder="0"
+                    />
+                    <span>SAR</span>
+                  </div>
+                  <p className="cash-help">{t(locale, 'cashBalanceHelp')}</p>
+                  <button type="button" className="cash-save" onClick={handleSaveCash}>{t(locale, 'saveCash')}</button>
+                </div>
+              ) : sheetMode === 'account' && activeAccount ? (
+                <div>
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="w-12 h-12 rounded-[15px] text-white font-bold flex items-center justify-center" style={{ background: activeAccount.color }}>
+                      {activeAccount.bank.slice(0, 1)}
+                    </span>
+                    <div>
+                      <p className="text-muted text-xs">{t(locale, 'accountDetails')}</p>
+                      <p className="text-text text-base font-bold">{activeAccount.bank}</p>
+                    </div>
+                  </div>
+                  <div className="bg-tint rounded-[18px] overflow-hidden">
+                    {[
+                      [t(locale, 'balance'), formatSAR(activeAccount.balance_sar)],
+                      [t(locale, 'accountType'), activeAccount.type],
+                      [t(locale, 'ibanEnding'), `•••• ${activeAccount.iban_tail}`],
+                    ].map(([label, value], index) => (
+                      <div key={label} className={`flex justify-between gap-4 px-4 py-3.5 ${index < 2 ? 'border-b border-card-border' : ''}`}>
+                        <span className="text-muted text-xs">{label}</span>
+                        <span className="text-text text-sm font-semibold text-end">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : sheetMode === 'fund' && liveFund ? (
                 /* ── Fund detail: add or withdraw ── */
                 <div className="flex flex-col gap-4">
                   {/* Fund header */}

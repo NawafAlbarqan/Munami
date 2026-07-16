@@ -359,7 +359,7 @@ export default function GoalsTab({ rows }) {
   }, [activeCandidates, onTrackCandidate, locale])
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
+    <div className="monami-page goals-page scroll-thin">
 
       {/* ── Page header ── */}
       <div className="mb-5">

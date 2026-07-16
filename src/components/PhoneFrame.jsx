@@ -16,9 +16,16 @@ const BEZEL = 14 // matches the frame div's padding, below
 export default function PhoneFrame({ children }) {
   const { theme } = useTheme()
   const [scale, setScale] = useState(1)
+  const [isNativeViewport, setIsNativeViewport] = useState(false)
 
   useEffect(() => {
     function update() {
+      const nativeViewport = window.innerWidth <= 600
+      setIsNativeViewport(nativeViewport)
+      if (nativeViewport) {
+        setScale(1)
+        return
+      }
       const frameW = SCREEN_W + BEZEL * 2
       const frameH = SCREEN_H + BEZEL * 2
       setScale(Math.min(
@@ -34,7 +41,7 @@ export default function PhoneFrame({ children }) {
 
   return (
     <div
-      className="w-screen overflow-hidden flex items-center justify-center"
+      className={`device-stage w-screen overflow-hidden flex items-center justify-center ${isNativeViewport ? 'is-native' : ''}`}
       style={{
         // Deep, near-black backdrop with a soft vignette (lighter directly
         // behind the phone, fading to black at the edges) — a real
@@ -48,16 +55,16 @@ export default function PhoneFrame({ children }) {
       }}
     >
       <div
-        className="relative"
+        className="device-frame relative"
         style={{
-          padding: 14,
-          borderRadius: 52,
+          padding: isNativeViewport ? 0 : 14,
+          borderRadius: isNativeViewport ? 0 : 52,
           background: '#0c0c0e',
           // Layered shadow: a thin inner top rim (light catching a metal edge),
           // a thin inner bottom shadow (depth), a faint outer edge highlight,
           // and two soft offset-down shadows (like a device resting on a lit
           // surface) instead of Tailwind's generic symmetric shadow-2xl.
-          boxShadow: [
+          boxShadow: isNativeViewport ? 'none' : [
             'inset 0 1.5px 0 rgba(255,255,255,0.10)',
             'inset 0 -1.5px 0 rgba(0,0,0,0.5)',
             '0 1px 0 rgba(255,255,255,0.05)',
@@ -70,7 +77,7 @@ export default function PhoneFrame({ children }) {
       >
         {/* Dynamic-Island-style notch with a small camera lens detail */}
         <div
-          className="absolute z-10 flex items-center justify-center"
+          className="device-island absolute z-10 flex items-center justify-center"
           style={{ top: 16, left: '50%', transform: 'translateX(-50%)', width: 96, height: 26, background: '#000', borderRadius: 999 }}
         >
           <div
@@ -80,7 +87,14 @@ export default function PhoneFrame({ children }) {
         {/* Fixed-size, non-scrolling "screen" — its children (App's content
             area and bottom nav) handle their own scrolling/positioning so
             the nav can stay pinned while content scrolls behind it. */}
-        <div className={`theme-${theme} rounded-[38px] overflow-hidden relative bg-page`} style={{ width: SCREEN_W, height: SCREEN_H }}>
+        <div
+          className={`app-screen theme-${theme} overflow-hidden relative bg-page`}
+          style={{
+            width: isNativeViewport ? '100vw' : SCREEN_W,
+            height: isNativeViewport ? '100dvh' : SCREEN_H,
+            borderRadius: isNativeViewport ? 0 : 38,
+          }}
+        >
           {children}
         </div>
       </div>

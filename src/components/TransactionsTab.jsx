@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { applyCategoryMap, categoryColorVar } from '../lib/finance'
-import { formatSAR, t } from '../lib/i18n'
+import { categoryName, formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
 
 function themeColor(varName) {
@@ -33,6 +34,7 @@ export default function TransactionsTab({ rows }) {
   const { locale } = useLocale()
   const [search, setSearch] = useState('')
   const [bankFilter, setBankFilter] = useState(null) // null = all banks
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
 
   const mapped = useMemo(() => applyCategoryMap(rows), [rows])
 
@@ -76,7 +78,7 @@ export default function TransactionsTab({ rows }) {
   }, [sorted])
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
+    <div className="monami-page transactions-page scroll-thin">
       <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">{t(locale, 'txSubtitle')}</p>
       <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Space Grotesk', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
         {t(locale, 'txHeader')}
@@ -133,9 +135,11 @@ export default function TransactionsTab({ rows }) {
                 const isCredit = (tx.direction || '').toLowerCase() === 'credit'
                 const color = themeColor(categoryColorVar(tx.category))
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={tx.transaction_id || i}
-                    className={`flex items-center gap-3 px-4 py-3.5 ${
+                    onClick={() => setSelectedTransaction(tx)}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-start ${
                       i < transactions.length - 1 ? 'border-b border-card-border' : ''
                     }`}
                   >
@@ -148,7 +152,7 @@ export default function TransactionsTab({ rows }) {
                     <div className="flex-1 min-w-0">
                       <p className="text-text text-sm font-medium truncate">{tx.merchant}</p>
                       <p className="text-muted text-[11px] truncate">
-                        {tx.category} · {tx.bank}
+                        {categoryName(locale, tx.category)} · {tx.bank}
                       </p>
                     </div>
                     {/* Amount — credits green with + sign */}
@@ -159,13 +163,61 @@ export default function TransactionsTab({ rows }) {
                       {isCredit ? '+' : ''}
                       {formatSAR(tx.amount_sar)}
                     </span>
-                  </div>
+                  </button>
                 )
               })}
             </div>
           </div>
         ))}
       </div>
+
+      <AnimatePresence>
+        {selectedTransaction && (
+          <>
+            <motion.button
+              type="button"
+              aria-label={t(locale, 'close')}
+              className="absolute inset-0 z-20 bg-black/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedTransaction(null)}
+            />
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 z-30 bg-card rounded-t-[28px] px-5 pt-4"
+              style={{ paddingBottom: 'calc(28px + var(--safe-bottom))' }}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.26, ease: 'easeOut' }}
+            >
+              <div className="w-10 h-1 bg-card-border rounded-full mx-auto mb-5" />
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <div>
+                  <p className="text-muted text-xs mb-1">{t(locale, 'transactionDetails')}</p>
+                  <h2 className="text-text text-lg font-bold">{selectedTransaction.merchant}</h2>
+                </div>
+                <p className={`text-lg font-bold tabular-nums ${(selectedTransaction.direction || '').toLowerCase() === 'credit' ? 'text-positive' : 'text-text'}`}>
+                  {(selectedTransaction.direction || '').toLowerCase() === 'credit' ? '+' : ''}{formatSAR(selectedTransaction.amount_sar)}
+                </p>
+              </div>
+              <div className="bg-tint rounded-[18px] overflow-hidden">
+                {[
+                  [t(locale, 'transactionDate'), formatDateHeader(selectedTransaction.date, latestDate, locale)],
+                  [t(locale, 'transactionBank'), selectedTransaction.bank],
+                  [t(locale, 'transactionCategory'), categoryName(locale, selectedTransaction.category)],
+                  [t(locale, 'transactionType'), t(locale, (selectedTransaction.direction || '').toLowerCase() === 'credit' ? 'credit' : 'debit')],
+                ].map(([label, value], index) => (
+                  <div key={label} className={`flex items-center justify-between gap-4 px-4 py-3.5 ${index < 3 ? 'border-b border-card-border' : ''}`}>
+                    <span className="text-muted text-xs">{label}</span>
+                    <span className="text-text text-sm font-semibold text-end">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

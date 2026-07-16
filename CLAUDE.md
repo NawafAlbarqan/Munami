@@ -63,7 +63,8 @@ helps your money grow.
   things that aren't actually changing state — it should never replay on
   unrelated re-renders.
 - **Plain CSV/JSON** for data (see below). No real backend for the demo.
-- The app is a **website that looks like a phone** — not a native mobile app.
+- The app is a **mobile web app with an iOS-style shell**: full-screen on real
+  phone viewports, with the scaled phone frame retained for desktop demos.
 
 If a new library is needed, pick the most popular maintained option and tell us
 why in one sentence before installing.
@@ -219,7 +220,28 @@ Cleo that give their AI a real persona. Think "fun financial advisor", not
   or it will scroll away with the content.
 - Rounded cards, generous spacing, light and airy feel.
 
-**═══ RETRO 90s / NEUBRUTALIST THEME (CURRENT OFFICIAL IDENTITY) ═══**
+**═══ CURRENT MONAMI IDENTITY (SUPERSEDES THE LEGACY RETRO NOTES BELOW) ═══**
+
+The current UI direction is a polished iOS-style finance app using the supplied
+Monami palette: deep navy, warm ivory, coral, and mint. Arabic is the default
+locale and the full interface mirrors to RTL; English remains available in
+Settings and switches the document back to LTR. Real phone viewports use the
+full browser canvas and safe-area insets, while desktop keeps the scaled phone
+preview for presentations.
+
+- Navy carries trust and the primary financial hero surfaces.
+- Ivory is the app canvas; cards are warm white with subtle borders and shadows.
+- Mint is the primary action/positive color.
+- Coral is a selective brand accent. Alert red is reserved for real warnings,
+  failed challenges, and exceeded budget limits.
+- Accounts keep their real bank brand colors and stacked-card behavior. Funds
+  remain lighter progress-oriented cards, so accounts and funds cannot be
+  mistaken for each other.
+- Settings rows are functional: notifications, linked accounts, About, and the
+  mocked Saudi Open Banking consent flow all have complete detail views.
+- Transactions and expanded bank cards open localized detail sheets.
+
+**═══ LEGACY RETRO 90s / NEUBRUTALIST THEME (HISTORICAL) ═══**
 
 The app was redesigned from the soft "Warm Playful" cream look into a bold
 **retro 90s / neubrutalist** style — now with a real **light/dark mode
@@ -817,9 +839,8 @@ Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
 
 - [x] Project scaffolded (React + Vite + Tailwind)
 - [x] Data files placed in /data
-- [x] **Retro 90s / neubrutalist design identity** — MunamiMascot, Space Grotesk
-      font, thick black outlines + offset sticker shadows, vivid saturated
-      colors, gold hero cards, applied consistently across all 5 tabs + Settings
+- [x] **Monami iOS-style identity** — navy, ivory, coral, and mint; soft card
+      hierarchy; full-screen phone layout; desktop phone preview
 - [x] **Light/dark theme system** — `ThemeContext` + `ThemeSwitch` in Settings,
       warm-grey light mode with contrast-safe deepened accents, real bank
       colors and gold hero cards fixed across both themes
@@ -835,7 +856,7 @@ Paste the key into `.env` as `GEMINI_API_KEY=your_key`.
 - [x] **Settings screen** — hamburger icon (top-right, all tabs), slides in from
       right, fully retro-styled, profile header + language switch + theme switch + placeholder rows
 - [x] **AI backend** — Express server, Gemini wired, security pattern, fallback switch
-- [ ] Mock "Connect bank" consent screen
+- [x] Mock "Connect bank" consent screen
 - [ ] Demo polish + rehearsal
 
 Update this checklist as we go.
