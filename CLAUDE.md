@@ -572,7 +572,44 @@ Sections top to bottom:
   `groupByCategory(thisMonthDebits)`. Progress bar color shifts: category color
   (healthy) → butter yellow (≥75%) → coral red (≥100%). "+" opens a bottom sheet
   to add a new budget for any un-budgeted category; local state only.
-- **Weekly Challenges**: two static challenge cards with progress bars and +XP labels.
+- **Weekly Challenge — real, AI-generated, one card (not static demo data)**:
+  a clean code/AI split, same philosophy as the rest of the app ("code
+  computes, AI only phrases"):
+  - **Code finds candidates** (`src/lib/challengeGen.js`,
+    `computeCandidateChallenges()`): per category, compares this week's
+    spend (the 7 days ending at the data's own latest date — same
+    determinism rule as `getLatestMonth()`) against that category's own
+    historical weekly average (total prior spend ÷ number of prior weeks).
+    A category only qualifies if it's trending >10% above its own average
+    AND that average is at least SAR 30/week (guardrails against noise).
+  - **Code computes the target and XP by formula** — not arbitrary round
+    numbers: `reductionPct = clamp(10 + overagePct/10, 10, 15)` (a bigger
+    overage asks for a bigger cut, capped at 15% so it stays realistic),
+    `target = round(weeklyAvg × (1 − reductionPct/100))`,
+    `xp = round(100 + (weeklyAvg − target) × 2)` (a more demanding target
+    pays more XP). Candidates are sorted by overage % descending.
+  - **AI selects + phrases only** (`POST /api/weekly-challenge` in
+    `server.js`): given the candidate list and which category last week's
+    challenge used, Gemini picks the most over-trend candidate — skipping
+    last week's category so the same challenge never repeats two weeks
+    running — and writes the title/description in منمّي's voice. The
+    prompt requires it reuse the exact category/target/XP numbers it was
+    given; it never invents figures. `getLastChallengeCategory()` /
+    `saveLastChallengeCategory()` persist the chosen category in
+    `localStorage` (`munami_last_challenge_category`) purely for this
+    repeat-avoidance check.
+  - **Fallback chain** matches Copilot's: `VITE_USE_AI=false` or a failed
+    API call both fall back to `templateChallenge()` — a plain sentence
+    built from the same code-computed top candidate, never blank.
+  - If no category is currently trending over its average, the card shows
+    a plain positive message instead (`noChallengeThisWeek`) — there's
+    nothing to challenge that week.
+  - The result renders through the same `mode: 'limit'` progress bar and
+    `challengeMood()` mascot badge as before — if this week's actual spend
+    already exceeds the target (common, since the target is deliberately
+    based on the historical average, not this week's number), the bar
+    correctly shows as over/`unhappy`. That's accurate, not a bug: the
+    target is a going-forward goal, not a retroactive one.
 - **Deals Wall** (`src/components/DealsWall.jsx`) — Lane 1 of the gamification
   pitch: badges became real partner deals with SAR/percentage value, replacing
   the old plain badge grid.

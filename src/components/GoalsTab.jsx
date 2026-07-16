@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useCountUp } from '../lib/useCountUp'
 import { formatSAR, t, categoryName } from '../lib/i18n'
@@ -13,6 +13,14 @@ import {
   monthKey,
   categoryColorVar,
 } from '../lib/finance'
+import {
+  computeCandidateChallenges,
+  getLastChallengeCategory,
+  saveLastChallengeCategory,
+  templateChallenge,
+} from '../lib/challengeGen'
+
+const USE_AI = import.meta.env.VITE_USE_AI === 'true'
 
 function themeColor(varName) {
   if (typeof window === 'undefined') return '#888'
@@ -84,31 +92,12 @@ const DEFAULT_BUDGETS = [
 
 const ALL_CATEGORIES = ['Shopping', 'Food & Groceries', 'Bills & Transport', 'Entertainment', 'Other']
 
-function getChallenges(locale) {
-  return [
-    {
-      id: 'c1',
-      icon: '🍽️',
-      // 'limit' = a cap you want to stay UNDER — approaching/exceeding it is bad
-      mode: 'limit',
-      title: locale === 'ar' ? 'الطعام ضمن الميزانية' : 'Dining Under Budget',
-      desc: locale === 'ar'
-        ? 'أنفق أقل من 300 ريال على الطعام والبقالة هذا الأسبوع'
-        : 'Spend under SAR 300 on Food & Groceries this week',
-      xp: 200, progress: 190, target: 300, unit: 'SAR',
-    },
-    {
-      id: 'c2',
-      icon: '🎬',
-      // 'goal' = a target you want to REACH — more progress is always good
-      mode: 'goal',
-      title: locale === 'ar' ? 'انضباط الترفيه' : 'Entertainment Discipline',
-      desc: locale === 'ar'
-        ? 'حافظ على الترفيه تحت 200 ريال لمدة 3 أيام'
-        : 'Keep Entertainment under SAR 200 for 3 days',
-      xp: 150, progress: 2, target: 3, unit: 'days',
-    },
-  ]
+const CATEGORY_EMOJI = {
+  'Shopping': '🛍️',
+  'Food & Groceries': '🍽️',
+  'Bills & Transport': '🚗',
+  'Entertainment': '🎬',
+  'Other': '📦',
 }
 
 // Concerned = mild/early warning (70-90% used); Unhappy = serious/clear
@@ -177,7 +166,80 @@ export default function GoalsTab({ rows }) {
     setSheetOpen(false)
   }
 
-  const CHALLENGES = getChallenges(locale)
+  // ── Weekly challenge — code finds candidates + computes every number
+  // (challengeGen.js); the AI only picks the most meaningful one and
+  // phrases it (server.js POST /api/weekly-challenge). Cached per
+  // locale+candidate-set so switching tabs/locale doesn't re-fire the call.
+  const [challenge, setChallenge] = useState(null)
+  const [challengeLoading, setChallengeLoading] = useState(false)
+  const challengeCache = useRef({})
+
+  const candidates = useMemo(() => computeCandidateChallenges(rows), [rows])
+
+  useEffect(() => {
+    if (!candidates.length) {
+      setChallenge(null)
+      return
+    }
+
+    const cacheKey = `${locale}+${candidates.map((c) => c.category).join(',')}`
+    if (challengeCache.current[cacheKey]) {
+      setChallenge(challengeCache.current[cacheKey])
+      return
+    }
+
+    const lastCategory = getLastChallengeCategory()
+
+    function finalize(picked, title, desc) {
+      const result = {
+        category: picked.category,
+        icon: CATEGORY_EMOJI[picked.category] || '📦',
+        mode: 'limit',
+        title,
+        desc,
+        xp: picked.xp,
+        progress: picked.currentSpend,
+        target: picked.target,
+        unit: 'SAR',
+      }
+      challengeCache.current[cacheKey] = result
+      setChallenge(result)
+      saveLastChallengeCategory(picked.category)
+    }
+
+    if (!USE_AI) {
+      // Demo-mode fallback: code already sorted candidates by overage —
+      // just avoid repeating last week's category, same rule the AI follows.
+      const picked = candidates.find((c) => c.category !== lastCategory) || candidates[0]
+      const { title, desc } = templateChallenge(picked, locale)
+      finalize(picked, title, desc)
+      return
+    }
+
+    setChallengeLoading(true)
+    fetch('/api/weekly-challenge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidates, lastCategory, locale }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return res.json()
+      })
+      .then(({ index, title, desc }) => {
+        const picked = candidates[index]
+        if (!picked) throw new Error('invalid index')
+        finalize(picked, title, desc)
+      })
+      .catch(() => {
+        // Graceful fallback — still real data, just template-phrased.
+        const picked = candidates.find((c) => c.category !== lastCategory) || candidates[0]
+        const { title, desc } = templateChallenge(picked, locale)
+        finalize(picked, title, desc)
+      })
+      .finally(() => setChallengeLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidates, locale])
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
@@ -282,57 +344,61 @@ export default function GoalsTab({ rows }) {
         </div>
       </div>
 
-      {/* ── Weekly challenges ── */}
+      {/* ── Weekly challenge — code finds the candidate + computes every
+          number (challengeGen.js); the AI only picked this one and phrased
+          it (server.js POST /api/weekly-challenge). ── */}
       <div className="mb-4">
         <h2 className="text-text font-semibold mb-3">{t(locale, 'weeklyChallenges')}</h2>
-        <div className="flex flex-col gap-3">
-          {CHALLENGES.map((ch, i) => {
-            const barPct = Math.min(ch.progress / ch.target, 1)
-            const mood = challengeMood(ch)
-            return (
-              <motion.div
-                key={ch.id}
-                className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: i * 0.08, ease: 'easeOut' }}
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <span className="text-xl leading-none mt-0.5">{ch.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text text-sm font-semibold">{ch.title}</p>
-                    <p className="text-muted text-[11px] mt-0.5">{ch.desc}</p>
-                  </div>
-                  {/* Mood badge next to the XP reward: happy on completion (goal-mode)
-                      or comfortably-under (limit-mode); concerned approaching a limit-mode
-                      cap; unhappy once a limit-mode challenge is actually blown through */}
-                  {mood && <MunamiMascot expression={mood} size={22} className="shrink-0" />}
-                  <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
-                    +{ch.xp} XP
-                  </span>
+        {challengeLoading && !challenge && (
+          <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
+            <p className="text-muted text-xs">{t(locale, 'loading')}</p>
+          </div>
+        )}
+        {challenge && (() => {
+          const barPct = challenge.target > 0 ? Math.min(challenge.progress / challenge.target, 1) : 0
+          const mood = challengeMood(challenge)
+          return (
+            <motion.div
+              className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <span className="text-xl leading-none mt-0.5">{challenge.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-text text-sm font-semibold">{challenge.title}</p>
+                  <p className="text-muted text-[11px] mt-0.5">{challenge.desc}</p>
                 </div>
+                {mood && <MunamiMascot expression={mood} size={22} className="shrink-0" />}
+                <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
+                  +{challenge.xp} XP
+                </span>
+              </div>
 
-                <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--color-card-border)' }}>
-                  <motion.div
-                    className="h-full rounded-full bg-primary"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${barPct * 100}%` }}
-                    transition={{ duration: 0.7, delay: i * 0.1, ease: 'easeOut' }}
-                  />
-                </div>
+              <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--color-card-border)' }}>
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${barPct * 100}%` }}
+                  transition={{ duration: 0.7, ease: 'easeOut' }}
+                />
+              </div>
 
-                <div className="flex justify-between">
-                  <span className="text-muted text-[11px] tabular-nums">
-                    {ch.unit === 'SAR' ? `SAR ${ch.progress}` : `${ch.progress} ${ch.unit}`}
-                    {' / '}
-                    {ch.unit === 'SAR' ? `SAR ${ch.target}` : `${ch.target} ${ch.unit}`}
-                  </span>
-                  <span className="text-muted text-[11px]">{Math.round(barPct * 100)}%</span>
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
+              <div className="flex justify-between">
+                <span className="text-muted text-[11px] tabular-nums">
+                  {formatSAR(challenge.progress)} {' / '} {formatSAR(challenge.target)}
+                </span>
+                <span className="text-muted text-[11px]">{Math.round(barPct * 100)}%</span>
+              </div>
+            </motion.div>
+          )
+        })()}
+        {!challengeLoading && !challenge && (
+          <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
+            <p className="text-muted text-xs">{t(locale, 'noChallengeThisWeek')}</p>
+          </div>
+        )}
       </div>
 
       {/* ── Deals Wall (Lane 1: badges → real partner deals with SAR value) ── */}

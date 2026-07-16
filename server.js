@@ -50,6 +50,50 @@ ${factsBlock}`
   }
 })
 
+// ── /api/weekly-challenge ─────────────────────────────────────────────────────
+// Code already computed every candidate (category, weeklyAvg, target, xp —
+// see src/lib/challengeGen.js). Gemini's ONLY job here is to pick the most
+// meaningful candidate for this week and phrase it in منمّي's voice — it
+// must never invent a number, only reuse the ones we hand it.
+app.post('/api/weekly-challenge', async (req, res) => {
+  const { candidates, lastCategory, locale } = req.body
+  if (!candidates?.length) return res.status(400).json({ error: 'No candidates' })
+
+  const lang = locale === 'ar' ? 'Arabic' : 'English'
+  const candidatesBlock = candidates
+    .map((c, i) => `${i}: ${c.category} — trending ${c.overagePct}% above its usual SAR ${c.weeklyAvg}/week, target SAR ${c.target}/week (a ${c.reductionPct}% cut), worth ${c.xp} XP`)
+    .join('\n')
+
+  const prompt = `You are منمّي, a warm straight-talking Saudi financial coach picking this week's ONE spending challenge for the user.
+
+Candidates (index: category — trend — target — XP):
+${candidatesBlock}
+
+Last week's challenge category was: ${lastCategory || 'none yet'}
+
+Rules:
+- Pick the candidate that is most over its own trend (highest overage %), UNLESS its category matches "last week's challenge category" above — in that case pick the next-most-over-trend candidate instead, so the same category never repeats two weeks in a row.
+- Write in ${lang}, in منمّي's voice: casual, warm, a little cheeky, 1-2 short sentences.
+- You MUST use the category name, target SAR amount, and XP value EXACTLY as given for your chosen candidate. Do not invent, round, or estimate any number.
+- Reply with EXACTLY 3 lines, nothing else:
+  line 1: the chosen candidate's index number, alone
+  line 2: a short challenge title (under 6 words)
+  line 3: the one-to-two sentence challenge description, must include the target SAR amount`
+
+  try {
+    const result = await model.generateContent(prompt)
+    const lines = result.response.text().trim().split('\n').map((l) => l.trim()).filter(Boolean)
+    const index = parseInt(lines[0], 10)
+    if (Number.isNaN(index) || !candidates[index]) {
+      return res.status(500).json({ error: 'Model returned an invalid candidate index' })
+    }
+    res.json({ index, title: lines[1] || '', desc: lines[2] || '' })
+  } catch (err) {
+    console.error('[weekly-challenge]', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── /api/chat ─────────────────────────────────────────────────────────────────
 // Real conversational chat. Receives message history + compact financial context.
 app.post('/api/chat', async (req, res) => {
