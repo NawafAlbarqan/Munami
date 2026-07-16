@@ -1,17 +1,12 @@
-import mascotGreeting from '../assets/mascot/mascot-greeting.png'
-import mascotHappy from '../assets/mascot/mascot-happy.png'
-import mascotConcerned from '../assets/mascot/mascot-concerned.png'
-import mascotUnhappy from '../assets/mascot/mascot-unhappy.png'
+import mascotIcon from '../assets/mascot/mascot-icon.png'
 
-// منمّي's real pixel-art mascot (extracted from the mascot1.png sheet).
-// Expressions: 'greeting' (chat-open/hello moments) | 'happy' (on track,
-// successful, completed) | 'concerned' (cautionary, approaching a limit) |
-// 'unhappy' (clearly over budget / missed).
+// Keep the expression API stable so callers can continue describing context,
+// while the supplied brand mascot remains visually consistent everywhere.
 const MOOD_IMAGES = {
-  greeting: mascotGreeting,
-  happy: mascotHappy,
-  concerned: mascotConcerned,
-  unhappy: mascotUnhappy,
+  greeting: mascotIcon,
+  happy: mascotIcon,
+  concerned: mascotIcon,
+  unhappy: mascotIcon,
 }
 
 // `size` is a MAX bounding box (size×size), not a fixed width — the character

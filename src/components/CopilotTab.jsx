@@ -74,12 +74,12 @@ function ThinkingBubble() {
       <div className="w-8 h-8 flex items-end justify-center shrink-0 mb-0.5">
         <MunamiMascot size={30} expression="happy" />
       </div>
-      <div className="bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] px-4 py-3">
+      <div className="bg-tint border-[0.5px] border-card-border rounded-[18px] rounded-bl-[4px] px-4 py-3">
         <div className="flex gap-1.5 items-center">
           {[0, 1, 2].map((i) => (
             <motion.span
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-primary/60"
+              className="w-1.5 h-1.5 rounded-full bg-rewards/60"
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
             />
@@ -241,16 +241,15 @@ export default function CopilotTab({ financialContext }) {
   return (
     <div className="absolute inset-0 bg-page assistant-screen">
       {/* ── Header ── */}
-      {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
-      <div className="assistant-header absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center shrink-0">
-            <MunamiMascot expression="greeting" size={36} />
+      <div className="assistant-header absolute top-0 left-0 right-0 z-10 bg-page border-b border-card-border">
+        <div className="assistant-header-row flex items-center gap-2.5">
+          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+            <MunamiMascot expression="greeting" size={30} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 leading-none">
               <p className="text-text text-base font-bold">منمّي</p>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rewards shrink-0" />
               <span className="text-muted text-[10px]">{USE_AI ? 'AI' : 'Demo'}</span>
             </div>
             <p className="text-muted text-[11px] mt-1">{t(locale, 'copilotSubtitle')}</p>
@@ -258,7 +257,7 @@ export default function CopilotTab({ financialContext }) {
           <button
             type="button"
             onClick={openHistory}
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-tint"
             aria-label={t(locale, 'chatHistory')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -269,7 +268,7 @@ export default function CopilotTab({ financialContext }) {
           <button
             type="button"
             onClick={handleNewChat}
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-tint"
             aria-label={t(locale, 'newChat')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -339,7 +338,7 @@ export default function CopilotTab({ financialContext }) {
       {/* ── Message thread — always LTR layout (AI left, user right is universal) ── */}
       <div
         ref={scrollRef}
-        className="assistant-thread absolute inset-0 overflow-y-auto scroll-thin px-4 pt-[92px] pb-36"
+        className="assistant-thread absolute inset-0 overflow-y-auto scroll-thin px-4"
         dir="ltr"
       >
         <div className="flex flex-col gap-3 py-2">
@@ -363,7 +362,7 @@ export default function CopilotTab({ financialContext }) {
                 className={`max-w-[82%] px-4 py-3 text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-card border-[0.5px] border-card-border rounded-[18px] rounded-br-[4px] text-text'
-                    : 'bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] text-text'
+                    : 'bg-tint border-[0.5px] border-card-border rounded-[18px] rounded-bl-[4px] text-text'
                 }`}
               >
                 {msg.content}
@@ -388,8 +387,7 @@ export default function CopilotTab({ financialContext }) {
 
       {/* ── Input bar ── */}
       <div
-        className="assistant-composer absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[3px] border-card-border"
-        style={{ bottom: 'calc(72px + var(--safe-bottom))', borderTopWidth: 1 }}
+        className="assistant-composer absolute z-10 bg-page"
       >
         <div
           className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5"
@@ -411,12 +409,12 @@ export default function CopilotTab({ financialContext }) {
             type="button"
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || isThinking}
-            className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 disabled:opacity-40"
+            className="navy-action w-7 h-7 rounded-full flex items-center justify-center shrink-0 disabled:opacity-40"
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
               <path
                 d="M12 1L5.5 7.5M12 1L8 12L5.5 7.5L1 5L12 1Z"
-                stroke="#0E0E0E"
+                stroke="#FFFFFF"
                 strokeWidth="1.5"
                 strokeLinejoin="round"
                 strokeLinecap="round"

@@ -134,7 +134,7 @@ function TierTrack({ locale, tierIndex }) {
               <span
                 className="w-9 h-9 rounded-[11px] flex items-center justify-center text-sm font-extrabold tabular-nums"
                 style={{
-                  background: isCurrent ? 'var(--color-primary)' : 'var(--color-tint)',
+                  background: isCurrent ? 'var(--color-rewards)' : 'var(--color-tint)',
                   color: isCurrent ? 'var(--color-on-accent)' : 'var(--color-muted)',
                   opacity: reached ? 1 : 0.4,
                 }}
@@ -143,7 +143,7 @@ function TierTrack({ locale, tierIndex }) {
               </span>
               <span
                 className="text-[9px] font-bold uppercase tracking-wide"
-                style={{ color: isCurrent ? 'var(--color-primary)' : 'var(--color-muted)', opacity: reached ? 1 : 0.5 }}
+                style={{ color: isCurrent ? 'var(--color-rewards)' : 'var(--color-muted)', opacity: reached ? 1 : 0.5 }}
               >
                 {tier.name}
               </span>
@@ -151,7 +151,7 @@ function TierTrack({ locale, tierIndex }) {
             {i < TIERS.length - 1 && (
               <div
                 className="h-[3px] flex-1 mx-1 rounded-full"
-                style={{ background: i < tierIndex ? 'var(--color-primary)' : 'var(--color-card-border)', marginBottom: 14 }}
+                style={{ background: i < tierIndex ? 'var(--color-rewards)' : 'var(--color-card-border)', marginBottom: 14 }}
               />
             )}
           </div>
@@ -188,8 +188,8 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
         <span
           className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-sm font-extrabold tabular-nums"
           style={{
-            background: unlocked ? 'var(--color-primary)' : 'var(--color-tint)',
-            color: unlocked ? '#0E1F14' : 'var(--color-muted)',
+            background: unlocked ? 'var(--color-rewards)' : 'var(--color-tint)',
+            color: unlocked ? 'var(--color-on-accent)' : 'var(--color-muted)',
           }}
         >
           {deal.valueLabel}
@@ -198,12 +198,12 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
 
       {unlocked ? (
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--color-primary)' }}>
+          <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--color-rewards)' }}>
             {t(locale, 'unlockedLabel')}
           </span>
           <span
             className="rounded-[10px] px-4 py-1.5 text-xs font-bold"
-            style={{ background: 'var(--color-primary)', color: '#0E1F14' }}
+            style={{ background: 'var(--color-navy)', color: 'var(--color-on-accent)' }}
           >
             {redeemed ? t(locale, 'redeemed') : t(locale, 'redeem')}
           </span>
@@ -305,7 +305,7 @@ export default function DealsWall({ locale, level }) {
                 <span
                   className="shrink-0 rounded-[10px] px-3 py-1.5 text-base font-extrabold tabular-nums"
                   style={{
-                    background: activeDeal.met ? 'var(--color-primary)' : 'var(--color-tint)',
+                    background: activeDeal.met ? 'var(--color-rewards)' : 'var(--color-tint)',
                     color: activeDeal.met ? '#0E1F14' : 'var(--color-muted)',
                   }}
                 >
@@ -350,7 +350,7 @@ export default function DealsWall({ locale, level }) {
                     type="button"
                     onClick={() => handleRedeem(activeDeal.id)}
                     className="w-full py-3.5 rounded-full font-semibold text-sm"
-                    style={{ background: 'var(--color-primary)', color: '#0E1F14' }}
+                    style={{ background: 'var(--color-navy)', color: 'var(--color-on-accent)' }}
                   >
                     {redeemedIds.includes(activeDeal.id) ? t(locale, 'redeemed') : t(locale, 'redeem')}
                   </button>

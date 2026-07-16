@@ -37,7 +37,7 @@ function Toggle({ checked, onChange, label }) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className="relative shrink-0 rounded-full transition-colors"
-      style={{ width: 50, height: 30, background: checked ? 'var(--color-primary)' : 'var(--color-card-border)' }}
+      style={{ width: 50, height: 30, background: checked ? 'var(--color-navy)' : 'var(--color-card-border)' }}
     >
       <motion.span
         className="absolute top-1 w-[22px] h-[22px] rounded-full bg-white"
@@ -132,11 +132,11 @@ export default function SettingsPanel({ onClose }) {
           {view === 'main' && (
             <>
               <div className="bg-card rounded-[24px] px-5 py-5 flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-primary">
-                  <span className="text-2xl font-bold" style={{ color: 'var(--color-navy)' }}>{isAr ? 'ط' : 'T'}</span>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 bg-rewards">
+                  <span className="text-2xl font-bold" style={{ color: 'var(--color-navy)' }}>أ</span>
                 </div>
                 <div>
-                  <p className="text-text text-base font-bold">{isAr ? 'طاهر' : 'Taher'}</p>
+                  <p className="text-text text-base font-bold">{isAr ? 'أحمد' : 'Ahmed'}</p>
                   <p className="text-muted text-xs mt-1">{t(locale, 'memberSince')}</p>
                 </div>
               </div>
@@ -148,7 +148,7 @@ export default function SettingsPanel({ onClose }) {
                   <LanguageSwitch locale={locale} onChange={setLocale} />
                 </div>
                 <div className="h-px bg-card-border" />
-                <div className="flex items-center justify-between px-4 py-3.5">
+                <div className="flex items-center justify-between gap-4 px-4 py-4">
                   <span className="text-text text-sm font-semibold">{t(locale, 'appearance')}</span>
                   <Toggle checked={theme === 'dark'} onChange={(dark) => setTheme(dark ? 'dark' : 'light')} label={t(locale, 'appearance')} />
                 </div>
@@ -197,7 +197,7 @@ export default function SettingsPanel({ onClose }) {
                   </div>
                 ))}
               </div>
-              <button onClick={openConnect} className="w-full rounded-full bg-primary text-on-accent py-3.5 text-sm font-bold">{t(locale, 'connectBank')}</button>
+              <button onClick={openConnect} className="navy-action w-full rounded-full py-3.5 text-sm font-bold">{t(locale, 'connectBank')}</button>
             </>
           )}
 
@@ -210,11 +210,11 @@ export default function SettingsPanel({ onClose }) {
                 {CONNECTABLE_BANKS.map((bank) => (
                   <button key={bank} onClick={() => setSelectedBank(bank)} className="bg-card rounded-[18px] px-4 py-4 flex items-center justify-between text-start">
                     <span className="text-text text-sm font-semibold">{bank}</span>
-                    <span className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: selectedBank === bank ? 'var(--color-primary)' : 'var(--color-card-border)' }}>{selectedBank === bank && <span className="w-2.5 h-2.5 rounded-full bg-primary" />}</span>
+                    <span className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: selectedBank === bank ? 'var(--color-coral)' : 'var(--color-card-border)' }}>{selectedBank === bank && <span className="w-2.5 h-2.5 rounded-full bg-rewards" />}</span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => setConnectStep(1)} className="w-full rounded-full bg-primary text-on-accent py-3.5 text-sm font-bold">{t(locale, 'continueLabel')}</button>
+              <button onClick={() => setConnectStep(1)} className="navy-action w-full rounded-full py-3.5 text-sm font-bold">{t(locale, 'continueLabel')}</button>
             </>
           )}
 
@@ -228,7 +228,7 @@ export default function SettingsPanel({ onClose }) {
                 ))}
               </div>
               <p className="text-muted text-xs leading-relaxed mb-6">{t(locale, 'consentPrivacy')}</p>
-              <button onClick={() => setConnectStep(2)} className="w-full rounded-full bg-primary text-on-accent py-3.5 text-sm font-bold">{t(locale, 'connectSecurely')}</button>
+              <button onClick={() => setConnectStep(2)} className="navy-action w-full rounded-full py-3.5 text-sm font-bold">{t(locale, 'connectSecurely')}</button>
             </>
           )}
 
@@ -237,7 +237,7 @@ export default function SettingsPanel({ onClose }) {
               <div className="flex justify-center mb-5"><MunamiMascot expression="happy" size={82} /></div>
               <h3 className="text-text text-xl font-bold mb-2">{t(locale, 'bankConnected')}</h3>
               <p className="text-muted text-sm mb-8">{t(locale, 'bankConnectedDesc')}</p>
-              <button onClick={() => setView('accounts')} className="w-full rounded-full bg-primary text-on-accent py-3.5 text-sm font-bold">{t(locale, 'done')}</button>
+              <button onClick={() => setView('accounts')} className="navy-action w-full rounded-full py-3.5 text-sm font-bold">{t(locale, 'done')}</button>
             </div>
           )}
 

@@ -5,7 +5,7 @@ import { t } from '../lib/i18n'
 
 const TABS = [
   { key: 'home', labelKey: 'navHome', Icon: Home },
-  { key: 'budget', labelKey: 'navBudget', Icon: PieChart },
+  { key: 'budget', labelKey: 'monthlyOverviewNav', Icon: PieChart },
   { key: 'copilot', hero: true },
   { key: 'goals', labelKey: 'navGoals', Icon: Target },
   { key: 'transactions', labelKey: 'navTransactions', Icon: ArrowLeftRight },
@@ -27,7 +27,8 @@ export default function BottomNav({ active = 'home', onTabChange }) {
               onClick={() => onTabChange?.(tab.key)}
               aria-label={locale === 'ar' ? 'مساعد منمّي' : 'Munami Assistant'}
             >
-              <span className="nav-mascot"><MunamiMascot expression="happy" size={34} /></span>
+              <span className="nav-mascot"><MunamiMascot expression="happy" size={28} /></span>
+              <span>{locale === 'ar' ? 'منمّي' : 'Monami'}</span>
             </button>
           )
         }

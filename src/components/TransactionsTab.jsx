@@ -99,7 +99,7 @@ export default function TransactionsTab({ rows }) {
           onClick={() => setBankFilter(null)}
           className={`px-3 py-1 rounded-full text-xs font-medium border-[0.5px] transition-colors ${
             !bankFilter
-              ? 'bg-primary text-on-accent border-primary'
+              ? 'bg-rewards text-on-accent border-rewards'
               : 'bg-card border-card-border text-muted'
           }`}
         >
@@ -111,7 +111,7 @@ export default function TransactionsTab({ rows }) {
             onClick={() => setBankFilter(bankFilter === bank ? null : bank)}
             className={`px-3 py-1 rounded-full text-xs font-medium border-[0.5px] transition-colors ${
               bankFilter === bank
-                ? 'bg-primary text-on-accent border-primary'
+                ? 'bg-rewards text-on-accent border-rewards'
                 : 'bg-card border-card-border text-muted'
             }`}
           >

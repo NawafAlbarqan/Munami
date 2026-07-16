@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { Pencil, Plus } from 'lucide-react'
 import { useCountUp } from '../lib/useCountUp'
 import { formatSAR, t } from '../lib/i18n'
 import { useLocale } from '../lib/LocaleContext'
@@ -11,7 +12,7 @@ const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
 
 // ─── Tappable fund bucket ────────────────────────────────────────────────────
 
-function FundBucket({ fund, index, onTap }) {
+function FundBucket({ fund, index, onTap, editing = false }) {
   const pct = fund.target_sar > 0
     ? Math.min(100, Math.round((fund.balance_sar / fund.target_sar) * 100))
     : 0
@@ -19,33 +20,19 @@ function FundBucket({ fund, index, onTap }) {
   return (
     <motion.button
       onClick={onTap}
-      className="w-full bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4 text-left"
+      className={`fund-budget-row ${editing ? 'is-editing' : ''}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.07, ease: 'easeOut' }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-3">
-          <span className="text-xl">{ICONS[fund.icon] || ICONS.default}</span>
-          <div>
-            <p className="text-text text-sm font-medium">{fund.name}</p>
-            <p className="text-muted text-[11px] tabular-nums">
-              {formatSAR(fund.balance_sar)} / {formatSAR(fund.target_sar)}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold tabular-nums" style={{ color: fund.color }}>
-            {pct}%
-          </span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-30">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
+      <div className="fund-budget-row-head">
+        <span className="fund-budget-icon">{ICONS[fund.icon] || ICONS.default}</span>
+        <strong>{fund.name}</strong>
+        <span className="fund-budget-amount">{formatSAR(fund.balance_sar)} / {formatSAR(fund.target_sar)}</span>
+        {editing && <span className="fund-budget-edit"><Pencil size={14} /></span>}
       </div>
-
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
+      <div className="progress-track">
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: fund.color }}
@@ -54,31 +41,25 @@ function FundBucket({ fund, index, onTap }) {
           transition={{ duration: 0.7, delay: index * 0.08, ease: 'easeOut' }}
         />
       </div>
+      <small>{pct}%</small>
     </motion.button>
   )
 }
 
 // ─── Main tab ────────────────────────────────────────────────────────────────
 
-export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
+export default function AccountsTab({
+  cashBalance = 0,
+  onCashTransaction,
+  funds = accountsData.funds,
+  onFundsChange = () => {},
+  unallocated = accountsData.unallocated_sar,
+  onUnallocatedChange = () => {},
+  initialAction = null,
+}) {
   const { locale } = useLocale()
-  const [funds, setFunds] = useState(accountsData.funds)
-  const [unallocated, setUnallocated] = useState(accountsData.unallocated_sar)
-
-  // Sheet state — 'create' | 'fund'
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [sheetMode, setSheetMode] = useState('create')
-
-  // Fund detail sheet
-  const [activeFund, setActiveFund] = useState(null)
-  const [activeAccount, setActiveAccount] = useState(null)
-  const [fundAction, setFundAction] = useState('add') // 'add' | 'withdraw'
-  const [amount, setAmount] = useState('')
-
-  // New fund form
-  const [newName, setNewName] = useState('')
-  const [newTarget, setNewTarget] = useState('')
-  const [cashDraft, setCashDraft] = useState(String(cashBalance || ''))
+  const setFunds = onFundsChange
+  const setUnallocated = onUnallocatedChange
 
   const totalBalance = accountsData.total_balance_sar + cashBalance
   const animatedTotal = useCountUp(totalBalance, 0.8)
@@ -92,6 +73,26 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
     manual: true,
   }
   const allAccounts = [cashAccount, ...accountsData.accounts]
+  const opensWithCash = initialAction === 'cash'
+
+  // Sheet state — 'create' | 'fund'
+  const [sheetOpen, setSheetOpen] = useState(opensWithCash)
+  const [sheetMode, setSheetMode] = useState(opensWithCash ? 'cash' : 'create')
+
+  // Fund detail sheet
+  const [activeFund, setActiveFund] = useState(null)
+  const [activeAccount, setActiveAccount] = useState(opensWithCash ? cashAccount : null)
+  const [fundAction, setFundAction] = useState('add') // 'add' | 'withdraw'
+  const [amount, setAmount] = useState('')
+
+  // New fund form
+  const [newName, setNewName] = useState('')
+  const [newTarget, setNewTarget] = useState('')
+  const [cashAction, setCashAction] = useState('add')
+  const [cashDraft, setCashDraft] = useState('')
+  const [cashDescription, setCashDescription] = useState('')
+  const [cashSaving, setCashSaving] = useState(false)
+  const [editingFunds, setEditingFunds] = useState(false)
 
   function openFundSheet(fund) {
     setActiveFund(fund)
@@ -111,7 +112,9 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
   function openAccountSheet(account) {
     setActiveAccount(account)
     if (account.manual) {
-      setCashDraft(String(cashBalance || ''))
+      setCashAction('add')
+      setCashDraft('')
+      setCashDescription('')
       setSheetMode('cash')
     } else {
       setSheetMode('account')
@@ -119,10 +122,12 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
     setSheetOpen(true)
   }
 
-  function handleSaveCash() {
+  async function handleSaveCash() {
     const value = Number(cashDraft)
-    if (!Number.isFinite(value) || value < 0) return
-    onCashBalanceChange?.(value)
+    if (!Number.isFinite(value) || value <= 0 || (cashAction === 'withdraw' && value > cashBalance)) return
+    setCashSaving(true)
+    await onCashTransaction?.({ action: cashAction, amount: value, description: cashDescription })
+    setCashSaving(false)
     closeSheet()
   }
 
@@ -174,9 +179,14 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
 
   // Keep activeFund in sync with live fund state (balance updates)
   const liveFund = activeFund ? funds.find((f) => f.id === activeFund.id) ?? activeFund : null
+  const cashAmount = Number(cashDraft)
+  const cashCanSubmit = Number.isFinite(cashAmount) && cashAmount > 0 && (cashAction !== 'withdraw' || cashAmount <= cashBalance)
 
   return (
-    <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page pb-10 accounts-page">
+    <div
+      className="absolute inset-0 scroll-thin bg-page pb-10 accounts-page"
+      style={{ overflowY: sheetOpen ? 'hidden' : 'auto' }}
+    >
 
       {/* ── Total balance hero — asymmetric, badge/seal treatment ── */}
       <motion.div
@@ -210,15 +220,24 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
 
       {/* ── Fund buckets ── */}
       <div className="px-4 mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-text text-base font-semibold">{t(locale, 'yourFunds')}</h2>
-          {/* + only creates a new fund — each fund card handles deposits/withdrawals */}
-          <button
-            onClick={openCreateSheet}
-            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-accent text-xl font-bold leading-none"
-          >
-            +
-          </button>
+        <div className="section-title funds-section-title">
+          <h2>{t(locale, 'yourFunds')}</h2>
+          <div className="section-title-actions">
+            <span>{funds.length}</span>
+            <button
+              type="button"
+              className={`section-edit-action ${editingFunds ? 'is-active' : ''}`}
+              onClick={() => setEditingFunds((current) => !current)}
+              aria-label={editingFunds ? t(locale, 'done') : t(locale, 'editFunds')}
+            >
+              {editingFunds ? t(locale, 'done') : <Pencil size={14} />}
+            </button>
+            {editingFunds && (
+              <button type="button" className="section-add-action" onClick={openCreateSheet} aria-label={t(locale, 'newBucket')}>
+                <Plus size={17} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Unallocated — display only, not tappable */}
@@ -234,12 +253,13 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
         </div>
 
         {/* Fund cards — each tappable */}
-        <div className="flex flex-col gap-3">
+        <div className="fund-budget-list">
           {funds.map((fund, i) => (
             <FundBucket
               key={fund.id}
               fund={fund}
               index={i}
+              editing={editingFunds}
               onTap={() => openFundSheet(fund)}
             />
           ))}
@@ -251,7 +271,7 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
         {sheetOpen && (
           <>
             <motion.div
-              className="absolute inset-0 z-20"
+              className="accounts-sheet-backdrop"
               style={{ background: 'rgba(0,0,0,0.45)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -260,7 +280,7 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
               onClick={closeSheet}
             />
             <motion.div
-              className="absolute bottom-0 left-0 right-0 z-30 bg-card rounded-t-[24px] px-5 pt-4 pb-10"
+              className="accounts-sheet bg-card rounded-t-[24px] px-5 pt-4 pb-10 scroll-thin"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -277,6 +297,18 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
                       <p className="text-text text-base font-bold">{t(locale, 'primaryCash')}</p>
                     </div>
                   </div>
+                  <div className="cash-action-switch" role="group" aria-label={t(locale, 'cashAction')}>
+                    {(['add', 'withdraw']).map((action) => (
+                      <button
+                        key={action}
+                        type="button"
+                        className={cashAction === action ? 'is-active' : ''}
+                        onClick={() => setCashAction(action)}
+                      >
+                        {t(locale, action === 'add' ? 'cashDeposit' : 'cashWithdrawal')}
+                      </button>
+                    ))}
+                  </div>
                   <label className="cash-input-label" htmlFor="primary-cash">{t(locale, 'amountSAR')}</label>
                   <div className="cash-input-wrap">
                     <input
@@ -284,15 +316,30 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
                       type="number"
                       inputMode="decimal"
                       min="0"
-                      step="0.01"
+                      step="50"
                       value={cashDraft}
                       onChange={(event) => setCashDraft(event.target.value)}
                       placeholder="0"
                     />
                     <span>SAR</span>
                   </div>
-                  <p className="cash-help">{t(locale, 'cashBalanceHelp')}</p>
-                  <button type="button" className="cash-save" onClick={handleSaveCash}>{t(locale, 'saveCash')}</button>
+                  <label className="cash-input-label cash-description-label" htmlFor="cash-description">{t(locale, 'optionalDescription')}</label>
+                  <input
+                    id="cash-description"
+                    className="cash-description-input"
+                    type="text"
+                    value={cashDescription}
+                    onChange={(event) => setCashDescription(event.target.value)}
+                    placeholder={t(locale, 'cashDescriptionPlaceholder')}
+                    maxLength={120}
+                  />
+                  <p className="cash-help">
+                    {t(locale, 'cashTransactionHelp')}
+                    {cashAction === 'withdraw' && <><br />{t(locale, 'cashAvailable', formatSAR(cashBalance))}</>}
+                  </p>
+                  <button type="button" className="cash-save" onClick={handleSaveCash} disabled={cashSaving || !cashCanSubmit}>
+                    {cashSaving ? t(locale, 'savingCash') : t(locale, cashAction === 'add' ? 'addCashAction' : 'withdraw')}
+                  </button>
                 </div>
               ) : sheetMode === 'account' && activeAccount ? (
                 <div>
@@ -368,7 +415,7 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
 
                   <button
                     onClick={handleFundAction}
-                    className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
+                    className="navy-action w-full py-3.5 rounded-full text-sm font-semibold"
                   >
                     {fundAction === 'add'
                       ? t(locale, 'depositToFund', liveFund.name)
@@ -408,7 +455,7 @@ export default function AccountsTab({ cashBalance = 0, onCashBalanceChange }) {
 
                   <button
                     onClick={handleCreateFund}
-                    className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
+                    className="navy-action w-full py-3.5 rounded-full text-sm font-semibold"
                   >
                     {t(locale, 'createBucket')}
                   </button>

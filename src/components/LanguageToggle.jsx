@@ -16,7 +16,7 @@ export default function LanguageToggle() {
           onClick={() => setLocale(l)}
           className="px-2.5 py-1 text-[11px] font-bold transition-colors duration-150"
           style={{
-            backgroundColor: locale === l ? 'var(--color-primary)' : 'transparent',
+            backgroundColor: locale === l ? 'var(--color-navy)' : 'transparent',
             color: locale === l ? '#FFFDF8' : 'var(--color-muted)',
           }}
         >

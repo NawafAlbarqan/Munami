@@ -32,7 +32,13 @@ const CATEGORY_MAP = {
 // Categories that pass through unchanged. Anything not explicitly mapped
 // and not in this list (a category we've never seen) also falls into
 // "Other" — so nothing gets silently dropped and totals still add up.
-const PASSTHROUGH_CATEGORIES = new Set(['Shopping', 'Entertainment'])
+const PASSTHROUGH_CATEGORIES = new Set([
+  'Shopping',
+  'Food & Groceries',
+  'Bills & Transport',
+  'Entertainment',
+  'Other',
+])
 
 export function mapCategory(rawCategory) {
   if (CATEGORY_MAP[rawCategory]) return CATEGORY_MAP[rawCategory]
@@ -49,10 +55,10 @@ export function applyCategoryMap(rows) {
 // the donut, the legend dots, and the legend percentages. Change colors in
 // src/index.css; change which category gets which color here.
 const CATEGORY_COLOR_VAR = {
-  'Food & Groceries': '--color-teal',
-  'Bills & Transport': '--color-bills',
-  Shopping: '--color-primary',
-  Entertainment: '--color-rewards',
+  'Food & Groceries': '--color-bills',
+  'Bills & Transport': '--color-lavender',
+  Shopping: '--color-rewards',
+  Entertainment: '--color-navy',
   Other: '--color-lavender',
 }
 

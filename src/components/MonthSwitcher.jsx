@@ -1,27 +1,29 @@
 export default function MonthSwitcher({ label, onPrev, onNext, canPrev, canNext, locale = 'en' }) {
-  // In RTL, visual "previous" is on the right — swap the chevron glyphs
-  const prevGlyph = locale === 'ar' ? '›' : '‹'
-  const nextGlyph = locale === 'ar' ? '‹' : '›'
+  const isArabic = locale === 'ar'
+  const leftAction = isArabic ? onNext : onPrev
+  const rightAction = isArabic ? onPrev : onNext
+  const canGoLeft = isArabic ? canNext : canPrev
+  const canGoRight = isArabic ? canPrev : canNext
   return (
-    <div className="flex items-center justify-between bg-tint rounded-[20px] px-2 py-2 mb-4">
+    <div dir="ltr" className="month-switcher flex items-center justify-between rounded-[20px] px-2 py-2 mb-4">
       <button
         type="button"
-        onClick={onPrev}
-        disabled={!canPrev}
-        aria-label="Previous month"
-        className="w-8 h-8 flex items-center justify-center text-text disabled:text-muted/40 disabled:cursor-not-allowed"
+        onClick={leftAction}
+        disabled={!canGoLeft}
+        aria-label={isArabic ? 'الشهر التالي' : 'Previous month'}
+        className="w-8 h-8 flex items-center justify-center disabled:cursor-not-allowed"
       >
-        {prevGlyph}
+        ‹
       </button>
-      <span className="text-text font-semibold text-sm">{label}</span>
+      <span dir={isArabic ? 'rtl' : 'ltr'} className="font-semibold text-sm">{label}</span>
       <button
         type="button"
-        onClick={onNext}
-        disabled={!canNext}
-        aria-label="Next month"
-        className="w-8 h-8 flex items-center justify-center text-text disabled:text-muted/40 disabled:cursor-not-allowed"
+        onClick={rightAction}
+        disabled={!canGoRight}
+        aria-label={isArabic ? 'الشهر السابق' : 'Next month'}
+        className="w-8 h-8 flex items-center justify-center disabled:cursor-not-allowed"
       >
-        {nextGlyph}
+        ›
       </button>
     </div>
   )

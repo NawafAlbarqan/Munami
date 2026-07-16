@@ -62,10 +62,10 @@ function XPRing({ locale }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-muted text-[10px] font-medium uppercase tracking-widest">
+          <p className="text-[10px] font-medium uppercase tracking-widest" style={{ color: 'var(--color-muted)' }}>
             {t(locale, 'level')}
           </p>
-          <p className="text-text leading-none munami-hero">{LEVEL}</p>
+          <p className="leading-none munami-hero" style={{ color: 'var(--color-text)' }}>{LEVEL}</p>
         </div>
       </div>
       <p className="text-xs mt-1 tabular-nums text-muted">
@@ -372,7 +372,7 @@ export default function GoalsTab({ rows }) {
       </div>
 
       {/* ── XP / Level ── */}
-      <div className="border-[0.5px] border-card-border rounded-[20px] p-5 mb-4" style={{ background: 'var(--grad-hero-card)' }}>
+      <div className="xp-level-panel border-[0.5px] border-card-border rounded-[20px] p-5 mb-4">
         <XPRing locale={locale} />
       </div>
 
@@ -433,7 +433,7 @@ export default function GoalsTab({ rows }) {
           {availableCategories.length > 0 && (
             <button
               onClick={openSheet}
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-accent text-xl font-bold leading-none"
+              className="w-8 h-8 rounded-full bg-rewards flex items-center justify-center text-on-accent text-xl font-bold leading-none"
             >
               +
             </button>
@@ -554,7 +554,7 @@ export default function GoalsTab({ rows }) {
                           key={cat}
                           onClick={() => setNewCategory(cat)}
                           className={`flex items-center gap-3 px-4 py-3 rounded-[14px] border-[0.5px] text-left transition-colors ${
-                            newCategory === cat ? 'border-primary bg-primary/10' : 'border-card-border bg-tint'
+                            newCategory === cat ? 'border-rewards bg-rewards/10' : 'border-card-border bg-tint'
                           }`}
                         >
                           <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catColor }} />
@@ -580,7 +580,7 @@ export default function GoalsTab({ rows }) {
 
                 <button
                   onClick={handleAddBudget}
-                  className="w-full py-3.5 rounded-full bg-primary text-on-accent text-sm font-semibold"
+                  className="navy-action w-full py-3.5 rounded-full text-sm font-semibold"
                 >
                   {t(locale, 'addBudgetBtn')}
                 </button>
