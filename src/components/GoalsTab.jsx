@@ -14,7 +14,7 @@ import {
   categoryColorVar,
 } from '../lib/finance'
 import {
-  computeCandidateChallenges,
+  computeWeeklyChallenges,
   getLastChallengeCategory,
   saveLastChallengeCategory,
   templateChallenge,
@@ -125,6 +125,7 @@ function budgetMood(pct) {
 //   mood (happy) — with no real deadline in the demo data, "in progress"
 //   isn't treated as "at risk" for these.
 function challengeMood(ch) {
+  if (ch.status === 'completed') return 'happy'
   const pct = ch.target > 0 ? ch.progress / ch.target : 0
   if (ch.mode === 'limit') {
     if (pct >= 1.0) return 'unhappy'
@@ -132,6 +133,80 @@ function challengeMood(ch) {
     return 'happy'
   }
   return pct >= 1.0 ? 'happy' : null
+}
+
+function formatWeekRange(startISO, endISO, locale) {
+  const fmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { month: 'short', day: 'numeric' })
+  return `${fmt.format(new Date(startISO))}–${fmt.format(new Date(endISO))}`
+}
+
+// Active = a live, forward-looking challenge (gold "this week" tag, bar
+// turns caution-red once actual spend reaches/exceeds target). Completed =
+// a past week that was genuinely met (green "completed" tag + checkmark,
+// bar always full green) — the two states are visually distinct without
+// touching the app-wide fixed black card outline.
+function ChallengeCard({ challenge, locale }) {
+  const barPct = challenge.target > 0 ? Math.min(challenge.progress / challenge.target, 1) : 0
+  const isCompleted = challenge.status === 'completed'
+  const mood = challengeMood(challenge)
+  const barColor = isCompleted ? 'var(--color-primary)' : barPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)'
+
+  return (
+    <motion.div
+      className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
+      style={isCompleted ? { background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-card))' } : undefined}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+    >
+      <div className="flex items-center gap-1.5 mb-2.5">
+        {isCompleted ? (
+          <span
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5"
+            style={{ background: 'var(--color-primary)', color: 'var(--color-on-accent)' }}
+          >
+            ✓ {t(locale, 'challengeCompleted')}
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-wide text-muted">
+            {t(locale, 'challengeThisWeek')}
+          </span>
+        )}
+        {challenge.weekStart && (
+          <span className="text-muted text-[10px]">· {formatWeekRange(challenge.weekStart, challenge.weekEnd, locale)}</span>
+        )}
+      </div>
+
+      <div className="flex items-start gap-3 mb-3">
+        <span className="text-xl leading-none mt-0.5">{challenge.icon}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-text text-sm font-semibold">{challenge.title}</p>
+          <p className="text-muted text-[11px] mt-0.5">{challenge.desc}</p>
+        </div>
+        {mood && <MunamiMascot expression={mood} size={22} className="shrink-0" />}
+        <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
+          +{challenge.xp} XP
+        </span>
+      </div>
+
+      <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--color-card-border)' }}>
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: barColor }}
+          initial={{ width: 0 }}
+          animate={{ width: `${barPct * 100}%` }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        />
+      </div>
+
+      <div className="flex justify-between">
+        <span className="text-muted text-[11px] tabular-nums">
+          {formatSAR(challenge.progress)} {' / '} {formatSAR(challenge.target)}
+        </span>
+        <span className="text-muted text-[11px]">{Math.round(barPct * 100)}%</span>
+      </div>
+    </motion.div>
+  )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -166,80 +241,109 @@ export default function GoalsTab({ rows }) {
     setSheetOpen(false)
   }
 
-  // ── Weekly challenge — code finds candidates + computes every number
-  // (challengeGen.js); the AI only picks the most meaningful one and
-  // phrases it (server.js POST /api/weekly-challenge). Cached per
-  // locale+candidate-set so switching tabs/locale doesn't re-fire the call.
-  const [challenge, setChallenge] = useState(null)
-  const [challengeLoading, setChallengeLoading] = useState(false)
+  // ── Weekly challenges — code finds candidates + computes every number
+  // (challengeGen.js); the AI only selects/phrases (server.js POST
+  // /api/weekly-challenge). Two cards: an active/current one (may already
+  // be over) and a completed one from a past week that was actually met —
+  // demonstrating both states. Cached per locale so switching tabs/locale
+  // doesn't re-fire the calls.
+  const [activeChallenge, setActiveChallenge] = useState(null)
+  const [completedChallenge, setCompletedChallenge] = useState(null)
+  const [challengesLoading, setChallengesLoading] = useState(false)
   const challengeCache = useRef({})
 
-  const candidates = useMemo(() => computeCandidateChallenges(rows), [rows])
+  const { activeCandidates, completed: completedCandidate } = useMemo(
+    () => computeWeeklyChallenges(rows),
+    [rows]
+  )
+
+  function buildChallenge(picked, title, desc, status) {
+    return {
+      category: picked.category,
+      icon: CATEGORY_EMOJI[picked.category] || '📦',
+      mode: 'limit',
+      status, // 'active' | 'completed'
+      title,
+      desc,
+      xp: picked.xp,
+      progress: picked.currentSpend,
+      target: picked.target,
+      unit: 'SAR',
+      weekStart: picked.weekStart,
+      weekEnd: picked.weekEnd,
+    }
+  }
+
+  async function resolveChallenge({ picked, candidatesForAI, status, lastCategory, locale }) {
+    if (!USE_AI) {
+      const { title, desc } = templateChallenge(picked, locale, status)
+      return buildChallenge(picked, title, desc, status)
+    }
+    try {
+      const res = await fetch('/api/weekly-challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidates: candidatesForAI, lastCategory, locale, status }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const { index, title, desc } = await res.json()
+      const resolvedPicked = candidatesForAI[index] || picked
+      return buildChallenge(resolvedPicked, title, desc, status)
+    } catch {
+      const { title, desc } = templateChallenge(picked, locale, status)
+      return buildChallenge(picked, title, desc, status)
+    }
+  }
 
   useEffect(() => {
-    if (!candidates.length) {
-      setChallenge(null)
+    const cacheKey = `${locale}+${activeCandidates.map((c) => c.category).join(',')}+${completedCandidate?.category}-${completedCandidate?.weekIndex}`
+    const cached = challengeCache.current[cacheKey]
+    if (cached) {
+      setActiveChallenge(cached.active)
+      setCompletedChallenge(cached.completed)
       return
     }
 
-    const cacheKey = `${locale}+${candidates.map((c) => c.category).join(',')}`
-    if (challengeCache.current[cacheKey]) {
-      setChallenge(challengeCache.current[cacheKey])
-      return
-    }
+    let cancelled = false
+    setChallengesLoading(true)
 
     const lastCategory = getLastChallengeCategory()
+    const activeTop = activeCandidates[0] || null
 
-    function finalize(picked, title, desc) {
-      const result = {
-        category: picked.category,
-        icon: CATEGORY_EMOJI[picked.category] || '📦',
-        mode: 'limit',
-        title,
-        desc,
-        xp: picked.xp,
-        progress: picked.currentSpend,
-        target: picked.target,
-        unit: 'SAR',
-      }
-      challengeCache.current[cacheKey] = result
-      setChallenge(result)
-      saveLastChallengeCategory(picked.category)
-    }
+    const activePromise = activeTop
+      ? resolveChallenge({
+          picked: activeTop,
+          candidatesForAI: activeCandidates,
+          status: 'active',
+          lastCategory,
+          locale,
+        })
+      : Promise.resolve(null)
 
-    if (!USE_AI) {
-      // Demo-mode fallback: code already sorted candidates by overage —
-      // just avoid repeating last week's category, same rule the AI follows.
-      const picked = candidates.find((c) => c.category !== lastCategory) || candidates[0]
-      const { title, desc } = templateChallenge(picked, locale)
-      finalize(picked, title, desc)
-      return
-    }
+    const completedPromise = completedCandidate
+      ? resolveChallenge({
+          picked: completedCandidate,
+          candidatesForAI: [completedCandidate],
+          status: 'completed',
+          lastCategory: null,
+          locale,
+        })
+      : Promise.resolve(null)
 
-    setChallengeLoading(true)
-    fetch('/api/weekly-challenge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ candidates, lastCategory, locale }),
+    Promise.all([activePromise, completedPromise]).then(([active, completed]) => {
+      if (cancelled) return
+      challengeCache.current[cacheKey] = { active, completed }
+      setActiveChallenge(active)
+      setCompletedChallenge(completed)
+      if (active) saveLastChallengeCategory(active.category)
+      setChallengesLoading(false)
     })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        return res.json()
-      })
-      .then(({ index, title, desc }) => {
-        const picked = candidates[index]
-        if (!picked) throw new Error('invalid index')
-        finalize(picked, title, desc)
-      })
-      .catch(() => {
-        // Graceful fallback — still real data, just template-phrased.
-        const picked = candidates.find((c) => c.category !== lastCategory) || candidates[0]
-        const { title, desc } = templateChallenge(picked, locale)
-        finalize(picked, title, desc)
-      })
-      .finally(() => setChallengeLoading(false))
+
+    return () => {
+      cancelled = true
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidates, locale])
+  }, [activeCandidates, completedCandidate, locale])
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
@@ -344,61 +448,26 @@ export default function GoalsTab({ rows }) {
         </div>
       </div>
 
-      {/* ── Weekly challenge — code finds the candidate + computes every
-          number (challengeGen.js); the AI only picked this one and phrased
-          it (server.js POST /api/weekly-challenge). ── */}
+      {/* ── Weekly challenges — code finds each candidate + computes every
+          number (challengeGen.js); the AI only selects/phrases (server.js
+          POST /api/weekly-challenge). Active card + a completed card from a
+          past week that was actually met, so both states are visible. ── */}
       <div className="mb-4">
         <h2 className="text-text font-semibold mb-3">{t(locale, 'weeklyChallenges')}</h2>
-        {challengeLoading && !challenge && (
-          <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
-            <p className="text-muted text-xs">{t(locale, 'loading')}</p>
-          </div>
-        )}
-        {challenge && (() => {
-          const barPct = challenge.target > 0 ? Math.min(challenge.progress / challenge.target, 1) : 0
-          const mood = challengeMood(challenge)
-          return (
-            <motion.div
-              className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-            >
-              <div className="flex items-start gap-3 mb-3">
-                <span className="text-xl leading-none mt-0.5">{challenge.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-text text-sm font-semibold">{challenge.title}</p>
-                  <p className="text-muted text-[11px] mt-0.5">{challenge.desc}</p>
-                </div>
-                {mood && <MunamiMascot expression={mood} size={22} className="shrink-0" />}
-                <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: 'var(--color-rewards)' }}>
-                  +{challenge.xp} XP
-                </span>
-              </div>
-
-              <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: 'var(--color-card-border)' }}>
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${barPct * 100}%` }}
-                  transition={{ duration: 0.7, ease: 'easeOut' }}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-muted text-[11px] tabular-nums">
-                  {formatSAR(challenge.progress)} {' / '} {formatSAR(challenge.target)}
-                </span>
-                <span className="text-muted text-[11px]">{Math.round(barPct * 100)}%</span>
-              </div>
-            </motion.div>
-          )
-        })()}
-        {!challengeLoading && !challenge && (
-          <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
-            <p className="text-muted text-xs">{t(locale, 'noChallengeThisWeek')}</p>
-          </div>
-        )}
+        <div className="flex flex-col gap-3">
+          {challengesLoading && !activeChallenge && !completedChallenge && (
+            <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
+              <p className="text-muted text-xs">{t(locale, 'loading')}</p>
+            </div>
+          )}
+          {activeChallenge && <ChallengeCard challenge={activeChallenge} locale={locale} />}
+          {completedChallenge && <ChallengeCard challenge={completedChallenge} locale={locale} />}
+          {!challengesLoading && !activeChallenge && !completedChallenge && (
+            <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
+              <p className="text-muted text-xs">{t(locale, 'noChallengeThisWeek')}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Deals Wall (Lane 1: badges → real partner deals with SAR value) ── */}

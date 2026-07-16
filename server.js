@@ -56,15 +56,29 @@ ${factsBlock}`
 // meaningful candidate for this week and phrase it in منمّي's voice — it
 // must never invent a number, only reuse the ones we hand it.
 app.post('/api/weekly-challenge', async (req, res) => {
-  const { candidates, lastCategory, locale } = req.body
+  const { candidates, lastCategory, locale, status } = req.body
   if (!candidates?.length) return res.status(400).json({ error: 'No candidates' })
 
   const lang = locale === 'ar' ? 'Arabic' : 'English'
+  const isCompleted = status === 'completed'
   const candidatesBlock = candidates
-    .map((c, i) => `${i}: ${c.category} — trending ${c.overagePct}% above its usual SAR ${c.weeklyAvg}/week, target SAR ${c.target}/week (a ${c.reductionPct}% cut), worth ${c.xp} XP`)
+    .map((c, i) => `${i}: ${c.category} — trending ${c.overagePct}% above its usual SAR ${c.weeklyAvg}/week, target SAR ${c.target}/week (a ${c.reductionPct}% cut), actual spend SAR ${c.currentSpend}, worth ${c.xp} XP`)
     .join('\n')
 
-  const prompt = `You are منمّي, a warm straight-talking Saudi financial coach picking this week's ONE spending challenge for the user.
+  const prompt = isCompleted
+    ? `You are منمّي, a warm straight-talking Saudi financial coach writing a short recap of a spending challenge the user ALREADY completed successfully in a past week.
+
+Candidate (index: category — trend — target — actual spend — XP):
+${candidatesBlock}
+
+Rules:
+- Write in ${lang}, in منمّي's voice: warm, genuinely celebratory, 1-2 short sentences, past tense (this already happened).
+- You MUST use the category name, target SAR amount, actual spend, and XP value EXACTLY as given. Do not invent, round, or estimate any number.
+- Reply with EXACTLY 3 lines, nothing else:
+  line 1: the number 0 (only one candidate is ever sent for a completed recap)
+  line 2: a short celebratory title (under 6 words)
+  line 3: the one-to-two sentence recap, must include the actual spend and the target SAR amounts`
+    : `You are منمّي, a warm straight-talking Saudi financial coach picking this week's ONE spending challenge for the user.
 
 Candidates (index: category — trend — target — XP):
 ${candidatesBlock}

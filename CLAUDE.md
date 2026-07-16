@@ -20,6 +20,19 @@ helps your money grow.
 
 ---
 
+## Communication style (standing instruction — always follow)
+
+- **Be concise.** No preamble, no narrating your process step by step.
+- **Don't show UI previews, mockups, or descriptions of what you're about to
+  build unless explicitly asked to.** Just implement the change, run it,
+  and verify it works.
+- After finishing, give a brief summary — a few sentences, not a report.
+- This overrides the "explain your reasoning" habit below when the two
+  conflict — brevity wins. Still flag anything genuinely important (a
+  real bug found, a decision that needs input), just do it briefly.
+
+---
+
 ## Team context (READ THIS — it changes how you should help)
 
 - We are a **team that is light on coding**. We rely heavily on you (Claude Code).

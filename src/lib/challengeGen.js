@@ -1,5 +1,5 @@
 // Weekly challenge generation — code computes every number, the AI only
-// picks which candidate matters most this week and phrases it (see
+// picks which candidate matters most and phrases it (see
 // server.js POST /api/weekly-challenge). Nothing here calls Gemini.
 import { getDebits, applyCategoryMap } from './finance'
 
@@ -9,16 +9,7 @@ const REDUCTION_MIN_PCT = 10
 const REDUCTION_MAX_PCT = 15
 const BASE_XP = 100
 const XP_PER_SAR_CUT = 2
-
-// The "current week" is always the 7 days ending at the data's own latest
-// date (same determinism rule as getLatestMonth) — never the system clock.
-function getCurrentWeekWindow(rows) {
-  const latestDate = rows.reduce((max, r) => (r.date > max ? r.date : max), '')
-  const latest = new Date(latestDate)
-  const weekStart = new Date(latest)
-  weekStart.setDate(weekStart.getDate() - 6)
-  return { weekStart, latest }
-}
+const DAY_MS = 1000 * 60 * 60 * 24
 
 function groupByCategory(rows) {
   const totals = {}
@@ -26,68 +17,155 @@ function groupByCategory(rows) {
   return totals
 }
 
+// Weeks are fixed 7-day blocks counted from the account's registration date
+// (the earliest date present in the data) — NOT a rolling "last 7 days from
+// today." Week 0 = regDate..regDate+6, week 1 = regDate+7..regDate+13, etc.
+export function getRegistrationDate(rows) {
+  return rows.reduce((min, r) => (min === '' || r.date < min ? r.date : min), '')
+}
+
+function getLatestDate(rows) {
+  return rows.reduce((max, r) => (r.date > max ? r.date : max), '')
+}
+
+function weekBounds(regDate, weekIndex) {
+  const start = new Date(regDate)
+  start.setDate(start.getDate() + weekIndex * 7)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+  return { start, end }
+}
+
+function weekSpendByCategory(debits, regDate, weekIndex) {
+  const { start, end } = weekBounds(regDate, weekIndex)
+  const rows = debits.filter((r) => {
+    const d = new Date(r.date)
+    return d >= start && d <= end
+  })
+  return groupByCategory(rows)
+}
+
+export function getCurrentWeekIndex(rows) {
+  const regDate = getRegistrationDate(rows)
+  const latest = getLatestDate(rows)
+  const diffDays = Math.floor((new Date(latest) - new Date(regDate)) / DAY_MS)
+  return Math.floor(diffDays / 7)
+}
+
 /**
- * Analyzes real spending history to find categories currently trending
- * above their own historical weekly average, with a realistic target
- * (10-15% below that average, scaled by how far over trend they are) and
- * an XP reward scaled by how demanding that target is.
+ * Candidates for challenging week `w`. Causally correct: whether a category
+ * gets challenged for week `w` is decided from week `w-1` ("the detection
+ * week") trending above ITS OWN prior average — never from week `w`'s own
+ * spend, which may not have happened yet. Week `w`'s actual spend is then
+ * the thing being evaluated against the target.
  *
  * Formula:
- *   reductionPct = clamp(10 + overagePct / 10, 10, 15)
- *   target       = round(weeklyAvg * (1 - reductionPct / 100))
- *   amountToCut  = weeklyAvg - target
- *   xp           = round(100 + amountToCut * 2)
+ *   avgBeforeDetection = mean(weeks 0..detectionWeek-1) for the category
+ *   overagePct         = (detectionWeekSpend - avgBeforeDetection) / avgBeforeDetection * 100
+ *   reductionPct       = clamp(10 + overagePct / 10, 10, 15)
+ *   target             = round(avgBeforeDetection * (1 - reductionPct / 100))
+ *   xp                 = round(100 + (avgBeforeDetection - target) * 2)
+ *   met                = week w's actual spend <= target
  *
- * Returns candidates sorted by overagePct descending (most over-trend first).
+ * Returns candidates sorted by overagePct descending. Needs w >= 2 (a
+ * detection week and at least one week before that to average).
  */
-export function computeCandidateChallenges(rows) {
-  if (!rows?.length) return []
-  const debits = applyCategoryMap(getDebits(rows))
-  const { weekStart, latest } = getCurrentWeekWindow(rows)
+export function computeCandidatesForWeek(debits, regDate, w) {
+  if (w < 2) return []
+  const detectionWeek = w - 1
 
-  const currentWeekRows = debits.filter((r) => {
-    const d = new Date(r.date)
-    return d >= weekStart && d <= latest
-  })
-  const priorRows = debits.filter((r) => new Date(r.date) < weekStart)
+  const priorTotals = {} // category -> total across weeks 0..detectionWeek-1
+  for (let i = 0; i < detectionWeek; i++) {
+    const spend = weekSpendByCategory(debits, regDate, i)
+    for (const [cat, amt] of Object.entries(spend)) priorTotals[cat] = (priorTotals[cat] || 0) + amt
+  }
 
-  const earliestDate = debits.reduce((min, r) => (min === '' || r.date < min ? r.date : min), '')
-  const priorWeeks = Math.max(1, (weekStart - new Date(earliestDate)) / (1000 * 60 * 60 * 24 * 7))
-
-  const currentByCategory = groupByCategory(currentWeekRows)
-  const priorByCategory = groupByCategory(priorRows)
-  const categories = new Set([...Object.keys(currentByCategory), ...Object.keys(priorByCategory)])
+  const detectionSpend = weekSpendByCategory(debits, regDate, detectionWeek)
+  const evaluationSpend = weekSpendByCategory(debits, regDate, w)
+  const categories = new Set([...Object.keys(priorTotals), ...Object.keys(detectionSpend), ...Object.keys(evaluationSpend)])
 
   const candidates = []
   for (const category of categories) {
-    const weeklyAvg = Math.round((priorByCategory[category] || 0) / priorWeeks)
-    const currentSpend = Math.round(currentByCategory[category] || 0)
-    if (weeklyAvg < MIN_WEEKLY_AVG) continue
+    const avgBeforeDetection = Math.round((priorTotals[category] || 0) / detectionWeek)
+    if (avgBeforeDetection < MIN_WEEKLY_AVG) continue
 
-    const overagePct = Math.round(((currentSpend - weeklyAvg) / weeklyAvg) * 100)
+    const detectionAmt = Math.round(detectionSpend[category] || 0)
+    const overagePct = Math.round(((detectionAmt - avgBeforeDetection) / avgBeforeDetection) * 100)
     if (overagePct <= OVERAGE_THRESHOLD_PCT) continue
 
     const reductionPct = Math.min(REDUCTION_MAX_PCT, Math.max(REDUCTION_MIN_PCT, 10 + overagePct / 10))
-    const target = Math.round(weeklyAvg * (1 - reductionPct / 100))
-    const amountToCut = weeklyAvg - target
+    const target = Math.round(avgBeforeDetection * (1 - reductionPct / 100))
+    const amountToCut = avgBeforeDetection - target
     const xp = Math.round(BASE_XP + amountToCut * XP_PER_SAR_CUT)
+    const currentSpend = Math.round(evaluationSpend[category] || 0)
 
+    const { start, end } = weekBounds(regDate, w)
     candidates.push({
       category,
-      weeklyAvg,
+      weeklyAvg: avgBeforeDetection,
       currentSpend,
       overagePct,
       reductionPct: Math.round(reductionPct * 10) / 10,
       target,
       amountToCut,
       xp,
+      met: currentSpend <= target,
+      weekIndex: w,
+      weekStart: start.toISOString().slice(0, 10),
+      weekEnd: end.toISOString().slice(0, 10),
     })
   }
 
   return candidates.sort((a, b) => b.overagePct - a.overagePct)
 }
 
-export { MIN_WEEKLY_AVG, OVERAGE_THRESHOLD_PCT, REDUCTION_MIN_PCT, REDUCTION_MAX_PCT, BASE_XP, XP_PER_SAR_CUT }
+/**
+ * Returns { activeCandidates, completed }:
+ *  - activeCandidates: the FULL sorted candidate list for the current week
+ *    (forward-looking, whatever their state so far) — the AI still selects
+ *    among these (respecting the "don't repeat last week's category" rule),
+ *    same as before.
+ *  - completed: a single, already-determined historical candidate — the
+ *    most recent PAST week that had a candidate whose actual spend came in
+ *    at or under its computed target (a genuine "hit the goal" week),
+ *    preferring a different category than the top active candidate so the
+ *    two cards demonstrate two distinct categories as well as two distinct
+ *    states. No selection ambiguity here, so the AI's job for this one is
+ *    phrasing only.
+ */
+export function computeWeeklyChallenges(rows) {
+  if (!rows?.length) return { activeCandidates: [], completed: null }
+  const debits = applyCategoryMap(getDebits(rows))
+  const regDate = getRegistrationDate(rows)
+  const currentWeekIndex = getCurrentWeekIndex(rows)
+
+  const activeCandidates = computeCandidatesForWeek(debits, regDate, currentWeekIndex)
+  const topActiveCategory = activeCandidates[0]?.category
+
+  let completed = null
+  let completedSameCategory = null
+  for (let w = currentWeekIndex - 1; w >= 2; w--) {
+    const candidates = computeCandidatesForWeek(debits, regDate, w)
+    const met = candidates.find((c) => c.met)
+    if (!met) continue
+    if (!topActiveCategory || met.category !== topActiveCategory) {
+      completed = met
+      break
+    }
+    if (!completedSameCategory) completedSameCategory = met
+  }
+
+  return { activeCandidates, completed: completed || completedSameCategory }
+}
+
+export {
+  MIN_WEEKLY_AVG,
+  OVERAGE_THRESHOLD_PCT,
+  REDUCTION_MIN_PCT,
+  REDUCTION_MAX_PCT,
+  BASE_XP,
+  XP_PER_SAR_CUT,
+}
 
 // Remembers which category last week's challenge picked, purely so the AI
 // selection step can avoid repeating it — plain localStorage, matching the
@@ -110,10 +188,20 @@ export function saveLastChallengeCategory(category) {
   }
 }
 
-// Template fallback when VITE_USE_AI=false or the API call fails — picks the
-// top candidate in code (already sorted by overage) and fills in a plain
-// sentence, still using only real computed numbers, never invented ones.
-export function templateChallenge(candidate, locale) {
+// Template fallback when VITE_USE_AI=false or the API call fails — still
+// uses only real computed numbers, never invented ones.
+export function templateChallenge(candidate, locale, status = 'active') {
+  if (status === 'completed') {
+    return locale === 'ar'
+      ? {
+          title: `أنجزت تحدي ${candidate.category}`,
+          desc: `في أسبوع سابق حافظت على ${candidate.category} عند ${candidate.currentSpend} ريال، تحت هدف ${candidate.target} ريال. كسبت ${candidate.xp} XP.`,
+        }
+      : {
+          title: `${candidate.category} Challenge — Completed`,
+          desc: `Back in an earlier week you kept ${candidate.category} at SAR ${candidate.currentSpend}, under the SAR ${candidate.target} target. Earned ${candidate.xp} XP.`,
+        }
+  }
   return locale === 'ar'
     ? {
         title: `تحدي ${candidate.category}`,
