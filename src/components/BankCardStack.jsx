@@ -43,25 +43,20 @@ export default function BankCardStack({ accounts, locale }) {
       >
         {accounts.map((acc, i) => {
           const logo = BANK_LOGOS[acc.bank]
-          const accent = acc.accent || acc.color
-          // Balance pops in the bank's accent when it differs (SNB's light green);
-          // otherwise white for legibility on the solid brand fill.
-          const balanceColor = accent !== acc.color ? accent : '#FFFFFF'
           return (
             <motion.div
               key={acc.account_id}
-              // ── Retro 90s / neubrutalist treatment — bank cards ONLY ──
-              className="absolute left-0 right-0 rounded-[22px] p-5"
+              // ── Bank account card — calm white/card surface; the bank's
+              // brand color appears ONLY as a thin leading stripe + the logo
+              // chip (see DESIGN.md 5.6), never as a full saturated fill. ──
+              className="absolute left-0 right-0 rounded-[16px] p-5 overflow-hidden"
               style={{
                 top: 0,
                 height: CARD_H,
                 zIndex: n - i, // first account stays on top of the deck
-                // Bold, saturated SOLID brand fill — no tint, no gradient
-                backgroundColor: acc.color,
-                // Thick black outline + chunky solid offset "sticker" shadow
-                // (matches the app-wide retro system: 3px outline, 5px offset)
-                border: '3px solid #000000',
-                boxShadow: '5px 5px 0 #000000',
+                background: 'var(--color-card)',
+                border: '1px solid var(--color-card-border)',
+                boxShadow: 'var(--shadow-md)',
               }}
               animate={{
                 y: expanded ? i * (CARD_H + GAP) : i * PEEK_Y,
@@ -76,18 +71,22 @@ export default function BankCardStack({ accounts, locale }) {
               }}
               whileTap={{ scale: expanded ? 0.99 : 0.97 }}
             >
-              <div className="flex items-start justify-between mb-7">
+              {/* Brand identity stripe — the only place the bank color fills */}
+              <span
+                className="absolute top-0 bottom-0 start-0"
+                style={{ width: 5, backgroundColor: acc.color }}
+              />
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <p className="text-white text-sm font-extrabold tracking-tight">{acc.bank}</p>
-                  <p className="text-[11px] mt-0.5 font-semibold" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                  <p className="text-text text-sm font-bold tracking-tight">{acc.bank}</p>
+                  <p className="text-muted text-[11px] mt-0.5 font-medium">
                     {acc.type} · ···· {acc.iban_tail}
                   </p>
                 </div>
-                {/* White chip with its own thick outline + mini sticker shadow —
-                    carries the real logo so every brand mark stays crisp */}
+                {/* Logo chip — white, fine outline */}
                 <span
-                  className="w-11 h-11 rounded-[13px] flex items-center justify-center shrink-0 bg-white"
-                  style={{ border: '2.5px solid #000000', boxShadow: '2px 2px 0 #000000' }}
+                  className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0 bg-white"
+                  style={{ border: '1px solid var(--color-card-border)' }}
                 >
                   {logo ? (
                     <img src={logo} alt={`${acc.bank} logo`} className="w-8 h-8 object-contain" />
@@ -96,10 +95,10 @@ export default function BankCardStack({ accounts, locale }) {
                   )}
                 </span>
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
+              <p className="text-muted text-[10px] font-semibold uppercase tracking-widest mb-1">
                 {t(locale, 'balance')}
               </p>
-              <p className="text-[26px] font-extrabold tracking-tight tabular-nums" style={{ color: balanceColor }}>
+              <p className="text-text text-[24px] font-bold tracking-tight tabular-nums">
                 {formatSAR(acc.balance_sar)}
               </p>
             </motion.div>

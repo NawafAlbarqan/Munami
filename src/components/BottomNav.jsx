@@ -63,10 +63,9 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
       style={{
         height: 74,
         overflow: 'visible',
-        // Retro: flat card-toned bar with a thick black top rule.
-        // Tokenized so it adapts between dark charcoal / light cream.
+        // Calm ivory/navy surface with a fine 1px top border (see DESIGN.md).
         background: 'var(--color-card)',
-        borderTop: '3px solid #000000',
+        borderTop: '1px solid var(--color-card-border)',
       }}
     >
       {TABS.map((tab) => {
@@ -82,24 +81,24 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               style={{ overflow: 'visible' }}
               aria-label="منمّي"
             >
-              {/* Icon-only hero tab — no text label under it (unlike the other
-                  4 tabs). Absolutely positioned at top:50%/left:50% with a
-                  translate(-50%,-50%) — true dead-center in the button's box
-                  (which spans the nav's full height), not an offset `top`
-                  pixel value tuned by eye. That's what makes it reliably
-                  centered regardless of nav height/border tweaks, rather
-                  than floating above the bar by a fixed guessed amount. */}
+              {/* Icon-only hero tab — a 54px navy rounded-square/circle hybrid,
+                  raised 10px above center (per DESIGN.md's floating Monami
+                  action). Centered via translate so it stays put regardless
+                  of nav height/border tweaks. */}
               <div
-                className="w-[58px] h-[58px] rounded-full flex items-center justify-center transition-all duration-200"
+                className="w-[54px] h-[54px] flex items-center justify-center transition-all duration-200"
                 style={{
                   position: 'absolute',
                   left: '50%',
                   top: '50%',
-                  background: 'var(--color-primary)',
-                  border: '3px solid #000000',
-                  opacity: isActive ? 1 : 0.9,
-                  transform: isActive ? 'translate(-50%, -50%) scale(1.05)' : 'translate(-50%, -50%) scale(1)',
-                  boxShadow: isActive ? '4px 4px 0 #000000' : '3px 3px 0 #000000',
+                  borderRadius: 20,
+                  background: 'var(--gradient-hero)',
+                  border: '1px solid rgba(255,255,255,0.10)',
+                  opacity: 1,
+                  transform: isActive
+                    ? 'translate(-50%, calc(-50% - 10px)) scale(1.04)'
+                    : 'translate(-50%, calc(-50% - 10px))',
+                  boxShadow: 'var(--shadow-float)',
                 }}
               >
                 <MunamiMascot expression="happy" size={32} />
@@ -117,23 +116,23 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
             className="flex-1 flex flex-col items-center justify-center gap-1"
             style={{ paddingBottom: 9 }}
           >
-            {/* Soft mint pill fills behind the active icon — the "tubelight"
-                treatment — instead of a bare color swap. */}
+            {/* Active = coral icon on a soft coral-tinted pill; inactive =
+                muted navy. Labels always visible (see DESIGN.md nav rules). */}
             <span
               className="flex items-center justify-center transition-all duration-200"
               style={{
                 width: 46,
                 height: 28,
-                borderRadius: 10,
-                background: isActive ? 'var(--color-primary)' : 'transparent',
-                border: isActive ? '2.5px solid #000000' : '2.5px solid transparent',
-                boxShadow: isActive ? '2.5px 2.5px 0 #000000' : 'none',
+                borderRadius: 999,
+                background: isActive
+                  ? 'color-mix(in srgb, var(--color-primary) 14%, transparent)'
+                  : 'transparent',
               }}
             >
               <Icon
                 className="transition-transform duration-200"
                 style={{
-                  color: isActive ? 'var(--color-on-accent)' : 'var(--color-muted)',
+                  color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
                   transform: isActive ? 'scale(1.06)' : 'scale(1)',
                 }}
               />
@@ -142,7 +141,7 @@ export default function BottomNav({ active = 'overview', onTabChange }) {
               className="text-[10px] leading-none transition-all duration-200"
               style={{
                 color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
-                fontWeight: isActive ? 800 : 600,
+                fontWeight: isActive ? 700 : 500,
               }}
             >
               {t(locale, tab.labelKey)}

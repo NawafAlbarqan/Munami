@@ -7,7 +7,9 @@ import accountsData from '../../data/munami_accounts.json'
 import BankCardStack from './BankCardStack'
 
 const ICONS = { shield: '🛡️', plane: '✈️', car: '🚗', default: '💰' }
-const BUCKET_COLORS = ['#7FB8B0', '#C4B5E0', '#A8D5BA', '#E8B4B8', '#E8CF8E']
+// Documented brand tokens only (mint / coral / navy / gray / coral-300) —
+// never random pastels per fund (see DESIGN.md color rules).
+const BUCKET_COLORS = ['#31B878', '#FF7A59', '#29415F', '#8792A0', '#FFC1B0']
 
 // ─── Tappable fund bucket ────────────────────────────────────────────────────
 
@@ -154,10 +156,7 @@ export default function AccountsTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
-        <div
-          className="retro-hero rounded-[28px] pl-6 pr-6 pt-8 pb-6"
-          style={{ background: 'var(--grad-hero-card)' }}
-        >
+        <div className="retro-hero rounded-[20px] pl-6 pr-6 pt-8 pb-6">
           <p className="text-[10px] font-bold uppercase tracking-widest mb-2">
             {t(locale, 'yourTotalBalance')}
           </p>
@@ -166,7 +165,7 @@ export default function AccountsTab() {
           </p>
           {/* Short thick rule — deliberate typographic break between the
               number and the supporting caption, not just stacked centered text */}
-          <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: '#1E1E1E' }} />
+          <div className="rounded-full mt-4 mb-3" style={{ width: 52, height: 3, backgroundColor: 'rgba(255,255,255,0.28)' }} />
           <span className="retro-verdict inline-block rounded-full px-3 py-1 text-[11px] font-bold">
             {t(locale, 'acrossAccounts', accountsData.accounts.length)}
           </span>

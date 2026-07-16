@@ -49,11 +49,11 @@ export function applyCategoryMap(rows) {
 // the donut, the legend dots, and the legend percentages. Change colors in
 // src/index.css; change which category gets which color here.
 const CATEGORY_COLOR_VAR = {
-  'Food & Groceries': '--color-teal',
-  'Bills & Transport': '--color-caution',
-  Shopping: '--color-primary',
-  Entertainment: '--color-rewards',
-  Other: '--color-lavender',
+  'Food & Groceries': '--color-cat-food',
+  'Bills & Transport': '--color-cat-bills',
+  Shopping: '--color-cat-shopping',
+  Entertainment: '--color-cat-entertainment',
+  Other: '--color-cat-other',
 }
 
 export function categoryColorVar(category) {

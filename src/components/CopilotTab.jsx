@@ -74,12 +74,16 @@ function ThinkingBubble() {
       <div className="w-8 h-8 flex items-end justify-center shrink-0 mb-0.5">
         <MunamiMascot size={30} expression="happy" />
       </div>
-      <div className="bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] px-4 py-3">
+      <div
+        className="rounded-[16px] rounded-bl-[4px] px-4 py-3"
+        style={{ background: 'var(--chat-bubble-ai)', border: '1px solid var(--chat-border)' }}
+      >
         <div className="flex gap-1.5 items-center">
           {[0, 1, 2].map((i) => (
             <motion.span
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-primary/60"
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--color-primary)' }}
               animate={{ opacity: [0.3, 1, 0.3] }}
               transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
             />
@@ -239,41 +243,48 @@ export default function CopilotTab({ financialContext }) {
   }
 
   return (
-    <div className="absolute inset-0 bg-page">
+    // Conversation canvas follows the theme: deep navy in dark mode, warm
+    // ivory in light mode (--chat-* tokens in src/index.css).
+    <div className="absolute inset-0" style={{ background: 'var(--chat-canvas)' }}>
       {/* ── Header ── */}
       {/* pr-16 keeps the title row clear of the floating hamburger (top-right) */}
-      <div className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5 bg-page border-b-[3px] border-card-border">
+      <div
+        className="absolute top-0 left-0 right-0 z-10 pl-5 pr-16 pt-4 pb-3.5"
+        style={{ background: 'var(--chat-canvas)', borderBottom: '1px solid var(--chat-border)' }}
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 flex items-center justify-center shrink-0">
             <MunamiMascot expression="greeting" size={36} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 leading-none">
-              <p className="text-text text-base font-bold">منمّي</p>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-              <span className="text-muted text-[10px]">{USE_AI ? 'AI' : 'Demo'}</span>
+              <p className="text-base font-bold" style={{ color: 'var(--chat-ink)' }}>منمّي</p>
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--color-positive)' }} />
+              <span className="text-[10px]" style={{ color: 'var(--chat-muted)' }}>{USE_AI ? 'AI' : 'Demo'}</span>
             </div>
-            <p className="text-muted text-[11px] mt-1">{t(locale, 'copilotSubtitle')}</p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--chat-muted)' }}>{t(locale, 'copilotSubtitle')}</p>
           </div>
           <button
             type="button"
             onClick={openHistory}
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: 'var(--chat-surface)', color: 'var(--chat-muted)' }}
             aria-label={t(locale, 'chatHistory')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <circle cx="7.5" cy="7.5" r="6.25" stroke="currentColor" strokeWidth="1.4" className="text-muted" />
-              <path d="M7.5 4v3.5L10 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" className="text-muted" />
+              <circle cx="7.5" cy="7.5" r="6.25" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M7.5 4v3.5L10 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             </svg>
           </button>
           <button
             type="button"
             onClick={handleNewChat}
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-tint"
+            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: 'var(--chat-surface)', color: 'var(--chat-muted)' }}
             aria-label={t(locale, 'newChat')}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <path d="M7.5 2.5v10M2.5 7.5h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" className="text-muted" />
+              <path d="M7.5 2.5v10M2.5 7.5h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </button>
         </div>
@@ -297,20 +308,22 @@ export default function CopilotTab({ financialContext }) {
               onClick={() => setHistoryOpen(false)}
             />
             <motion.div
-              className="relative bg-card border-t-[3px] border-card-border rounded-t-[24px] px-5 pt-4 pb-6 max-h-[70%] overflow-y-auto scroll-thin"
+              className="relative rounded-t-[24px] px-5 pt-3 pb-6 max-h-[70%] overflow-y-auto scroll-thin"
+              style={{ background: 'var(--chat-surface)', borderTop: '1px solid var(--chat-border)' }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
             >
+              <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: 'var(--chat-handle)' }} />
               <div className="flex items-center justify-between mb-3">
-                <p className="text-text text-sm font-bold">{t(locale, 'chatHistory')}</p>
-                <button type="button" onClick={() => setHistoryOpen(false)} className="text-muted text-xs font-semibold">
+                <p className="text-sm font-bold" style={{ color: 'var(--chat-ink)' }}>{t(locale, 'chatHistory')}</p>
+                <button type="button" onClick={() => setHistoryOpen(false)} className="text-xs font-semibold" style={{ color: 'var(--chat-muted)' }}>
                   {t(locale, 'close')}
                 </button>
               </div>
               {history.length === 0 ? (
-                <p className="text-muted text-sm py-6 text-center">{t(locale, 'noPastChats')}</p>
+                <p className="text-sm py-6 text-center" style={{ color: 'var(--chat-muted)' }}>{t(locale, 'noPastChats')}</p>
               ) : (
                 <div className="flex flex-col gap-2.5">
                   {history.map((c) => (
@@ -318,11 +331,12 @@ export default function CopilotTab({ financialContext }) {
                       key={c.id}
                       type="button"
                       onClick={() => handleRestore(c)}
-                      className="text-left bg-tint border border-card-border rounded-[16px] px-4 py-3"
+                      className="text-left rounded-[16px] px-4 py-3"
+                      style={{ background: 'var(--chat-bubble-ai)', border: '1px solid var(--chat-border)' }}
                       dir={locale === 'ar' ? 'rtl' : 'ltr'}
                     >
-                      <p className="text-text text-sm font-semibold truncate">{conversationPreview(c)}</p>
-                      <p className="text-muted text-[11px] mt-1">
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--chat-ink)' }}>{conversationPreview(c)}</p>
+                      <p className="text-[11px] mt-1" style={{ color: 'var(--chat-muted)' }}>
                         {new Date(c.updatedAt).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
                           month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
                         })}
@@ -362,9 +376,15 @@ export default function CopilotTab({ financialContext }) {
                 dir={locale === 'ar' ? 'rtl' : 'ltr'}
                 className={`max-w-[82%] px-4 py-3 text-sm leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-card border-[0.5px] border-card-border rounded-[18px] rounded-br-[4px] text-text'
-                    : 'bg-tint border-[0.5px] border-primary/25 rounded-[18px] rounded-bl-[4px] text-text'
+                    ? 'rounded-[16px] rounded-br-[4px]'
+                    : 'rounded-[16px] rounded-bl-[4px]'
                 }`}
+                style={
+                  msg.role === 'user'
+                    // soft orange-tinted user bubble — navy ink in both themes
+                    ? { background: 'var(--chat-bubble-user)', color: '#0D1B2A' }
+                    : { background: 'var(--chat-bubble-ai)', color: 'var(--chat-ink)', border: '1px solid var(--chat-border)' }
+                }
               >
                 {msg.content}
               </div>
@@ -388,13 +408,13 @@ export default function CopilotTab({ financialContext }) {
 
       {/* ── Input bar ── */}
       <div
-        className="absolute left-0 right-0 z-10 px-4 py-3 bg-page border-t-[3px] border-card-border"
-        style={{ bottom: 72 }}
+        className="absolute left-0 right-0 z-10 px-4 py-3"
+        style={{ bottom: 72, background: 'var(--chat-canvas)', borderTop: '1px solid var(--chat-border)' }}
       >
         <div
-          className="flex items-center gap-3 bg-card rounded-full px-4 py-2.5"
+          className="flex items-center gap-3 rounded-[14px] px-4 py-2.5"
           dir="ltr"
-          style={{ border: '3px solid #000000', boxShadow: '4px 4px 0 #000000' }}
+          style={{ background: 'var(--chat-surface)', border: '1px solid var(--chat-border)' }}
         >
           <input
             ref={inputRef}
@@ -405,18 +425,20 @@ export default function CopilotTab({ financialContext }) {
             placeholder={t(locale, 'askMunami')}
             dir={locale === 'ar' ? 'rtl' : 'ltr'}
             disabled={isThinking}
-            className="flex-1 bg-transparent text-text text-sm placeholder:text-muted outline-none min-w-0 disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm outline-none min-w-0 disabled:opacity-50 placeholder:text-[color:var(--chat-muted)]"
+            style={{ color: 'var(--chat-ink)', caretColor: 'var(--color-primary)' }}
           />
           <button
             type="button"
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || isThinking}
-            className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 disabled:opacity-40"
+            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 disabled:opacity-40"
+            style={{ background: 'var(--gradient-coral)' }}
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
               <path
                 d="M12 1L5.5 7.5M12 1L8 12L5.5 7.5L1 5L12 1Z"
-                stroke="#0E0E0E"
+                stroke="#081B2A"
                 strokeWidth="1.5"
                 strokeLinejoin="round"
                 strokeLinecap="round"

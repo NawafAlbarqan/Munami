@@ -78,7 +78,7 @@ export default function TransactionsTab({ rows }) {
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
       <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">{t(locale, 'txSubtitle')}</p>
-      <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontFamily: "'Space Grotesk', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
+      <h1 className="text-text font-bold mb-4 leading-tight" style={{ fontSize: 24, lineHeight: '32px' }}>
         {t(locale, 'txHeader')}
       </h1>
 
@@ -151,12 +151,13 @@ export default function TransactionsTab({ rows }) {
                         {tx.category} · {tx.bank}
                       </p>
                     </div>
-                    {/* Amount — credits green with + sign */}
+                    {/* Amount — income in mint with "+", normal spending in
+                        navy text with a minus sign (never red) */}
                     <span
                       className="text-sm font-semibold tabular-nums shrink-0"
                       style={{ color: isCredit ? 'var(--color-positive)' : 'var(--color-text)' }}
                     >
-                      {isCredit ? '+' : ''}
+                      {isCredit ? '+' : '−'}
                       {formatSAR(tx.amount_sar)}
                     </span>
                   </div>

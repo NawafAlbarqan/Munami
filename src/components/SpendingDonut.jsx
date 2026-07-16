@@ -17,6 +17,7 @@ const RING_RADIUS = 92
 const STROKE_WIDTH = 28
 const LABEL_RADIUS = RING_RADIUS + STROKE_WIDTH / 2 + 28
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
+const SEGMENT_GAP = 5 // px of circumference between segments — clean flat separation
 const RENDER_SIZE = 240 // on-screen px — scales the viewBox down, keeps margins proportional
 
 // Angle 0 = 3 o'clock; combined with the circle's own -90° rotation (see
@@ -50,14 +51,10 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
       fraction,
       cumulativeBefore,
       midAngle: (startAngle + endAngle) / 2,
-      // Each segment's arc is drawn as a gradient from its own color into the
-      // NEXT segment's color, so the exact midpoint of the sweep is always a
-      // 50/50 blend of the two — anchoring the callout there made a pure
-      // category-colored pill sit next to a ring pixel that wasn't that
-      // color at all. Anchoring closer to the segment's start (where the
-      // gradient is still ~85% its own color) keeps the pill's color an
-      // honest match for the ring right under it.
-      labelAngle: startAngle + fraction * 360 * 0.22,
+      // Segments are flat solid colors now, so the callout anchors at the
+      // true midpoint of the sweep — the ring under the pill is always the
+      // pill's own color.
+      labelAngle: (startAngle + endAngle) / 2,
       color: ringColors[i],
     })
     return acc
@@ -109,40 +106,13 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <svg width={RENDER_SIZE} height={RENDER_SIZE} viewBox={`0 0 ${CANVAS} ${CANVAS}`}>
-          <defs>
-            {segments.map((seg, i) => {
-              const nextColor = ringColors[(i + 1) % ringColors.length]
-              // NOT "-90 + ...": these coordinates feed a gradientUnits="userSpaceOnUse"
-              // gradient referenced by the ring <circle>, which already carries its own
-              // `transform="rotate(-90 ...)"` — that transform applies to the gradient's
-              // vector too (userSpaceOnUse inherits the referencing element's transform).
-              // Baking another -90 in here double-rotated the color direction a further
-              // 90° away from the arc's real on-screen position, so the pure color for
-              // a segment landed nowhere near that segment's actual visible arc.
-              const start = polarToCartesian(seg.cumulativeBefore * 360, RING_RADIUS)
-              const end = polarToCartesian((seg.cumulativeBefore + seg.fraction) * 360, RING_RADIUS)
-              return (
-                <linearGradient
-                  key={seg.category}
-                  id={`donut-gradient-${i}`}
-                  gradientUnits="userSpaceOnUse"
-                  x1={start.x}
-                  y1={start.y}
-                  x2={end.x}
-                  y2={end.y}
-                >
-                  <stop offset="0%" stopColor={seg.color} />
-                  <stop offset="100%" stopColor={nextColor} />
-                </linearGradient>
-              )
-            })}
-          </defs>
-
-          {/* Ring segments — contiguous (no gaps) with rounded caps so each
-              one melts into the next instead of showing a hard cut. */}
+          {/* Ring segments — flat solid category colors with a small clean gap
+              between each (matches the identity boards' chart style; the old
+              gradient-merged ring was part of the retired retro identity). */}
           {segments.map((seg, i) => {
             const arcLength = seg.fraction * CIRCUMFERENCE
-            const cumulativeLength = seg.cumulativeBefore * CIRCUMFERENCE
+            const drawnArc = Math.max(arcLength - SEGMENT_GAP, 2)
+            const cumulativeLength = seg.cumulativeBefore * CIRCUMFERENCE + SEGMENT_GAP / 2
             return (
               <circle
                 key={seg.category}
@@ -150,11 +120,11 @@ export default function SpendingDonut({ data, total, cardBg, locale = 'en' }) {
                 cy={CENTER}
                 r={RING_RADIUS}
                 fill="none"
-                stroke={`url(#donut-gradient-${i})`}
+                stroke={seg.color}
                 strokeWidth={STROKE_WIDTH}
-                strokeLinecap="round"
-                strokeDasharray={`${arcLength} ${CIRCUMFERENCE - arcLength}`}
-                strokeDashoffset={drawn ? -cumulativeLength : arcLength - cumulativeLength}
+                strokeLinecap="butt"
+                strokeDasharray={`${drawnArc} ${CIRCUMFERENCE - drawnArc}`}
+                strokeDashoffset={drawn ? -cumulativeLength : drawnArc - cumulativeLength}
                 transform={`rotate(-90 ${CENTER} ${CENTER})`}
                 style={{
                   transition: 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)',

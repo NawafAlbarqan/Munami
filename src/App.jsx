@@ -335,19 +335,15 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="retro-hero border border-card-border rounded-[28px] px-5 pt-5 pb-5 mb-4"
-            style={{ background: 'var(--grad-hero-card)', boxShadow: '0 2px 16px rgba(45,106,74,0.10)' }}
+            className="retro-hero rounded-[20px] px-5 pt-5 pb-5 mb-4"
           >
             <p className="text-muted text-[10px] font-medium uppercase tracking-widest mb-2">
               {t(locale, 'youveSpent')}
             </p>
             <p className="munami-hero text-text tabular-nums">{formatSAR(spent)}</p>
 
-            <div
-              className="retro-verdict inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5"
-              style={{ backgroundColor: 'rgba(45,106,74,0.1)' }}
-            >
-              <span className="text-primary text-xs font-semibold">{mascotVerdict}</span>
+            <div className="retro-verdict inline-flex items-center gap-1.5 mt-3 mb-5 rounded-full px-3 py-1.5">
+              <span className="text-xs font-semibold">{mascotVerdict}</span>
             </div>
 
             <div className="flex pt-4 border-t border-card-border">
@@ -371,10 +367,7 @@ function App() {
         </AnimatePresence>
 
         {/* ── Donut chart ── */}
-        <div
-          className="bg-card border border-card-border rounded-[28px] p-5 mb-4"
-          style={{ boxShadow: '0 2px 16px rgba(45,106,74,0.06)' }}
-        >
+        <div className="bg-card rounded-[20px] p-5 mb-4">
           <AnimatePresence mode="wait" initial={false}>
             {chartData.length > 0 ? (
               <motion.div
@@ -436,9 +429,9 @@ function App() {
           // bare top:18/right:16 would land 14px closer to the bezel's edge
           // than intended.
           position: 'fixed', top: 32, right: 30, width: 36, height: 36,
-          background: '#FFFFFF', borderRadius: 11,
-          border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000',
-          color: '#000000',
+          background: 'var(--color-card)', borderRadius: 12,
+          border: '1px solid var(--color-card-border)', boxShadow: 'var(--shadow-sm)',
+          color: 'var(--color-text)',
         }}
         aria-label="Open settings"
       >

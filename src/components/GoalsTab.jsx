@@ -47,11 +47,11 @@ function XPRing({ locale }) {
     <div className="flex flex-col items-center">
       <div className="relative">
         <svg width={CANVAS} height={CANVAS} viewBox={`0 0 ${CANVAS} ${CANVAS}`}>
-          <circle cx={C} cy={C} r={R} fill="none" stroke="var(--color-card-border)" strokeWidth={STROKE} />
+          <circle cx={C} cy={C} r={R} fill="none" stroke="var(--color-tint)" strokeWidth={STROKE} />
           <motion.circle
             cx={C} cy={C} r={R}
             fill="none"
-            stroke="var(--color-primary)"
+            stroke="var(--color-positive)"
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
@@ -102,10 +102,12 @@ const CATEGORY_EMOJI = {
 // budget mood badge so both change at the same point.
 const CONCERNED_PCT = 0.70
 
-function budgetBarColor(pct, categoryColor) {
-  if (pct >= 1.0) return '#E8756A'
-  if (pct >= CONCERNED_PCT) return '#E8CF8E'
-  return categoryColor
+// Healthy = mint, approaching the limit = coral, exceeded = alert red —
+// red is reserved strictly for the exceeded state (DESIGN.md color rules).
+function budgetBarColor(pct) {
+  if (pct >= 1.0) return 'var(--color-alert)'
+  if (pct >= CONCERNED_PCT) return 'var(--color-caution)'
+  return 'var(--color-positive)'
 }
 
 function budgetMood(pct) {
@@ -147,12 +149,14 @@ function ChallengeCard({ challenge, locale }) {
   const barPct = challenge.target > 0 ? Math.min(challenge.progress / challenge.target, 1) : 0
   const isOnTrack = challenge.status === 'on_track'
   const mood = challengeMood(challenge)
-  const barColor = isOnTrack ? 'var(--color-primary)' : barPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)'
+  // Healthy progress = mint; a blown-through limit = alert red (red is
+  // reserved for exceeded/alert states only).
+  const barColor = isOnTrack ? 'var(--color-positive)' : barPct >= 1 ? 'var(--color-alert)' : 'var(--color-positive)'
 
   return (
     <motion.div
       className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
-      style={isOnTrack ? { background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-card))' } : undefined}
+      style={isOnTrack ? { background: 'color-mix(in srgb, var(--color-positive) 10%, var(--color-card))' } : undefined}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
@@ -161,7 +165,7 @@ function ChallengeCard({ challenge, locale }) {
         {isOnTrack ? (
           <span
             className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5"
-            style={{ background: 'var(--color-primary)', color: 'var(--color-on-accent)' }}
+            style={{ background: 'var(--color-positive)', color: 'var(--color-on-accent)' }}
           >
             ✓ {t(locale, 'challengeOnTrack')}
           </span>
@@ -366,7 +370,7 @@ export default function GoalsTab({ rows }) {
         <p className="text-muted text-xs font-medium uppercase tracking-widest mb-0.5">
           {t(locale, 'goalsSubtitle')}
         </p>
-        <h1 className="text-text font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', 'Noto Sans Arabic', sans-serif", fontSize: 26 }}>
+        <h1 className="text-text font-bold leading-tight" style={{ fontSize: 24, lineHeight: '32px' }}>
           {t(locale, 'goalsHeader')}
         </h1>
       </div>
@@ -408,7 +412,7 @@ export default function GoalsTab({ rows }) {
               </span>
               <span
                 className="text-xs font-semibold tabular-nums"
-                style={{ color: todayPct >= 1 ? 'var(--color-caution)' : 'var(--color-text)' }}
+                style={{ color: todayPct >= 1 ? 'var(--color-alert)' : 'var(--color-text)' }}
               >
                 {t(locale, 'spentToday')} {formatSAR(Math.round(today.spend))}
               </span>
@@ -416,7 +420,7 @@ export default function GoalsTab({ rows }) {
             <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
               <motion.div
                 className="h-full rounded-full"
-                style={{ backgroundColor: todayPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)' }}
+                style={{ backgroundColor: todayPct >= 1 ? 'var(--color-alert)' : 'var(--color-positive)' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(todayPct, 1) * 100}%` }}
                 transition={{ duration: 0.65, ease: 'easeOut' }}

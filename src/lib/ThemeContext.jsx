@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
-const ThemeContext = createContext({ theme: 'dark', setTheme: () => {} })
+const ThemeContext = createContext({ theme: 'light', setTheme: () => {} })
 export const useTheme = () => useContext(ThemeContext)
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('dark')
+  // Light (ivory) is the canonical Monami look per DESIGN.md; dark navy is
+  // the secondary mode.
+  const [theme, setTheme] = useState('light')
 
   // Category/donut colors are read via getComputedStyle(document.documentElement)
   // (see the themeColor() helpers in GoalsTab/TransactionsTab) — mirror the

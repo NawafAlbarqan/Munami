@@ -2,26 +2,32 @@
 
 @theme {
   /* Fallback tokens (only relevant before the .theme-dark/.theme-light class
-     lands on the screen root — see PhoneFrame.jsx). Kept in sync with dark. */
-  --color-page: #1E1E1E;
-  --color-tint: #2A2A2A;
-  --color-card: #262626;
-  --color-card-border: #000000;
+     lands on the screen root — see PhoneFrame.jsx). Kept in sync with light. */
+  --color-page: #FAF8F3;
+  --color-tint: #EEF1F4;
+  --color-card: #FFFFFF;
+  --color-card-border: rgba(13, 27, 42, 0.12);
 
-  --color-primary: #2FBF71;
-  --color-positive: #2FBF71;
-  --color-caution: #FF5C39;
-  --color-rewards: #FFC93C;
-  --color-teal: #17C3B2;      /* Food & Groceries — vivid teal, same both themes */
-  --color-lavender: #A66CFF;  /* Other — vivid purple, same both themes */
+  --color-primary: #EE7623;   /* Alinma orange — the main accent */
+  --color-positive: #31B878;  /* mint-600 — positive states / healthy progress only */
+  --color-caution: #EE7623;   /* orange — attention / near-limit */
+  --color-alert: #E33C4A;     /* red — alerts / exceeded / destructive ONLY */
+  --color-rewards: #EE7623;
 
-  --color-text: #F5F0E6;
-  --color-muted: #A79E8E;
+  /* Documented category tokens (donut, legend, budget bars) — brand-derived,
+     never random per-category colors. Same in both themes. */
+  --color-cat-shopping: #EE7623;      /* Alinma orange */
+  --color-cat-food: #31B878;          /* mint-600 */
+  --color-cat-bills: #29415F;         /* navy-600 */
+  --color-cat-entertainment: #A9761B; /* documented warm amber (AA-safe as text on ivory) */
+  --color-cat-other: #8792A0;         /* gray-500 */
 
-  /* Ink that always sits ON a vivid accent fill (buttons, chips, hero button).
-     Deliberately theme-independent — a solid green/gold fill always needs a
-     near-black ink regardless of whether the page around it is light or dark. */
-  --color-on-accent: #0E1F14;
+  --color-text: #0D1B2A;
+  --color-muted: #596575;
+
+  /* Ink that sits ON a coral accent fill (buttons, chips, active nav pill).
+     Deep navy rather than white — passes WCAG AA on coral in both themes. */
+  --color-on-accent: #081B2A;
 }
 
 html,
@@ -35,7 +41,7 @@ body,
 body {
   background: var(--color-page);
   color: var(--color-text);
-  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Hides the scrollbar on the phone screen's internal scroll area so it
@@ -47,93 +53,153 @@ body {
   display: none;
 }
 
-/* ── RETRO 90s / NEUBRUTALIST — the app's one design system, two themes ────
+/* ── MONAMI IDENTITY — calm, premium, navy/ivory/coral (see DESIGN.md) ─────
    Applied ONCE at the phone screen root (PhoneFrame.jsx picks `.theme-dark`
    or `.theme-light` from ThemeContext). Every tab, the bottom nav, the
    hamburger, and Settings all live inside this single root, so the whole
    app reskins from one place — no per-tab opt-in needed.
-   Structural elements (black outlines, offset shadows) are IDENTICAL in both
-   themes; only the base surface/text/accent colors shift. */
+   Light (ivory) is the canonical look; dark is the navy foundation. */
 
 .theme-dark, .theme-light {
-  font-family: 'Space Grotesk', 'DM Sans', ui-sans-serif, sans-serif;
+  font-family: 'Inter', 'Cairo', ui-sans-serif, sans-serif;
 }
 .theme-dark[dir="rtl"], .theme-dark [dir="rtl"],
 .theme-light[dir="rtl"], .theme-light [dir="rtl"] {
-  font-family: 'Noto Sans Arabic', 'Space Grotesk', ui-sans-serif, sans-serif;
+  font-family: 'Cairo', 'Inter', ui-sans-serif, sans-serif;
 }
 
-/* Dark (default) — charcoal ground, off-white ink, full-bright accents. */
-.theme-dark {
-  --color-page: #1E1E1E;
-  --color-tint: #2A2A2A;
-  --color-card: #262626;
-  --color-card-border: #000000;
-  --color-text: #F5F0E6;
-  --color-muted: #A79E8E;
-  --color-primary: #2FBF71;
-  --color-positive: #2FBF71;
-  --color-caution: #FF5C39;
-  --color-rewards: #FFC93C;
-  --grad-hero-card: #262626;
+/* Shadows — restrained, navy-tinted (never harsh offsets). */
+.theme-dark, .theme-light {
+  --shadow-sm: 0 2px 8px rgba(8, 27, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(8, 27, 42, 0.10);
+  --shadow-float: 0 12px 32px rgba(8, 27, 42, 0.16);
+  --gradient-hero: linear-gradient(145deg, #081B2A 0%, #14243C 62%, #2D394D 100%);
+  --gradient-coral: linear-gradient(135deg, #FF9A52 0%, #EE7623 100%);
+
+  /* Category tokens (documented brand-derived set; two get a per-theme
+     legibility override below) */
+  --color-cat-shopping: #EE7623;
+  --color-cat-food: #31B878;
+  --color-cat-bills: #29415F;
+  --color-cat-entertainment: #A9761B; /* AA-safe as text on ivory */
+  --color-cat-other: #8792A0;
 }
 
-/* Light — warm medium-grey ground (not white), warm cream cards, deepened
-   (never desaturated) accents so small text stays legible on a light ground.
-   Same black outlines/shadows as dark — only the base colors shift. */
+/* Light (canonical) — warm ivory ground, white cards, navy ink, coral accent. */
 .theme-light {
-  --color-page: #D8D8D4;
-  --color-tint: #EBE5D6;
-  --color-card: #F7F3EA;
-  --color-card-border: #000000;
-  --color-text: #1A1A1A;
-  --color-muted: #5C5C52;
-  --color-primary: #0F6B3A;   /* deep saturated green — passes 4.5:1 on page+card */
-  --color-positive: #0F6B3A;
-  --color-caution: #AC2E12;   /* deep saturated rust-coral */
-  --color-rewards: #7A5200;   /* deep saturated amber-gold */
-  --grad-hero-card: #F7F3EA;
+  --color-page: #FAF8F3;
+  --color-tint: #EEF1F4;
+  --color-card: #FFFFFF;
+  --color-card-border: rgba(13, 27, 42, 0.12);
+  --color-text: #0D1B2A;
+  --color-muted: #596575;
+  --color-primary: #EE7623;
+  --color-positive: #31B878;
+  --color-caution: #EE7623;
+  --color-alert: #E33C4A;
+  --color-rewards: #EE7623;
+  --color-on-accent: #081B2A;
+  --grad-hero-card: #FFFFFF;
+  /* Bills & Transport reads too dark against navy text on white — fine as a
+     fill; as TEXT it still passes AA (navy-600 on white ≈ 8:1). */
+
+  /* Chat (Copilot) — follows the theme: light chat canvas in light mode. */
+  --chat-canvas: #FAF8F3;
+  --chat-surface: #FFFFFF;
+  --chat-border: rgba(13, 27, 42, 0.12);
+  --chat-ink: #0D1B2A;
+  --chat-muted: #596575;
+  --chat-bubble-ai: #FFFFFF;
+  --chat-bubble-user: #FDE4CE; /* soft orange tint */
+  --chat-handle: rgba(13, 27, 42, 0.18);
 }
 
-/* Thick black outline + chunky solid offset "sticker" shadow on every
-   rounded card, app-wide (nav, Settings, all five tabs — one root, one rule). */
+/* Dark — deep navy foundation; brighter coral/mint so accents stay legible. */
+.theme-dark {
+  --color-page: #0D1B2A;
+  --color-tint: #14243C;
+  --color-card: #1A304D;
+  --color-card-border: rgba(255, 255, 255, 0.10);
+  --color-text: #FFFFFF;
+  --color-muted: #8792A0;
+  --color-primary: #FF8F4D;
+  --color-positive: #66CFA7;
+  --color-caution: #FF8F4D;
+  --color-alert: #E33C4A;
+  --color-rewards: #FF8F4D;
+  --color-on-accent: #081B2A;
+  --grad-hero-card: #1A304D;
+  /* navy-600/deep-amber fills are illegible on navy cards — lighter
+     variants in dark mode only (still documented tokens). */
+  --color-cat-bills: #7C93B2;
+  --color-cat-entertainment: #E0A83E;
+  --color-cat-shopping: #FF8F4D;
+
+  /* Chat (Copilot) — deep navy conversation canvas in dark mode. */
+  --chat-canvas: #0D1B2A;
+  --chat-surface: #14243C;
+  --chat-border: rgba(255, 255, 255, 0.10);
+  --chat-ink: #FFFFFF;
+  --chat-muted: #8792A0;
+  --chat-bubble-ai: #1A304D;
+  --chat-bubble-user: #FDE4CE;
+  --chat-handle: rgba(255, 255, 255, 0.18);
+}
+
+/* Fine navy outline + restrained soft shadow on every rounded card,
+   app-wide (nav, Settings, all five tabs — one root, one rule). */
 .theme-dark [class*="rounded-["],
 .theme-light [class*="rounded-["] {
-  border-width: 3px !important;
-  border-style: solid !important;
-  border-color: #000 !important;
-  box-shadow: 5px 5px 0 #000 !important;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-card-border);
+  box-shadow: var(--shadow-sm);
 }
-/* solid-fill BUTTONS get the same sticker treatment (not tiny dot spans) */
+/* solid-fill primary BUTTONS: no outline, soft shadow only */
 .theme-dark button.bg-primary,
 .theme-light button.bg-primary {
-  border: 3px solid #000 !important;
-  box-shadow: 4px 4px 0 #000 !important;
+  border: none;
+  box-shadow: var(--shadow-sm);
 }
-/* منمّي chat bubbles + avatars (the `border-primary/xx` elements) →
-   vivid teal sticker with charcoal ink, distinct from the plain card bubbles */
-.theme-dark [class*="border-primary/"],
-.theme-light [class*="border-primary/"] {
-  background: #17C3B2 !important;
-  color: #0E1F14 !important;
-  border-color: #000 !important;
-}
-/* solid-fill hero cards → bold gold sticker with charcoal ink on everything.
-   Fixed treatment in both themes — the hero is its own color island. */
-.theme-dark .retro-hero, .theme-light .retro-hero { background: #FFC93C !important; }
-.theme-dark .retro-hero *, .theme-light .retro-hero *,
-.theme-dark .retro-hero .munami-hero, .theme-light .retro-hero .munami-hero { color: #1E1E1E !important; }
-/* verdict/status pill sitting ON the gold hero — a charcoal sticker with
-   cream ink so it POPS instead of blending into the yellow */
-.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict { background: #1E1E1E !important; }
-.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict,
-.theme-dark .retro-hero .retro-verdict *, .theme-light .retro-hero .retro-verdict * { color: #FFF3D0 !important; }
 
-/* Hero number — Space Grotesk Bold / Noto Sans Arabic Black, very large. */
+/* Hero cards (Overview spent, Accounts total balance) — deep navy gradient
+   with white ink. A fixed color island, identical in both themes. */
+.theme-dark .retro-hero, .theme-light .retro-hero {
+  background: var(--gradient-hero) !important;
+  border-color: transparent !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.theme-dark .retro-hero, .theme-light .retro-hero,
+.theme-dark .retro-hero .text-text, .theme-light .retro-hero .text-text,
+.theme-dark .retro-hero .munami-hero, .theme-light .retro-hero .munami-hero {
+  color: #FFFFFF;
+}
+.theme-dark .retro-hero .text-muted, .theme-light .retro-hero .text-muted {
+  color: rgba(255, 255, 255, 0.62);
+}
+.theme-dark .retro-hero .text-positive, .theme-light .retro-hero .text-positive {
+  color: #66CFA7; /* mint-500 pops on navy */
+}
+.theme-dark .retro-hero .border-t, .theme-light .retro-hero .border-t {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+.theme-dark .retro-hero .bg-card-border, .theme-light .retro-hero .bg-card-border {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+/* verdict/status pill sitting ON the navy hero — soft translucent chip */
+.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+.theme-dark .retro-hero .retro-verdict, .theme-light .retro-hero .retro-verdict,
+.theme-dark .retro-hero .retro-verdict *, .theme-light .retro-hero .retro-verdict * {
+  color: #FFFFFF !important;
+}
+
+/* Financial number large — 34/40, 700, tabular numerals. */
 .munami-hero {
-  font-family: 'Space Grotesk', 'Noto Sans Arabic', sans-serif;
-  font-size: 44px;
+  font-size: 34px;
   font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1;
+  line-height: 40px;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
 }

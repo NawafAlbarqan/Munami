@@ -7,7 +7,7 @@ import MunamiMascot from './MunamiMascot'
 // Segmented language picker — always LTR so EN/AR labels stay in fixed order
 function LanguageSwitch({ locale, onChange }) {
   return (
-    <div dir="ltr" className="flex bg-tint rounded-full p-0.5" style={{ border: '2px solid #000000' }}>
+    <div dir="ltr" className="flex bg-tint rounded-full p-0.5" style={{ border: '1px solid var(--color-card-border)' }}>
       {[{ l: 'en', label: 'EN' }, { l: 'ar', label: 'AR' }].map(({ l, label }) => (
         <button
           key={l}
@@ -37,8 +37,8 @@ function ThemeSwitch({ theme, onChange }) {
       className="flex items-center shrink-0"
       style={{
         width: 54, height: 30, borderRadius: 999,
-        background: isLight ? 'var(--color-tint)' : '#141414',
-        border: '2.5px solid #000000',
+        background: isLight ? 'var(--color-tint)' : '#14243C',
+        border: '1px solid var(--color-card-border)',
         padding: '0 3px',
         justifyContent: isLight ? 'flex-end' : 'flex-start',
       }}
@@ -47,7 +47,7 @@ function ThemeSwitch({ theme, onChange }) {
         layout
         transition={{ duration: 0.22, ease: 'easeOut' }}
         className="rounded-full flex items-center justify-center text-[11px] leading-none"
-        style={{ width: 22, height: 22, background: 'var(--color-primary)', border: '2px solid #000000' }}
+        style={{ width: 22, height: 22, background: 'var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}
       >
         {isLight ? '☀️' : '🌙'}
       </motion.div>
@@ -92,7 +92,7 @@ export default function SettingsPanel({ onClose }) {
         <button
           onClick={onClose}
           className="bg-card flex items-center justify-center shrink-0"
-          style={{ width: 34, height: 34, borderRadius: 11, border: '2.5px solid #000000', boxShadow: '3px 3px 0 #000000' }}
+          style={{ width: 34, height: 34, borderRadius: 12, border: '1px solid var(--color-card-border)', boxShadow: 'var(--shadow-sm)' }}
         >
           {/* Arrow flips in RTL via scaleX */}
           <svg
@@ -111,9 +111,9 @@ export default function SettingsPanel({ onClose }) {
           {/* Avatar circle */}
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: 'var(--color-primary)', border: '3px solid #000000' }}
+            style={{ background: 'var(--gradient-coral)', boxShadow: 'var(--shadow-sm)' }}
           >
-            <span className="text-2xl font-bold" style={{ color: 'var(--color-on-accent)', fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="text-2xl font-bold" style={{ color: 'var(--color-on-accent)' }}>
               A
             </span>
           </div>
@@ -137,7 +137,7 @@ export default function SettingsPanel({ onClose }) {
             </div>
             <LanguageSwitch locale={locale} onChange={setLocale} />
           </div>
-          <div className="border-t-[2.5px]" style={{ borderColor: '#000000' }} />
+          <div className="border-t" style={{ borderColor: 'var(--color-card-border)' }} />
           <div className="flex items-center justify-between px-4 py-3.5">
             <div className="flex items-center gap-3">
               <span className="text-lg leading-none">{theme === 'light' ? '☀️' : '🌙'}</span>
@@ -155,7 +155,7 @@ export default function SettingsPanel({ onClose }) {
         </p>
         <div className="bg-card rounded-[20px] overflow-hidden">
           <SettingsRow icon="🔔" label={t(locale, 'notifications')} value={t(locale, 'comingSoon')} />
-          <div className="border-t-[2.5px]" style={{ borderColor: '#000000' }} />
+          <div className="border-t" style={{ borderColor: 'var(--color-card-border)' }} />
           <SettingsRow icon="🏦" label={t(locale, 'linkedAccounts')} value={t(locale, 'comingSoon')} />
         </div>
       </div>

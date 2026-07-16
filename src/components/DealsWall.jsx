@@ -177,7 +177,7 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
       <div className="flex items-center gap-3">
         <span
           className="w-11 h-11 rounded-[14px] flex items-center justify-center text-2xl shrink-0"
-          style={{ background: unlocked ? 'var(--color-rewards)' : 'var(--color-tint)' }}
+          style={{ background: unlocked ? 'color-mix(in srgb, var(--color-primary) 16%, var(--color-card))' : 'var(--color-tint)' }}
         >
           {deal.icon}
         </span>
@@ -189,7 +189,7 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
           className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-sm font-extrabold tabular-nums"
           style={{
             background: unlocked ? 'var(--color-primary)' : 'var(--color-tint)',
-            color: unlocked ? '#0E1F14' : 'var(--color-muted)',
+            color: unlocked ? 'var(--color-on-accent)' : 'var(--color-muted)',
           }}
         >
           {deal.valueLabel}
@@ -203,7 +203,7 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
           </span>
           <span
             className="rounded-[10px] px-4 py-1.5 text-xs font-bold"
-            style={{ background: 'var(--color-primary)', color: '#0E1F14' }}
+            style={{ background: 'var(--color-primary)', color: 'var(--color-on-accent)' }}
           >
             {redeemed ? t(locale, 'redeemed') : t(locale, 'redeem')}
           </span>
@@ -294,7 +294,7 @@ export default function DealsWall({ locale, level }) {
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="w-14 h-14 rounded-[16px] flex items-center justify-center text-3xl shrink-0"
-                  style={{ background: activeDeal.met ? 'var(--color-rewards)' : 'var(--color-tint)' }}
+                  style={{ background: activeDeal.met ? 'color-mix(in srgb, var(--color-primary) 16%, var(--color-card))' : 'var(--color-tint)' }}
                 >
                   {activeDeal.icon}
                 </span>
@@ -306,7 +306,7 @@ export default function DealsWall({ locale, level }) {
                   className="shrink-0 rounded-[10px] px-3 py-1.5 text-base font-extrabold tabular-nums"
                   style={{
                     background: activeDeal.met ? 'var(--color-primary)' : 'var(--color-tint)',
-                    color: activeDeal.met ? '#0E1F14' : 'var(--color-muted)',
+                    color: activeDeal.met ? 'var(--color-on-accent)' : 'var(--color-muted)',
                   }}
                 >
                   {activeDeal.valueLabel}
@@ -350,7 +350,7 @@ export default function DealsWall({ locale, level }) {
                     type="button"
                     onClick={() => handleRedeem(activeDeal.id)}
                     className="w-full py-3.5 rounded-full font-semibold text-sm"
-                    style={{ background: 'var(--color-primary)', color: '#0E1F14' }}
+                    style={{ background: 'var(--color-primary)', color: 'var(--color-on-accent)' }}
                   >
                     {redeemedIds.includes(activeDeal.id) ? t(locale, 'redeemed') : t(locale, 'redeem')}
                   </button>
