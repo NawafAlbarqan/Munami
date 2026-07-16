@@ -237,6 +237,8 @@ export default function GoalsTab({ rows }) {
     () => computeDailyStreak(rows, monthlyBudgetTotal),
     [rows, monthlyBudgetTotal],
   )
+  const today = streak.days.length > 0 ? streak.days[streak.days.length - 1] : null
+  const todayPct = today && today.budget > 0 ? today.spend / today.budget : 0
 
   function openSheet() {
     setNewCategory(availableCategories[0] ?? '')
@@ -376,8 +378,8 @@ export default function GoalsTab({ rows }) {
 
       {/* ── Streak — real, computed day by day from actual spend vs. one
           overall daily budget (sum of the budget cards below ÷ days in
-          that day's month). The dot strip shows the last 14 days so the
-          pattern behind the number is visible, not just a single count. ── */}
+          that day's month). Below the streak numbers, today's own progress
+          against that same daily budget is shown directly. ── */}
       <motion.div
         className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-4"
         initial={{ opacity: 0, y: 6 }}
@@ -398,19 +400,28 @@ export default function GoalsTab({ rows }) {
           </div>
         </div>
 
-        {streak.days.length > 0 && (
-          <div className="flex items-center gap-1.5 mt-4">
-            {streak.days.slice(-14).map((day) => (
+        {today && (
+          <div className="mt-4 pt-4" style={{ borderTop: '1.5px solid var(--color-card-border)' }}>
+            <div className="flex justify-between items-baseline mb-1.5">
+              <span className="text-muted text-[11px] font-medium uppercase tracking-wide">
+                {t(locale, 'dailyLimit')} {formatSAR(Math.round(today.budget))}
+              </span>
               <span
-                key={day.date}
-                title={`${day.date}: ${formatSAR(Math.round(day.spend))} / ${formatSAR(Math.round(day.budget))}`}
-                className="flex-1 h-2.5 rounded-full"
-                style={{
-                  backgroundColor: day.ok ? 'var(--color-primary)' : 'var(--color-caution)',
-                  border: '1.5px solid #000',
-                }}
+                className="text-xs font-semibold tabular-nums"
+                style={{ color: todayPct >= 1 ? 'var(--color-caution)' : 'var(--color-text)' }}
+              >
+                {t(locale, 'spentToday')} {formatSAR(Math.round(today.spend))}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-card-border)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: todayPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(todayPct, 1) * 100}%` }}
+                transition={{ duration: 0.65, ease: 'easeOut' }}
               />
-            ))}
+            </div>
           </div>
         )}
       </motion.div>
