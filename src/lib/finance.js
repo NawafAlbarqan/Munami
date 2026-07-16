@@ -223,3 +223,59 @@ export function summarizePriorMonth(debitRows, selectedMonth) {
 export function isGood(direction) {
   return direction === 'down'
 }
+
+// Daily streak: a day "hits" if total debit spend across ALL categories
+// stays under one overall daily budget (sum of the user's monthly category
+// budgets ÷ days in that day's own calendar month). Walks every calendar
+// day from the earliest to the latest transaction date — a day with no
+// transactions counts as 0 spend (a hit), since real users don't spend
+// every day. Returns the current streak (counting back from the latest
+// data day), the longest streak ever seen, and the full day-by-day list
+// for the UI's hit/miss strip.
+export function computeDailyStreak(rows, monthlyBudgetTotal) {
+  if (!rows?.length || monthlyBudgetTotal <= 0) {
+    return { current: 0, longest: 0, days: [] }
+  }
+
+  const spendByDay = {}
+  for (const r of getDebits(rows)) {
+    spendByDay[r.date] = (spendByDay[r.date] || 0) + r.amount_sar
+  }
+
+  const allDates = rows.map((r) => r.date).filter(Boolean).sort()
+  const [fy, fm, fd] = allDates[0].split('-').map(Number)
+  const [ly, lm, ld] = allDates[allDates.length - 1].split('-').map(Number)
+
+  // UTC throughout so incrementing by a day never skips/repeats a date
+  // because of the local timezone offset.
+  const cursor = new Date(Date.UTC(fy, fm - 1, fd))
+  const end = new Date(Date.UTC(ly, lm - 1, ld))
+
+  const days = []
+  while (cursor <= end) {
+    const iso = cursor.toISOString().slice(0, 10)
+    const spend = spendByDay[iso] || 0
+    const budget = monthlyBudgetTotal / daysInMonth(monthKey(iso))
+    days.push({ date: iso, spend, budget, ok: spend < budget })
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+
+  let longest = 0
+  let run = 0
+  for (const day of days) {
+    if (day.ok) {
+      run += 1
+      longest = Math.max(longest, run)
+    } else {
+      run = 0
+    }
+  }
+
+  let current = 0
+  for (let i = days.length - 1; i >= 0; i--) {
+    if (days[i].ok) current += 1
+    else break
+  }
+
+  return { current, longest, days }
+}

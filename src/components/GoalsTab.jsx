@@ -12,6 +12,7 @@ import {
   getLatestMonth,
   monthKey,
   categoryColorVar,
+  computeDailyStreak,
 } from '../lib/finance'
 import {
   computeCurrentWeekChallenges,
@@ -79,10 +80,6 @@ function XPRing({ locale }) {
 }
 
 // ─── Static demo data ─────────────────────────────────────────────────────────
-
-const STREAK_DAYS = 7
-const STREAK_LONGEST = 14
-const DAYS_TO_BADGE = 3
 
 const DEFAULT_BUDGETS = [
   { category: 'Shopping', limit: 2000 },
@@ -229,6 +226,18 @@ export default function GoalsTab({ rows }) {
 
   const availableCategories = ALL_CATEGORIES.filter((c) => !budgets.some((b) => b.category === c))
 
+  // Real daily streak: one overall daily budget (sum of the budget cards
+  // above ÷ days in that day's month), compared against real total daily
+  // spend across all categories, walked day by day over the whole dataset.
+  const monthlyBudgetTotal = useMemo(
+    () => budgets.reduce((sum, b) => sum + b.limit, 0),
+    [budgets],
+  )
+  const streak = useMemo(
+    () => computeDailyStreak(rows, monthlyBudgetTotal),
+    [rows, monthlyBudgetTotal],
+  )
+
   function openSheet() {
     setNewCategory(availableCategories[0] ?? '')
     setNewLimit('')
@@ -365,24 +374,45 @@ export default function GoalsTab({ rows }) {
         <XPRing locale={locale} />
       </div>
 
-      {/* ── Streak ── */}
+      {/* ── Streak — real, computed day by day from actual spend vs. one
+          overall daily budget (sum of the budget cards below ÷ days in
+          that day's month). The dot strip shows the last 14 days so the
+          pattern behind the number is visible, not just a single count. ── */}
       <motion.div
-        className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-4 flex items-center gap-4"
+        className="bg-card border-[0.5px] border-card-border rounded-[20px] p-5 mb-4"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        <span className="text-3xl">🔥</span>
-        <div className="flex-1 min-w-0">
-          <p className="text-text font-semibold">{t(locale, 'streakLabel', STREAK_DAYS)}</p>
-          <p className="text-muted text-xs mt-0.5">{t(locale, 'streakToBadge', DAYS_TO_BADGE)}</p>
+        <div className="flex items-center gap-4">
+          <span className="text-3xl">🔥</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-text font-semibold">{t(locale, 'streakLabel', streak.current)}</p>
+            <p className="text-muted text-xs mt-0.5">{t(locale, 'streakCaption')}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-muted text-[10px] uppercase tracking-wide">{t(locale, 'streakBest')}</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--color-rewards)' }}>
+              {t(locale, 'streakBestDays', streak.longest)}
+            </p>
+          </div>
         </div>
-        <div className="text-right shrink-0">
-          <p className="text-muted text-[10px] uppercase tracking-wide">{t(locale, 'streakBest')}</p>
-          <p className="text-sm font-semibold" style={{ color: 'var(--color-rewards)' }}>
-            {t(locale, 'streakBestDays', STREAK_LONGEST)}
-          </p>
-        </div>
+
+        {streak.days.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-4">
+            {streak.days.slice(-14).map((day) => (
+              <span
+                key={day.date}
+                title={`${day.date}: ${formatSAR(Math.round(day.spend))} / ${formatSAR(Math.round(day.budget))}`}
+                className="flex-1 h-2.5 rounded-full"
+                style={{
+                  backgroundColor: day.ok ? 'var(--color-primary)' : 'var(--color-caution)',
+                  border: '1.5px solid #000',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* ── Monthly budgets ── */}
