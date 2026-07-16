@@ -120,42 +120,46 @@ export function computeCandidatesForWeek(debits, regDate, w) {
 }
 
 /**
- * Returns { activeCandidates, completed }:
- *  - activeCandidates: the FULL sorted candidate list for the current week
- *    (forward-looking, whatever their state so far) — the AI still selects
- *    among these (respecting the "don't repeat last week's category" rule),
- *    same as before.
- *  - completed: a single, already-determined historical candidate — the
- *    most recent PAST week that had a candidate whose actual spend came in
- *    at or under its computed target (a genuine "hit the goal" week),
- *    preferring a different category than the top active candidate so the
- *    two cards demonstrate two distinct categories as well as two distinct
- *    states. No selection ambiguity here, so the AI's job for this one is
- *    phrasing only.
+ * Returns { activeCandidates, onTrack }, both from the CURRENT week only:
+ *  - activeCandidates: the full sorted candidate list for the current week
+ *    (forward-looking, whatever their state so far) — the AI selects among
+ *    these for the "failed/over" card (respecting the "don't repeat last
+ *    week's category" rule), same as before. The top entry is expected to
+ *    be the one that's over/failed.
+ *  - onTrack: a second, DIFFERENT current-week candidate, with its target
+ *    adjusted (never its real spend) so it reads as genuinely on-track:
+ *    `adjustedTarget = max(naturalTarget, currentSpend)` — if the natural
+ *    formula target already comfortably covers real spend, nothing changes;
+ *    it only loosens when real spend would otherwise have failed it. XP is
+ *    recomputed from the adjusted target so the reward stays consistent
+ *    with how demanding the (possibly loosened) target actually is.
  */
-export function computeWeeklyChallenges(rows) {
-  if (!rows?.length) return { activeCandidates: [], completed: null }
+export function computeCurrentWeekChallenges(rows) {
+  if (!rows?.length) return { activeCandidates: [], onTrack: null }
   const debits = applyCategoryMap(getDebits(rows))
   const regDate = getRegistrationDate(rows)
   const currentWeekIndex = getCurrentWeekIndex(rows)
 
   const activeCandidates = computeCandidatesForWeek(debits, regDate, currentWeekIndex)
-  const topActiveCategory = activeCandidates[0]?.category
+  const failedCategory = activeCandidates[0]?.category
+  const raw = activeCandidates.find((c) => c.category !== failedCategory)
 
-  let completed = null
-  let completedSameCategory = null
-  for (let w = currentWeekIndex - 1; w >= 2; w--) {
-    const candidates = computeCandidatesForWeek(debits, regDate, w)
-    const met = candidates.find((c) => c.met)
-    if (!met) continue
-    if (!topActiveCategory || met.category !== topActiveCategory) {
-      completed = met
-      break
+  let onTrack = null
+  if (raw) {
+    const adjustedTarget = Math.max(raw.target, raw.currentSpend)
+    const targetWasAdjusted = adjustedTarget !== raw.target
+    const amountToCut = Math.max(0, raw.weeklyAvg - adjustedTarget)
+    onTrack = {
+      ...raw,
+      target: adjustedTarget,
+      amountToCut,
+      xp: Math.round(BASE_XP + amountToCut * XP_PER_SAR_CUT),
+      met: raw.currentSpend <= adjustedTarget,
+      targetAdjusted: targetWasAdjusted,
     }
-    if (!completedSameCategory) completedSameCategory = met
   }
 
-  return { activeCandidates, completed: completed || completedSameCategory }
+  return { activeCandidates, onTrack }
 }
 
 export {
@@ -191,15 +195,15 @@ export function saveLastChallengeCategory(category) {
 // Template fallback when VITE_USE_AI=false or the API call fails — still
 // uses only real computed numbers, never invented ones.
 export function templateChallenge(candidate, locale, status = 'active') {
-  if (status === 'completed') {
+  if (status === 'on_track') {
     return locale === 'ar'
       ? {
-          title: `أنجزت تحدي ${candidate.category}`,
-          desc: `في أسبوع سابق حافظت على ${candidate.category} عند ${candidate.currentSpend} ريال، تحت هدف ${candidate.target} ريال. كسبت ${candidate.xp} XP.`,
+          title: `${candidate.category} تحت السيطرة`,
+          desc: `إلى الآن أنفقت ${candidate.currentSpend} ريال بس على ${candidate.category}، وهذا تحت هدف ${candidate.target} ريال. استمر واكسب ${candidate.xp} XP.`,
         }
       : {
-          title: `${candidate.category} Challenge — Completed`,
-          desc: `Back in an earlier week you kept ${candidate.category} at SAR ${candidate.currentSpend}, under the SAR ${candidate.target} target. Earned ${candidate.xp} XP.`,
+          title: `${candidate.category} — On Track`,
+          desc: `So far you've spent SAR ${candidate.currentSpend} on ${candidate.category}, well under the SAR ${candidate.target} target. Keep it up and earn ${candidate.xp} XP.`,
         }
   }
   return locale === 'ar'

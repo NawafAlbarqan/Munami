@@ -60,24 +60,24 @@ app.post('/api/weekly-challenge', async (req, res) => {
   if (!candidates?.length) return res.status(400).json({ error: 'No candidates' })
 
   const lang = locale === 'ar' ? 'Arabic' : 'English'
-  const isCompleted = status === 'completed'
+  const isOnTrack = status === 'on_track'
   const candidatesBlock = candidates
-    .map((c, i) => `${i}: ${c.category} — trending ${c.overagePct}% above its usual SAR ${c.weeklyAvg}/week, target SAR ${c.target}/week (a ${c.reductionPct}% cut), actual spend SAR ${c.currentSpend}, worth ${c.xp} XP`)
+    .map((c, i) => `${i}: ${c.category} — trending ${c.overagePct}% above its usual SAR ${c.weeklyAvg}/week, target SAR ${c.target}/week (a ${c.reductionPct}% cut), actual spend so far SAR ${c.currentSpend}, worth ${c.xp} XP`)
     .join('\n')
 
-  const prompt = isCompleted
-    ? `You are منمّي, a warm straight-talking Saudi financial coach writing a short recap of a spending challenge the user ALREADY completed successfully in a past week.
+  const prompt = isOnTrack
+    ? `You are منمّي, a warm straight-talking Saudi financial coach encouraging the user about a spending challenge THIS week that they are currently on track on (the week isn't over yet).
 
-Candidate (index: category — trend — target — actual spend — XP):
+Candidate (index: category — trend — target — actual spend so far — XP):
 ${candidatesBlock}
 
 Rules:
-- Write in ${lang}, in منمّي's voice: warm, genuinely celebratory, 1-2 short sentences, past tense (this already happened).
-- You MUST use the category name, target SAR amount, actual spend, and XP value EXACTLY as given. Do not invent, round, or estimate any number.
+- Write in ${lang}, in منمّي's voice: warm, encouraging, 1-2 short sentences, present tense — this is still in progress, not finished, so don't claim victory yet.
+- You MUST use the category name, target SAR amount, actual spend so far, and XP value EXACTLY as given. Do not invent, round, or estimate any number.
 - Reply with EXACTLY 3 lines, nothing else:
-  line 1: the number 0 (only one candidate is ever sent for a completed recap)
-  line 2: a short celebratory title (under 6 words)
-  line 3: the one-to-two sentence recap, must include the actual spend and the target SAR amounts`
+  line 1: the number 0 (only one candidate is ever sent for an on-track update)
+  line 2: a short encouraging title (under 6 words)
+  line 3: the one-to-two sentence update, must include the actual spend so far and the target SAR amounts`
     : `You are منمّي, a warm straight-talking Saudi financial coach picking this week's ONE spending challenge for the user.
 
 Candidates (index: category — trend — target — XP):

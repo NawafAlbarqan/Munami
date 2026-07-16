@@ -585,44 +585,63 @@ Sections top to bottom:
   `groupByCategory(thisMonthDebits)`. Progress bar color shifts: category color
   (healthy) → butter yellow (≥75%) → coral red (≥100%). "+" opens a bottom sheet
   to add a new budget for any un-budgeted category; local state only.
-- **Weekly Challenge — real, AI-generated, one card (not static demo data)**:
-  a clean code/AI split, same philosophy as the rest of the app ("code
-  computes, AI only phrases"):
-  - **Code finds candidates** (`src/lib/challengeGen.js`,
-    `computeCandidateChallenges()`): per category, compares this week's
-    spend (the 7 days ending at the data's own latest date — same
-    determinism rule as `getLatestMonth()`) against that category's own
-    historical weekly average (total prior spend ÷ number of prior weeks).
-    A category only qualifies if it's trending >10% above its own average
-    AND that average is at least SAR 30/week (guardrails against noise).
+- **Weekly Challenges — real, AI-generated, two cards, both from the
+  current week** (not static demo data): a clean code/AI split, same
+  philosophy as the rest of the app ("code computes, AI only phrases"):
+  - **Fixed weeks, not a rolling window** (`src/lib/challengeGen.js`):
+    weeks are fixed 7-day blocks counted from the account's registration
+    date (`getRegistrationDate()` — the earliest date in the data), not
+    "the last 7 days from today." Week 0 = regDate..regDate+6, week 1 =
+    next 7 days, etc. (`getCurrentWeekIndex()`).
+  - **Causally-correct candidate detection** (`computeCandidatesForWeek()`):
+    whether a category gets challenged for week `w` is decided from week
+    `w-1` (the "detection week") trending >10% above ITS OWN prior average
+    — never from week `w`'s own spend, which hasn't fully happened yet.
+    Week `w`'s actual spend is then the thing evaluated against the
+    target. (An earlier version compared the same week's spend for both
+    detection and evaluation, which made "target met" mathematically
+    impossible — a candidate was defined as over-trend on the very data
+    being checked against a stricter target.) Guardrail: the detection
+    week's own prior average must be ≥ SAR 30/week.
   - **Code computes the target and XP by formula** — not arbitrary round
     numbers: `reductionPct = clamp(10 + overagePct/10, 10, 15)` (a bigger
     overage asks for a bigger cut, capped at 15% so it stays realistic),
-    `target = round(weeklyAvg × (1 − reductionPct/100))`,
-    `xp = round(100 + (weeklyAvg − target) × 2)` (a more demanding target
-    pays more XP). Candidates are sorted by overage % descending.
+    `target = round(avgBeforeDetection × (1 − reductionPct/100))`,
+    `xp = round(100 + (avgBeforeDetection − target) × 2)` (a more demanding
+    target pays more XP). Candidates are sorted by overage % descending.
+  - **Two cards, both current-week** (`computeCurrentWeekChallenges()`):
+    - **Active/failed**: the top candidate by overage, target and spend
+      both real and untouched — shown with a muted "This week" tag; the
+      progress bar turns caution-red once spend reaches/exceeds target.
+    - **On track**: a *different* current-week candidate whose **target**
+      (never its real spend) is adjusted — `adjustedTarget =
+      max(naturalTarget, currentSpend)` — so it genuinely reads as
+      achievable this week. If the natural formula target already covers
+      real spend, nothing changes; the override only loosens a target that
+      real spend would otherwise have already blown through. XP is
+      recomputed from the adjusted target so the reward stays consistent
+      with how demanding it actually is. Shown with a green "✓ On track"
+      pill + tinted card background.
   - **AI selects + phrases only** (`POST /api/weekly-challenge` in
-    `server.js`): given the candidate list and which category last week's
-    challenge used, Gemini picks the most over-trend candidate — skipping
-    last week's category so the same challenge never repeats two weeks
-    running — and writes the title/description in منمّي's voice. The
-    prompt requires it reuse the exact category/target/XP numbers it was
-    given; it never invents figures. `getLastChallengeCategory()` /
-    `saveLastChallengeCategory()` persist the chosen category in
-    `localStorage` (`munami_last_challenge_category`) purely for this
-    repeat-avoidance check.
+    `server.js`, `status: 'active' | 'on_track'`): for the active card,
+    given the full candidate list and which category last week's challenge
+    used, Gemini picks the most over-trend candidate — skipping last
+    week's category so it never repeats two weeks running — and writes
+    the title/description in منمّي's voice, present tense. For the
+    on-track card there's no selection ambiguity (code already picked it),
+    so the AI's only job is an encouraging, present-tense phrasing (the
+    week isn't over, so it never claims victory) — a separate prompt
+    branch in `server.js`. Both prompts require reusing the exact
+    category/target/XP numbers given; neither invents figures.
+    `getLastChallengeCategory()` / `saveLastChallengeCategory()` persist
+    the active card's category in `localStorage`
+    (`munami_last_challenge_category`) purely for the repeat-avoidance
+    check.
   - **Fallback chain** matches Copilot's: `VITE_USE_AI=false` or a failed
     API call both fall back to `templateChallenge()` — a plain sentence
-    built from the same code-computed top candidate, never blank.
-  - If no category is currently trending over its average, the card shows
-    a plain positive message instead (`noChallengeThisWeek`) — there's
-    nothing to challenge that week.
-  - The result renders through the same `mode: 'limit'` progress bar and
-    `challengeMood()` mascot badge as before — if this week's actual spend
-    already exceeds the target (common, since the target is deliberately
-    based on the historical average, not this week's number), the bar
-    correctly shows as over/`unhappy`. That's accurate, not a bug: the
-    target is a going-forward goal, not a retroactive one.
+    built from the same code-computed candidate, never blank.
+  - If no category is currently trending over its average, the section
+    shows a plain positive message instead (`noChallengeThisWeek`).
 - **Deals Wall** (`src/components/DealsWall.jsx`) — Lane 1 of the gamification
   pitch: badges became real partner deals with SAR/percentage value, replacing
   the old plain badge grid.

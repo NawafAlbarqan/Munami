@@ -14,7 +14,7 @@ import {
   categoryColorVar,
 } from '../lib/finance'
 import {
-  computeWeeklyChallenges,
+  computeCurrentWeekChallenges,
   getLastChallengeCategory,
   saveLastChallengeCategory,
   templateChallenge,
@@ -125,7 +125,7 @@ function budgetMood(pct) {
 //   mood (happy) — with no real deadline in the demo data, "in progress"
 //   isn't treated as "at risk" for these.
 function challengeMood(ch) {
-  if (ch.status === 'completed') return 'happy'
+  if (ch.status === 'on_track') return 'happy'
   const pct = ch.target > 0 ? ch.progress / ch.target : 0
   if (ch.mode === 'limit') {
     if (pct >= 1.0) return 'unhappy'
@@ -140,32 +140,33 @@ function formatWeekRange(startISO, endISO, locale) {
   return `${fmt.format(new Date(startISO))}–${fmt.format(new Date(endISO))}`
 }
 
-// Active = a live, forward-looking challenge (gold "this week" tag, bar
-// turns caution-red once actual spend reaches/exceeds target). Completed =
-// a past week that was genuinely met (green "completed" tag + checkmark,
-// bar always full green) — the two states are visually distinct without
-// touching the app-wide fixed black card outline.
+// Failed/active = a live, forward-looking challenge (gold "this week" tag,
+// bar turns caution-red once actual spend reaches/exceeds target). On track
+// = the second current-week challenge, target adjusted so real spend fits
+// under it (green "on track" tag + checkmark, bar stays green) — the two
+// states are visually distinct without touching the app-wide fixed black
+// card outline.
 function ChallengeCard({ challenge, locale }) {
   const barPct = challenge.target > 0 ? Math.min(challenge.progress / challenge.target, 1) : 0
-  const isCompleted = challenge.status === 'completed'
+  const isOnTrack = challenge.status === 'on_track'
   const mood = challengeMood(challenge)
-  const barColor = isCompleted ? 'var(--color-primary)' : barPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)'
+  const barColor = isOnTrack ? 'var(--color-primary)' : barPct >= 1 ? 'var(--color-caution)' : 'var(--color-primary)'
 
   return (
     <motion.div
       className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-4"
-      style={isCompleted ? { background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-card))' } : undefined}
+      style={isOnTrack ? { background: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-card))' } : undefined}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       <div className="flex items-center gap-1.5 mb-2.5">
-        {isCompleted ? (
+        {isOnTrack ? (
           <span
             className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5"
             style={{ background: 'var(--color-primary)', color: 'var(--color-on-accent)' }}
           >
-            ✓ {t(locale, 'challengeCompleted')}
+            ✓ {t(locale, 'challengeOnTrack')}
           </span>
         ) : (
           <span className="text-[10px] font-bold uppercase tracking-wide text-muted">
@@ -243,17 +244,18 @@ export default function GoalsTab({ rows }) {
 
   // ── Weekly challenges — code finds candidates + computes every number
   // (challengeGen.js); the AI only selects/phrases (server.js POST
-  // /api/weekly-challenge). Two cards: an active/current one (may already
-  // be over) and a completed one from a past week that was actually met —
-  // demonstrating both states. Cached per locale so switching tabs/locale
-  // doesn't re-fire the calls.
+  // /api/weekly-challenge). Two cards, BOTH from the current week: the
+  // failed/active one (real target, may already be over) and an on-track
+  // one (a different current-week candidate whose target was adjusted —
+  // never its real spend — so it's genuinely achievable). Cached per
+  // locale so switching tabs/locale doesn't re-fire the calls.
   const [activeChallenge, setActiveChallenge] = useState(null)
-  const [completedChallenge, setCompletedChallenge] = useState(null)
+  const [onTrackChallenge, setOnTrackChallenge] = useState(null)
   const [challengesLoading, setChallengesLoading] = useState(false)
   const challengeCache = useRef({})
 
-  const { activeCandidates, completed: completedCandidate } = useMemo(
-    () => computeWeeklyChallenges(rows),
+  const { activeCandidates, onTrack: onTrackCandidate } = useMemo(
+    () => computeCurrentWeekChallenges(rows),
     [rows]
   )
 
@@ -262,7 +264,7 @@ export default function GoalsTab({ rows }) {
       category: picked.category,
       icon: CATEGORY_EMOJI[picked.category] || '📦',
       mode: 'limit',
-      status, // 'active' | 'completed'
+      status, // 'active' | 'on_track'
       title,
       desc,
       xp: picked.xp,
@@ -296,11 +298,11 @@ export default function GoalsTab({ rows }) {
   }
 
   useEffect(() => {
-    const cacheKey = `${locale}+${activeCandidates.map((c) => c.category).join(',')}+${completedCandidate?.category}-${completedCandidate?.weekIndex}`
+    const cacheKey = `${locale}+${activeCandidates.map((c) => c.category).join(',')}+${onTrackCandidate?.category}`
     const cached = challengeCache.current[cacheKey]
     if (cached) {
       setActiveChallenge(cached.active)
-      setCompletedChallenge(cached.completed)
+      setOnTrackChallenge(cached.onTrack)
       return
     }
 
@@ -320,21 +322,21 @@ export default function GoalsTab({ rows }) {
         })
       : Promise.resolve(null)
 
-    const completedPromise = completedCandidate
+    const onTrackPromise = onTrackCandidate
       ? resolveChallenge({
-          picked: completedCandidate,
-          candidatesForAI: [completedCandidate],
-          status: 'completed',
+          picked: onTrackCandidate,
+          candidatesForAI: [onTrackCandidate],
+          status: 'on_track',
           lastCategory: null,
           locale,
         })
       : Promise.resolve(null)
 
-    Promise.all([activePromise, completedPromise]).then(([active, completed]) => {
+    Promise.all([activePromise, onTrackPromise]).then(([active, onTrack]) => {
       if (cancelled) return
-      challengeCache.current[cacheKey] = { active, completed }
+      challengeCache.current[cacheKey] = { active, onTrack }
       setActiveChallenge(active)
-      setCompletedChallenge(completed)
+      setOnTrackChallenge(onTrack)
       if (active) saveLastChallengeCategory(active.category)
       setChallengesLoading(false)
     })
@@ -343,7 +345,7 @@ export default function GoalsTab({ rows }) {
       cancelled = true
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCandidates, completedCandidate, locale])
+  }, [activeCandidates, onTrackCandidate, locale])
 
   return (
     <div className="absolute inset-0 overflow-y-auto scroll-thin bg-page px-4 pb-24" style={{ paddingTop: 60 }}>
@@ -450,19 +452,21 @@ export default function GoalsTab({ rows }) {
 
       {/* ── Weekly challenges — code finds each candidate + computes every
           number (challengeGen.js); the AI only selects/phrases (server.js
-          POST /api/weekly-challenge). Active card + a completed card from a
-          past week that was actually met, so both states are visible. ── */}
+          POST /api/weekly-challenge). Both cards are from THIS week: the
+          failed/active one (real target) and an on-track one (a different
+          current-week candidate whose target was adjusted, never its real
+          spend, so it's genuinely achievable) — both states visible. ── */}
       <div className="mb-4">
         <h2 className="text-text font-semibold mb-3">{t(locale, 'weeklyChallenges')}</h2>
         <div className="flex flex-col gap-3">
-          {challengesLoading && !activeChallenge && !completedChallenge && (
+          {challengesLoading && !activeChallenge && !onTrackChallenge && (
             <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
               <p className="text-muted text-xs">{t(locale, 'loading')}</p>
             </div>
           )}
           {activeChallenge && <ChallengeCard challenge={activeChallenge} locale={locale} />}
-          {completedChallenge && <ChallengeCard challenge={completedChallenge} locale={locale} />}
-          {!challengesLoading && !activeChallenge && !completedChallenge && (
+          {onTrackChallenge && <ChallengeCard challenge={onTrackChallenge} locale={locale} />}
+          {!challengesLoading && !activeChallenge && !onTrackChallenge && (
             <div className="bg-card border-[0.5px] border-card-border rounded-[20px] px-4 py-6 text-center">
               <p className="text-muted text-xs">{t(locale, 'noChallengeThisWeek')}</p>
             </div>
