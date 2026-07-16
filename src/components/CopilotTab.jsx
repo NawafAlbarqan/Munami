@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import MunamiMascot from './MunamiMascot'
 import { useLocale } from '../lib/LocaleContext'
 import { t } from '../lib/i18n'
+import { demoAssistantReply } from '../lib/demoMode'
 import {
   loadCurrentConversation,
   saveCurrentConversation,
@@ -92,7 +93,7 @@ function ThinkingBubble() {
 
 // ── Main tab ──────────────────────────────────────────────────────────────────
 
-export default function CopilotTab({ financialContext }) {
+export default function CopilotTab({ financialContext, demo = false }) {
   const { locale } = useLocale()
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
@@ -102,7 +103,9 @@ export default function CopilotTab({ financialContext }) {
   // active, so React state alone wouldn't survive that. Loaded once on mount;
   // if there's no saved conversation yet, start with just the greeting.
   const [conversation, setConversation] = useState(
-    () => loadCurrentConversation() || makeConversation(pickRandomGreeting(locale))
+    () => demo
+      ? makeConversation(locale === 'ar' ? 'حياك، أنا منمّي. وش ودك تعرف عن وضعك المالي؟' : 'Welcome. I am Munami. What would you like to know about your finances?')
+      : loadCurrentConversation() || makeConversation(pickRandomGreeting(locale))
   )
   const [history, setHistory] = useState(() => loadHistory())
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -128,11 +131,13 @@ export default function CopilotTab({ financialContext }) {
   useEffect(() => {
     setMessages((prev) => {
       if (prev.length === 1 && prev[0].role === 'ai') {
-        return [{ role: 'ai', content: pickRandomGreeting(locale) }]
+        return [{ role: 'ai', content: demo
+          ? (locale === 'ar' ? 'حياك، أنا منمّي. وش ودك تعرف عن وضعك المالي؟' : 'Welcome. I am Munami. What would you like to know about your finances?')
+          : pickRandomGreeting(locale) }]
       }
       return prev
     })
-  }, [locale])
+  }, [locale, demo])
 
   // Starting a new conversation is a deliberate action (the "new chat"
   // button) — never automatic on tab switch. Archives the current
@@ -173,13 +178,15 @@ export default function CopilotTab({ financialContext }) {
     setInput('')
 
     // Safety switch: no API calls in demo mode
-    if (!USE_AI) {
+    if (demo || !USE_AI) {
+      setIsThinking(true)
       setTimeout(() => {
-        const fallback = locale === 'ar'
-          ? 'منمّي في وضع العرض التجريبي. فعّل VITE_USE_AI لردود حية!'
-          : 'منمّي is in demo mode right now — enable AI for live responses!'
+        const fallback = demo
+          ? demoAssistantReply(locale, content, financialContext)
+          : (locale === 'ar' ? 'أنا جاهز محلياً، لكن الردود الحية تحتاج تفعيل خدمة الذكاء الاصطناعي.' : 'I am available locally, but live responses require the AI service.')
         setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
-      }, 600)
+        setIsThinking(false)
+      }, 520)
       return
     }
 
@@ -250,7 +257,7 @@ export default function CopilotTab({ financialContext }) {
             <div className="flex items-center gap-2 leading-none">
               <p className="text-text text-base font-bold">منمّي</p>
               <span className="w-1.5 h-1.5 rounded-full bg-rewards shrink-0" />
-              <span className="text-muted text-[10px]">{USE_AI ? 'AI' : 'Demo'}</span>
+              <span className="text-muted text-[10px]">{demo ? (locale === 'ar' ? 'عرض' : 'Demo') : (USE_AI ? 'AI' : 'Local')}</span>
             </div>
             <p className="text-muted text-[11px] mt-1">{t(locale, 'copilotSubtitle')}</p>
           </div>
@@ -342,6 +349,16 @@ export default function CopilotTab({ financialContext }) {
         dir="ltr"
       >
         <div className="flex flex-col gap-3 py-2">
+          {demo && messages.length === 1 && (
+            <div className="assistant-suggestions" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+              {[
+                locale === 'ar' ? 'كم أقدر أصرف بأمان هذا الأسبوع؟' : 'How much can I safely spend this week?',
+                locale === 'ar' ? 'ليش زاد إنفاق المطاعم؟' : 'Why did my restaurant spending increase?',
+                locale === 'ar' ? 'هل أوصل لهدف السفر في الوقت؟' : 'Can I reach my travel goal on time?',
+                locale === 'ar' ? 'أي اشتراك أراجع؟' : 'Which subscription should I review?',
+              ].map((prompt) => <button type="button" key={prompt} onClick={() => sendMessage(prompt)}>{prompt}</button>)}
+            </div>
+          )}
           {messages.map((msg, i) => (
             <motion.div
               key={`${locale}-${i}`}

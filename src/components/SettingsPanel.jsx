@@ -94,7 +94,7 @@ function SectionTitle({ children }) {
   return <p className="text-muted text-[11px] font-bold mb-2 px-1">{children}</p>
 }
 
-export default function SettingsPanel({ onClose }) {
+export default function SettingsPanel({ onClose, demo = false, onResetDemo, onReplayOnboarding }) {
   const { locale, setLocale } = useLocale()
   const { theme, setTheme } = useTheme()
   const isAr = locale === 'ar'
@@ -164,6 +164,10 @@ export default function SettingsPanel({ onClose }) {
               <SectionTitle>{t(locale, 'settingsApp')}</SectionTitle>
               <div className="bg-card rounded-[20px] overflow-hidden">
                 <SettingsRow icon={<MunamiMascot expression="greeting" size={22} />} label={t(locale, 'aboutMunami')} onClick={() => setView('about')} isAr={isAr} />
+                {demo && <div className="h-px bg-card-border" />}
+                {demo && <SettingsRow icon="▶" label={isAr ? 'إعادة شاشة الترحيب' : 'Replay onboarding'} onClick={onReplayOnboarding} isAr={isAr} />}
+                {demo && <div className="h-px bg-card-border" />}
+                {demo && <SettingsRow icon="↻" label={isAr ? 'إعادة ضبط العرض' : 'Reset demo'} onClick={onResetDemo} isAr={isAr} />}
               </div>
             </>
           )}

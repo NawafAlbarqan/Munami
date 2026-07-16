@@ -1,0 +1,13 @@
+{
+  "name": "منمّي | Munami",
+  "short_name": "منمّي",
+  "description": "مساعد مالي سعودي لفهم المصروفات وبناء الميزانية وتحقيق أهداف الادخار.",
+  "start_url": "/?demo=true",
+  "display": "standalone",
+  "background_color": "#FBF8F1",
+  "theme_color": "#FBF8F1",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

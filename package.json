@@ -8,9 +8,11 @@
     "dev:vercel": "vercel dev --listen 5173",
     "dev:client": "vite",
     "dev:server": "node server.js",
+    "demo": "vite --host 127.0.0.1 --port 4173 --open '/?demo=true&onboarding=true'",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "screenshots": "npm run build && playwright install chromium && node scripts/generate-screenshots.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -35,6 +37,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "playwright": "^1.61.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1",
     "vercel": "^44.7.3",

@@ -42,7 +42,11 @@ export default function BottomNav({ active = 'home', onTabChange }) {
             onClick={() => onTabChange?.(tab.key)}
           >
             <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span>{t(locale, tab.labelKey)}</span>
+            <span>{tab.key === 'budget'
+              ? (locale === 'ar' ? 'الميزانية' : 'Budget')
+              : tab.key === 'transactions'
+                ? (locale === 'ar' ? 'المصروفات' : 'Spending')
+                : t(locale, tab.labelKey)}</span>
           </button>
         )
       })}

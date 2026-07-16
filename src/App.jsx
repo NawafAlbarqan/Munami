@@ -8,6 +8,7 @@ import BudgetTab, { BudgetDetails } from './components/BudgetTab'
 import GoalsTab from './components/GoalsTab'
 import CopilotTab from './components/CopilotTab'
 import SettingsPanel from './components/SettingsPanel'
+import Onboarding from './components/Onboarding'
 import { HomeWalletCards } from './components/BankCardStack'
 import { useLocale } from './lib/LocaleContext'
 import {
@@ -36,6 +37,7 @@ import {
 } from './lib/aiCoach'
 import { t, monthLabel, monthYearLabel, categoryName, formatSAR, dir } from './lib/i18n'
 import { DEFAULT_BILLS, DEFAULT_BUDGET_LIMITS } from './lib/budgetData'
+import { DEMO_NOW, completeDemoOnboarding, demoScreen, isDemoMode, resetDemo, shouldShowOnboarding } from './lib/demoMode'
 import accountsData from '../data/munami_accounts.json'
 import {
   ArrowLeft,
@@ -57,6 +59,7 @@ function badMood(pctChange) {
 
 function App() {
   const { locale } = useLocale()
+  const demo = isDemoMode()
   const [bankRows, setBankRows] = useState([])
   const [manualTransactions, setManualTransactions] = useState(() => {
     if (typeof window === 'undefined') return []
@@ -68,7 +71,11 @@ function App() {
     }
   })
   const [selectedMonth, setSelectedMonth] = useState(null)
-  const [activeTab, setActiveTab] = useState('home')
+  const [activeTab, setActiveTab] = useState(() => {
+    const requested = demoScreen()
+    return ['home', 'budget', 'copilot', 'goals', 'transactions'].includes(requested) ? requested : 'home'
+  })
+  const [onboardingOpen, setOnboardingOpen] = useState(() => shouldShowOnboarding() && !demoScreen())
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [accountsOpen, setAccountsOpen] = useState(false)
   const [accountsInitialAction, setAccountsInitialAction] = useState(null)
@@ -212,7 +219,7 @@ function App() {
   ], [cashBalance, locale])
   const todayLabel = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date())
+  }).format(demo ? DEMO_NOW : new Date())
 
   const chartData = Object.entries(groupByCategory(monthDebits))
     .map(([category, amount]) => ({ category, amount: Math.round(amount) }))
@@ -273,6 +280,11 @@ function App() {
       setAiCards(phraseCache.current[cacheKey])
       return
     }
+    if (demo) {
+      setAiCards([])
+      setInsightsLoading(false)
+      return
+    }
     setInsightsLoading(true)
     fetchInsightPhrases(locale, baseChanges).then((phrases) => {
       const updated = baseCards.map((card, i) => ({ ...card, text: phrases[i] ?? card.text }))
@@ -281,7 +293,7 @@ function App() {
       setInsightsLoading(false)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMonth, locale, rows.length])
+  }, [activeMonth, locale, rows.length, demo])
 
   // Use AI cards when available, fall back to template cards
   const cards = aiCards.length ? aiCards : baseCards
@@ -385,7 +397,7 @@ function App() {
     <div dir={appDir} className="absolute inset-0">
       {activeTab === 'transactions' && <TransactionsTab rows={rows} />}
       {activeTab === 'goals' && <GoalsTab rows={rows} />}
-      {activeTab === 'copilot' && <CopilotTab financialContext={financialContext} />}
+      {activeTab === 'copilot' && <CopilotTab financialContext={financialContext} demo={demo} />}
       {activeTab === 'budget' && (
         <BudgetTab
           activeMonth={activeMonth}
@@ -556,7 +568,14 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+        {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} demo={demo} onResetDemo={resetDemo} onReplayOnboarding={() => { setSettingsOpen(false); setOnboardingOpen(true) }} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {onboardingOpen && (
+          <motion.div className="absolute inset-0 z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <Onboarding onComplete={() => { completeDemoOnboarding(); setOnboardingOpen(false) }} />
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   )
