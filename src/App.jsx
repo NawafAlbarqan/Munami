@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import Papa from 'papaparse'
 import BottomNav from './components/BottomNav'
@@ -81,6 +82,8 @@ function App() {
   const [accountsInitialAction, setAccountsInitialAction] = useState(null)
   const [budgetOpen, setBudgetOpen] = useState(false)
   const [walletExpanded, setWalletExpanded] = useState(false)
+  const [homeOverlayTarget, setHomeOverlayTarget] = useState(null)
+  const homePageRef = useRef(null)
   const [funds, setFunds] = useState(accountsData.funds)
   const [unallocated, setUnallocated] = useState(accountsData.unallocated_sar)
   const [balanceHidden, setBalanceHidden] = useState(false)
@@ -184,6 +187,23 @@ function App() {
   useEffect(() => {
     if (activeTab !== 'home') setWalletExpanded(false)
   }, [activeTab])
+
+  useEffect(() => {
+    setHomeOverlayTarget(homePageRef.current?.closest('.app-screen') ?? null)
+  }, [])
+
+  useEffect(() => {
+    const page = homePageRef.current
+    if (!page || !walletExpanded) return undefined
+    const previousOverflow = page.style.overflow
+    const previousOverscroll = page.style.overscrollBehavior
+    page.style.overflow = 'hidden'
+    page.style.overscrollBehavior = 'none'
+    return () => {
+      page.style.overflow = previousOverflow
+      page.style.overscrollBehavior = previousOverscroll
+    }
+  }, [walletExpanded])
 
   const debits = applyCategoryMap(getDebits(rows))
   const credits = getCredits(rows)
@@ -417,6 +437,7 @@ function App() {
 
       {/* Overview tab */}
       <div
+        ref={homePageRef}
         className="monami-page home-page scroll-thin"
         style={{ display: activeTab === 'home' ? undefined : 'none' }}
       >
@@ -431,20 +452,23 @@ function App() {
         </header>
 
         {/* ── Spent hero card ── */}
-        <AnimatePresence>
-          {walletExpanded && (
-            <motion.button
-              type="button"
-              className="wallet-inline-backdrop"
-              aria-label={locale === 'ar' ? 'إغلاق الحسابات' : 'Close accounts'}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              onClick={() => setWalletExpanded(false)}
-            />
-          )}
-        </AnimatePresence>
+        {homeOverlayTarget && createPortal(
+          <AnimatePresence>
+            {walletExpanded && (
+              <motion.button
+                type="button"
+                className="wallet-inline-backdrop"
+                aria-label={locale === 'ar' ? 'إغلاق الحسابات' : 'Close accounts'}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                onClick={() => setWalletExpanded(false)}
+              />
+            )}
+          </AnimatePresence>,
+          homeOverlayTarget,
+        )}
         <motion.section
           className={`wallet-stack ${walletExpanded ? 'wallet-stack-expanded' : ''}`}
           role="button"

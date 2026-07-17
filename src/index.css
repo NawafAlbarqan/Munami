@@ -415,8 +415,8 @@ button { cursor: pointer; }
   outline: none;
 }
 .wallet-inline-backdrop {
-  position: fixed;
-  z-index: 0;
+  position: absolute;
+  z-index: 20;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -425,11 +425,13 @@ button { cursor: pointer; }
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
-.wallet-stack-expanded { cursor: default; }
+.wallet-stack-expanded { z-index: 22; cursor: default; }
 .home-wallet-cards {
-  position: relative;
+  position: absolute;
   z-index: 3;
-  margin: -18px 10px 0;
+  top: 236px;
+  inset-inline: 10px;
+  height: 0;
   overflow: visible;
 }
 .home-wallet-account {

@@ -32,8 +32,6 @@ export function HomeWalletCards({ accounts, locale, expanded, onCollapse }) {
   return (
     <motion.div
       className="home-wallet-cards"
-      animate={{ height: expanded ? accounts.length * cardHeight + (accounts.length - 1) * gap + 6 : 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 31, mass: 0.82 }}
       aria-hidden={!expanded}
     >
       {accounts.map((account, index) => {
