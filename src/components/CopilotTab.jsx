@@ -177,13 +177,12 @@ export default function CopilotTab({ financialContext, demo = false }) {
     setMessages(nextMessages)
     setInput('')
 
-    // Safety switch: no API calls in demo mode
-    if (demo || !USE_AI) {
+    // Seeded demo data may still use live AI; only the explicit safety switch
+    // disables network calls.
+    if (!USE_AI) {
       setIsThinking(true)
       setTimeout(() => {
-        const fallback = demo
-          ? demoAssistantReply(locale, content, financialContext)
-          : (locale === 'ar' ? 'أنا جاهز محلياً، لكن الردود الحية تحتاج تفعيل خدمة الذكاء الاصطناعي.' : 'I am available locally, but live responses require the AI service.')
+        const fallback = demoAssistantReply(locale, content, financialContext)
         setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
         setIsThinking(false)
       }, 520)
@@ -236,9 +235,7 @@ export default function CopilotTab({ financialContext, demo = false }) {
       setMessages((prev) => [...prev, { role: 'ai', content: reply }])
     } catch (err) {
       console.warn('[CopilotTab] chat error:', err.message)
-      const fallback = locale === 'ar'
-        ? 'أواجه بعض الصعوبة في الاتصال الآن. حاول مرة أخرى قريباً!'
-        : "I'm having a bit of trouble connecting right now. Please try again in a moment!"
+      const fallback = demoAssistantReply(locale, content, financialContext)
       setMessages((prev) => [...prev, { role: 'ai', content: fallback }])
     } finally {
       setIsThinking(false)
@@ -257,7 +254,7 @@ export default function CopilotTab({ financialContext, demo = false }) {
             <div className="flex items-center gap-2 leading-none">
               <p className="text-text text-base font-bold">منمّي</p>
               <span className="w-1.5 h-1.5 rounded-full bg-rewards shrink-0" />
-              <span className="text-muted text-[10px]">{demo ? (locale === 'ar' ? 'عرض' : 'Demo') : (USE_AI ? 'AI' : 'Local')}</span>
+              <span className="text-muted text-[10px]">{USE_AI ? 'AI' : (demo ? (locale === 'ar' ? 'عرض محلي' : 'Local demo') : 'Local')}</span>
             </div>
             <p className="text-muted text-[11px] mt-1">{t(locale, 'copilotSubtitle')}</p>
           </div>

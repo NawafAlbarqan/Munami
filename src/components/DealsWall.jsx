@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { formatSAR, t } from '../lib/i18n'
 
@@ -21,13 +22,10 @@ export function tierIndexForLevel(level) {
   return 0 // Seed
 }
 
-// ─── Demo persona: "the deal redeemer" ──────────────────────────────────────
-// One deal (Car) is realistically unlocked — top tier + a completed linked
-// goal. The rest are locked on a real, specific, almost-there requirement so
-// the wall tells a story: here's what you've earned, here's what's next.
+// Everyday rewards unlock first; high-value lifestyle rewards remain aspirational.
 const DEMO = {
   streakDays: 7,          // mirrors the Streak card above
-  carGoalComplete: true,  // "Car Down Payment" savings goal — done
+  carGoalComplete: false,
   travelGoalComplete: false,
   noOverspendDays: 12,
 }
@@ -35,10 +33,50 @@ const DEMO = {
 function getDeals(locale, tierIndex) {
   return [
     {
+      id: 'groceries',
+      icon: '🛒',
+      category: locale === 'ar' ? 'بقالة' : 'Groceries',
+      partner: locale === 'ar' ? 'فريش مارت' : 'FreshMart',
+      bank: locale === 'ar' ? 'مصرف الإنماء' : 'Alinma Bank',
+      valueLabel: '−10%',
+      tierName: getTiers(locale)[0].name,
+      reqText: locale === 'ar'
+        ? 'مستوى البذرة + 7 أيام بدون تجاوز الميزانية'
+        : 'Seed tier + 7 days with no budget overspend',
+      met: tierIndex >= 0 && DEMO.noOverspendDays >= 7,
+    },
+    {
+      id: 'electronics',
+      icon: '📱',
+      category: locale === 'ar' ? 'إلكترونيات' : 'Electronics',
+      partner: locale === 'ar' ? 'تِك مارت' : 'TechMart',
+      bank: locale === 'ar' ? 'البنك الأهلي السعودي' : 'Saudi National Bank',
+      valueLabel: '−15%',
+      tierName: getTiers(locale)[1].name,
+      reqText: locale === 'ar'
+        ? 'مستوى البرعم + متتالية 7 أيام'
+        : 'Sprout tier + 7-day streak',
+      met: tierIndex >= 1 && DEMO.streakDays >= 7,
+    },
+    {
+      id: 'travel',
+      icon: '✈️',
+      category: locale === 'ar' ? 'سفر' : 'Travel',
+      partner: locale === 'ar' ? 'سكاي تريل للسفر' : 'SkyTrail Travel',
+      bank: locale === 'ar' ? 'مصرف الراجحي' : 'Al Rajhi Bank',
+      valueLabel: '−20%',
+      tierName: getTiers(locale)[2].name,
+      reqText: locale === 'ar'
+        ? 'مستوى الغصن + إتمام هدف «صندوق السفر»'
+        : 'Branch tier + finish the "Travel Fund" goal',
+      met: tierIndex >= 2 && DEMO.travelGoalComplete,
+    },
+    {
       id: 'car',
       icon: '🚗',
       category: locale === 'ar' ? 'سيارة' : 'Car',
       partner: locale === 'ar' ? 'أوتوورلد الرياض' : 'AutoWorld Riyadh',
+      bank: locale === 'ar' ? 'مصرف الإنماء' : 'Alinma Bank',
       valueLabel: '−SAR 10,000',
       tierName: getTiers(locale)[3].name,
       reqText: locale === 'ar'
@@ -48,42 +86,6 @@ function getDeals(locale, tierIndex) {
       worked: true,
       priceOriginal: 65000,
       priceDiscount: 10000,
-    },
-    {
-      id: 'electronics',
-      icon: '📱',
-      category: locale === 'ar' ? 'إلكترونيات' : 'Electronics',
-      partner: locale === 'ar' ? 'تِك مارت' : 'TechMart',
-      valueLabel: '−15%',
-      tierName: getTiers(locale)[2].name,
-      reqText: locale === 'ar'
-        ? 'مستوى الغصن + متتالية 30 يوم'
-        : 'Branch tier + 30-day streak',
-      met: tierIndex >= 2 && DEMO.streakDays >= 30,
-    },
-    {
-      id: 'travel',
-      icon: '✈️',
-      category: locale === 'ar' ? 'سفر' : 'Travel',
-      partner: locale === 'ar' ? 'سكاي تريل للسفر' : 'SkyTrail Travel',
-      valueLabel: '−20%',
-      tierName: getTiers(locale)[3].name,
-      reqText: locale === 'ar'
-        ? 'مستوى الشجرة + إتمام هدف «صندوق السفر»'
-        : 'Tree tier + finish the "Travel Fund" goal',
-      met: tierIndex >= 3 && DEMO.travelGoalComplete,
-    },
-    {
-      id: 'groceries',
-      icon: '🛒',
-      category: locale === 'ar' ? 'بقالة' : 'Groceries',
-      partner: locale === 'ar' ? 'فريش مارت' : 'FreshMart',
-      valueLabel: '−10%',
-      tierName: getTiers(locale)[1].name,
-      reqText: locale === 'ar'
-        ? 'مستوى البرعم + 30 يوم بدون تجاوز الميزانية'
-        : 'Sprout tier + 30 days with no budget overspend',
-      met: tierIndex >= 1 && DEMO.noOverspendDays >= 30,
     },
   ]
 }
@@ -183,7 +185,7 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-text text-sm font-bold truncate">{deal.partner}</p>
-          <p className="text-muted text-[11px] truncate">{deal.category}</p>
+          <p className="text-muted text-[11px] truncate">{deal.category} — {deal.bank}</p>
         </div>
         <span
           className="shrink-0 rounded-[10px] px-2.5 py-1.5 text-sm font-extrabold tabular-nums"
@@ -219,10 +221,30 @@ function DealCard({ deal, index, locale, redeemed, onTap }) {
 export default function DealsWall({ locale, level }) {
   const tierIndex = tierIndexForLevel(level)
   const DEALS = getDeals(locale, tierIndex)
+  const wallRef = useRef(null)
 
   const [activeDeal, setActiveDeal] = useState(null)
   const [howItWorksOpen, setHowItWorksOpen] = useState(false)
   const [redeemedIds, setRedeemedIds] = useState([])
+  const [overlayTarget, setOverlayTarget] = useState(null)
+  const sheetOpen = Boolean(activeDeal || howItWorksOpen)
+
+  useEffect(() => {
+    setOverlayTarget(wallRef.current?.closest('.app-screen') ?? null)
+  }, [])
+
+  useEffect(() => {
+    const page = wallRef.current?.closest('.monami-page')
+    if (!page || !sheetOpen) return undefined
+    const previousOverflow = page.style.overflow
+    const previousOverscroll = page.style.overscrollBehavior
+    page.style.overflow = 'hidden'
+    page.style.overscrollBehavior = 'none'
+    return () => {
+      page.style.overflow = previousOverflow
+      page.style.overscrollBehavior = previousOverscroll
+    }
+  }, [sheetOpen])
 
   function closeSheets() {
     setActiveDeal(null)
@@ -234,7 +256,7 @@ export default function DealsWall({ locale, level }) {
   }
 
   return (
-    <div className="mb-4">
+    <div ref={wallRef} className="mb-4">
       {/* ── Section header + "?" info icon ── */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-text font-semibold">{t(locale, 'dealsWallHeader')}</h2>
@@ -270,11 +292,14 @@ export default function DealsWall({ locale, level }) {
       </div>
 
       {/* ── Deal detail sheet ── */}
-      <AnimatePresence>
-        {activeDeal && (
+      {overlayTarget && createPortal(
+        <AnimatePresence>
+          {activeDeal && (
           <>
-            <motion.div
-              className="absolute inset-0 z-20"
+            <motion.button
+              type="button"
+              aria-label={t(locale, 'close')}
+              className="deals-sheet-backdrop absolute inset-0 z-[60] w-full border-0"
               style={{ background: 'rgba(0,0,0,0.5)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -283,7 +308,7 @@ export default function DealsWall({ locale, level }) {
               onClick={closeSheets}
             />
             <motion.div
-              className="absolute bottom-0 left-0 right-0 z-30 bg-card rounded-t-[24px] px-5 pt-4 pb-10 max-h-[85%] overflow-y-auto scroll-thin"
+              className="deals-sheet absolute bottom-0 left-0 right-0 z-[61] bg-card rounded-t-[24px] px-5 pt-4 pb-10 max-h-[85%] overflow-y-auto scroll-thin"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -300,7 +325,7 @@ export default function DealsWall({ locale, level }) {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-text text-base font-bold truncate">{activeDeal.partner}</p>
-                  <p className="text-muted text-xs truncate">{activeDeal.category}</p>
+                  <p className="text-muted text-xs truncate">{activeDeal.category} — {activeDeal.bank}</p>
                 </div>
                 <span
                   className="shrink-0 rounded-[10px] px-3 py-1.5 text-base font-extrabold tabular-nums"
@@ -369,15 +394,20 @@ export default function DealsWall({ locale, level }) {
               <HowItWorksSteps locale={locale} compact />
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        overlayTarget,
+      )}
 
       {/* ── Standalone "how it works" sheet (from the "?" icon) ── */}
-      <AnimatePresence>
-        {howItWorksOpen && (
+      {overlayTarget && createPortal(
+        <AnimatePresence>
+          {howItWorksOpen && (
           <>
-            <motion.div
-              className="absolute inset-0 z-20"
+            <motion.button
+              type="button"
+              aria-label={t(locale, 'close')}
+              className="deals-sheet-backdrop absolute inset-0 z-[60] w-full border-0"
               style={{ background: 'rgba(0,0,0,0.5)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -386,7 +416,7 @@ export default function DealsWall({ locale, level }) {
               onClick={closeSheets}
             />
             <motion.div
-              className="absolute bottom-0 left-0 right-0 z-30 bg-card rounded-t-[24px] px-5 pt-4 pb-10"
+              className="deals-sheet absolute bottom-0 left-0 right-0 z-[61] bg-card rounded-t-[24px] px-5 pt-4 pb-10"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
@@ -402,8 +432,10 @@ export default function DealsWall({ locale, level }) {
               </p>
             </motion.div>
           </>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        overlayTarget,
+      )}
     </div>
   )
 }

@@ -546,19 +546,33 @@ button { cursor: pointer; }
 .quick-action-copy small { margin-top: 4px; color: var(--muted); font-size: 8px; line-height: 1.45; }
 
 .month-overview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.metric-grid article {
-  position: relative;
-  min-height: 118px;
-  padding: 18px;
+.monthly-metrics { display: grid; gap: 10px; margin-bottom: 12px; }
+.monthly-spending-metric {
+  min-height: 126px;
+  padding: 20px;
+  color: white;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,.08);
+  border-top: 4px solid var(--coral);
+  border-radius: 20px;
+  box-shadow: 0 16px 32px rgba(8,27,42,.16);
+}
+.monthly-spending-metric > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.monthly-spending-metric span { color: rgba(255,255,255,.7); font-size: 13px; font-weight: 700; }
+.monthly-spending-metric small { font-size: 11px; font-weight: 800; }
+.monthly-spending-metric strong { display: block; margin-top: 25px; color: white; font-size: 36px; line-height: 1; font-weight: 900; white-space: nowrap; }
+.monthly-secondary-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.monthly-secondary-metrics article {
+  min-width: 0;
+  min-height: 96px;
+  padding: 16px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 18px;
   box-shadow: 0 9px 22px rgba(8,27,42,.045);
 }
-.metric-grid span { display: block; margin-bottom: 21px; color: var(--muted); font-size: 12px; }
-.metric-grid strong { display: block; color: var(--ink); font-size: 21px; line-height: 1.1; font-weight: 850; white-space: nowrap; }
-.metric-grid small { position: absolute; bottom: 15px; inset-inline-end: 16px; font-size: 10px; }
+.monthly-secondary-metrics span { display: block; margin-bottom: 18px; color: var(--muted); font-size: 11px; }
+.monthly-secondary-metrics strong { display: block; color: var(--ink); font-size: 18px; line-height: 1.1; font-weight: 850; white-space: nowrap; }
 .metric-positive { color: var(--mint); }
 .metric-alert { color: var(--alert); }
 .metric-neutral { color: var(--muted); }
@@ -610,7 +624,6 @@ button { cursor: pointer; }
 .month-switcher { color: var(--navy); background: rgba(16,34,53,.07); border: 1px solid rgba(16,34,53,.06); }
 .month-switcher button { color: var(--navy); font-size: 22px; font-weight: 700; }
 .month-switcher button:disabled { color: rgba(16,34,53,.24); }
-.monthly-tab-overview .metric-grid { margin-bottom: 12px; }
 .monthly-spending-panel { margin-bottom: 0; border-radius: 20px; }
 .monthly-suggestions { margin-bottom: 20px; }
 .monthly-suggestions > h2 { margin: 0 0 12px; color: var(--navy); font-size: 18px; font-weight: 850; }

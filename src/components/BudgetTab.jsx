@@ -17,8 +17,6 @@ export default function BudgetTab({
   income = 0,
   spent: overviewSpent = 0,
   net = 0,
-  savings = 0,
-  savingsRate = 0,
   spendDelta = 0,
   chartData = [],
   onOpenBudget,
@@ -49,11 +47,20 @@ export default function BudgetTab({
             />
           </div>
         )}
-        <div className="metric-grid">
-          <article><span>{t(locale, 'income')}</span><strong>{formatSAR(income)}</strong><small className={savingsRate > 0 ? 'metric-positive' : 'metric-neutral'} dir="ltr">{savingsRate > 0 ? '+' : ''}{savingsRate}%</small></article>
-          <article><span>{t(locale, 'spent')}</span><strong>{formatSAR(overviewSpent)}</strong><small className={spendDelta === 0 ? 'metric-neutral' : 'metric-alert'} dir="ltr">{spendDelta > 0 ? '+' : ''}{spendDelta}%</small></article>
-          <article><span>{t(locale, 'savings')}</span><strong>{formatSAR(savings)}</strong></article>
-          <article><span>{t(locale, 'leftOver')}</span><strong>{formatSAR(net)}</strong></article>
+        <div className="monthly-metrics">
+          <article className="monthly-spending-metric">
+            <div>
+              <span>{t(locale, 'spent')}</span>
+              <small className={spendDelta > 0 ? 'metric-alert' : spendDelta < 0 ? 'metric-positive' : 'metric-neutral'} dir="ltr">
+                {spendDelta > 0 ? '+' : ''}{spendDelta}%
+              </small>
+            </div>
+            <strong>{formatSAR(overviewSpent)}</strong>
+          </article>
+          <div className="monthly-secondary-metrics">
+            <article><span>{t(locale, 'income')}</span><strong>{formatSAR(income)}</strong></article>
+            <article><span>{t(locale, 'leftOver')}</span><strong>{formatSAR(net)}</strong></article>
+          </div>
         </div>
         <div className="spending-panel monthly-spending-panel">
           {chartData.length > 0 ? (

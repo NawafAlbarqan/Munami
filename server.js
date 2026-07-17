@@ -123,8 +123,9 @@ ${(context.accounts || []).map((a) => `  · ${a.bank}: SAR ${a.balance?.toLocale
 - Savings funds:
 ${(context.funds || []).map((f) => `  · ${f.name}: SAR ${f.balance?.toLocaleString()} saved / SAR ${f.target?.toLocaleString()} target`).join('\n')}
 - This month (${context.month}): spent SAR ${context.spent?.toLocaleString()}, income SAR ${context.income?.toLocaleString()}, ${context.daysElapsed} days in${context.isEarlyMonth ? ' (partial month)' : ''}
-- Top spending categories: ${(context.topCategories || []).map((c) => `${c.category} ${c.pct}%`).join(', ')}
+- Top spending categories: ${(context.topCategories || []).map((c) => `${c.category} SAR ${c.amount?.toLocaleString()} (${c.pct}%)`).join(', ')}
 - Budgets: ${(context.budgets || []).map((b) => `${b.category} SAR ${b.spent}/${b.limit}`).join(', ')}
+- Upcoming bills: ${(context.upcomingBills || []).map((b) => `${b.name} SAR ${b.amount} due ${b.dueDate}`).join(', ')}
 - Emergency Fund: SAR ${context.goals?.emergencyFund?.current?.toLocaleString()} / SAR ${context.goals?.emergencyFund?.target?.toLocaleString()} goal
 - Level ${context.goals?.level}, ${context.goals?.xpCurrent} XP, ${context.goals?.streak}-day streak
 - Average monthly spend (full months only): SAR ${context.avgMonthlySpend?.toLocaleString()}

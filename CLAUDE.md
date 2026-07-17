@@ -584,9 +584,11 @@ Lives in `src/components/CopilotTab.jsx`. Uses **real Gemini AI** with graceful 
   extracts the merchant via `extractMerchant()`, calls `/api/categorize`, and
   replies in the normal chat bubble with the category + emoji. No separate panel.
 - **Thinking bubble**: three-dot pulse animation shown while waiting for AI reply.
-- **Fallback chain**:
-  1. `VITE_USE_AI=false` → friendly "demo mode" message, no API call at all
-  2. API call fails → friendly error message in chat bubble
+  - **Fallback chain**:
+  1. `VITE_USE_AI=false` → data-aware local answer, no API call at all
+  2. API call fails → the same data-aware local answer from `financialContext`
+  - `demo=true` controls seeded review data only; it does **not** disable Gemini
+    when `VITE_USE_AI=true`.
 - **No `CategorizationDemo` widget, no scripted conversation, no suggestion chips.**
 
 ---
@@ -671,13 +673,13 @@ Sections top to bottom:
     `LEVEL` constant the XP ring uses (`tierIndexForLevel()` — Level 7 → Tree,
     the top tier). Shown as a connected row above the deals, current tier lit
     up in `--color-primary`.
-  - **Deal cards**: icon, partner name (placeholder brands), category, a bold
+  - **Deal cards**: icon, partner name (placeholder brands), category, a varied
+    bank attribution (`— Bank name`), a bold
     SAR/% value badge, and either an "Unlocked" tag + Redeem button, or a
     muted (55% opacity) card with a `🔒 {tier} + {requirement}` line. Demo
-    persona ("the deal redeemer"): one deal (🚗 Car, −SAR 10,000) is
-    genuinely unlocked — Tree tier + a completed "Car Down Payment" goal —
-    the other three are locked on real, specific, almost-there requirements
-    (`DEMO` object in `DealsWall.jsx`).
+    persona unlocks practical rewards first: groceries and electronics are
+    redeemable from early milestones, while travel and car rewards remain
+    locked behind later linked goals (`DEMO` object in `DealsWall.jsx`).
   - **"How it works"**: a "?" icon in the section header opens a standalone
     3-step visual explainer (🎯 Hit the milestone → 🏅 Badge unlocks → 🛍️
     Redeem at partner, icon + short title + one-line caption, connecting

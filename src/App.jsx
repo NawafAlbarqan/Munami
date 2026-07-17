@@ -202,8 +202,6 @@ function App() {
     ? sumAmount(debits.filter((row) => monthKey(row.date) === previousMonth))
     : 0
   const spendDelta = previousSpent > 0 ? Math.round(((spent - previousSpent) / previousSpent) * 100) : 0
-  const savings = Math.max(net, 0)
-  const savingsRate = income > 0 ? Math.round((savings / income) * 100) : 0
   const totalBalance = accountsData.total_balance_sar + cashBalance
   const accountCount = accountsData.accounts.length + 1
   const walletAccounts = useMemo(() => [
@@ -407,8 +405,6 @@ function App() {
           income={income}
           spent={spent}
           net={net}
-          savings={savings}
-          savingsRate={savingsRate}
           spendDelta={spendDelta}
           chartData={chartData}
           onOpenBudget={() => setBudgetOpen(true)}
