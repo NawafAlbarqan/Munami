@@ -550,7 +550,7 @@ button { cursor: pointer; }
 .month-overview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .monthly-metrics { display: grid; gap: 10px; margin-bottom: 12px; }
 .monthly-spending-metric {
-  min-height: 126px;
+  min-height: 176px;
   padding: 20px;
   color: white;
   background: var(--navy);
@@ -562,7 +562,12 @@ button { cursor: pointer; }
 .monthly-spending-metric > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .monthly-spending-metric span { color: rgba(255,255,255,.7); font-size: 13px; font-weight: 700; }
 .monthly-spending-metric small { font-size: 11px; font-weight: 800; }
-.monthly-spending-metric strong { display: block; margin-top: 25px; color: white; font-size: 36px; line-height: 1; font-weight: 900; white-space: nowrap; }
+.monthly-spending-metric strong { display: block; margin-top: 18px; color: white; font-size: 36px; line-height: 1; font-weight: 900; white-space: nowrap; }
+.monthly-spending-progress-copy { margin-top: 20px; }
+.monthly-spending-progress-copy b { color: white; font-size: 12px; font-weight: 850; }
+.monthly-spending-track { width: 100%; height: 7px; margin-top: 9px; overflow: hidden; background: rgba(255,255,255,.2); border-radius: 999px; }
+.monthly-spending-track i { display: block; height: 100%; background: var(--coral); border-radius: inherit; transition: width .35s cubic-bezier(.22,1,.36,1); }
+.monthly-spending-track i.is-alert { background: var(--alert); }
 .monthly-secondary-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .monthly-secondary-metrics article {
   min-width: 0;
@@ -792,6 +797,3 @@ button { cursor: pointer; }
 .onboarding-progress span { width: 7px; height: 7px; background: var(--color-card-border); border-radius: 10px; transition: width .2s ease, background .2s ease; }
 .onboarding-progress span.is-active { width: 24px; background: var(--color-coral); }
 .onboarding-footer > button { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 132px; min-height: 50px; padding: 0 20px; color: white; background: var(--color-navy); border-radius: 17px; font-size: 14px; font-weight: 800; }
-.assistant-suggestions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; margin: 6px 0 12px 40px; }
-[dir="rtl"] .assistant-suggestions { margin: 6px 40px 12px 0; }
-.assistant-suggestions button { min-height: 54px; padding: 10px 11px; color: var(--color-text); text-align: start; background: var(--color-card); border: 1px solid var(--color-card-border); border-radius: 14px; font-size: 10px; line-height: 1.5; font-weight: 700; }

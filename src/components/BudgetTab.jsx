@@ -26,6 +26,14 @@ export default function BudgetTab({
   insightsLoading = false,
 }) {
   const { locale } = useLocale()
+  const [activeYear, activeMonthNumber] = String(activeMonth || '').split('-').map(Number)
+  const activeMonthEnd = activeYear && activeMonthNumber
+    ? new Date(activeYear, activeMonthNumber, 0, 23, 59, 59, 999)
+    : null
+  const isCompletedMonth = activeMonthEnd ? activeMonthEnd < new Date() : false
+  const spentPercent = income > 0 ? Math.round((overviewSpent / income) * 100) : 0
+  const remainingPercent = income > 0 ? Math.max(0, Math.round((net / income) * 100)) : 0
+  const spendingProgress = Math.min(100, Math.max(0, spentPercent))
 
   return (
     <div className="monami-page budget-page scroll-thin">
@@ -51,11 +59,27 @@ export default function BudgetTab({
           <article className="monthly-spending-metric">
             <div>
               <span>{t(locale, 'spent')}</span>
-              <small className={spendDelta > 0 ? 'metric-alert' : spendDelta < 0 ? 'metric-positive' : 'metric-neutral'} dir="ltr">
-                {spendDelta > 0 ? '+' : ''}{spendDelta}%
-              </small>
+              {isCompletedMonth && (
+                <small className={spendDelta > 0 ? 'metric-alert' : spendDelta < 0 ? 'metric-positive' : 'metric-neutral'} dir="ltr">
+                  {spendDelta > 0 ? '+' : ''}{spendDelta}%
+                </small>
+              )}
             </div>
             <strong>{formatSAR(overviewSpent)}</strong>
+            <div className="monthly-spending-progress-copy">
+              <span>{locale === 'ar' ? 'الإنفاق حتى الآن' : 'Spending so far'}</span>
+              <b>{locale === 'ar' ? `${remainingPercent}% متبقي` : `${remainingPercent}% remaining`}</b>
+            </div>
+            <div
+              className="monthly-spending-track"
+              role="progressbar"
+              aria-label={locale === 'ar' ? 'تقدم الإنفاق الشهري' : 'Monthly spending progress'}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={spendingProgress}
+            >
+              <i className={spentPercent > 100 ? 'is-alert' : ''} style={{ width: `${spendingProgress}%` }} />
+            </div>
           </article>
           <div className="monthly-secondary-metrics">
             <article><span>{t(locale, 'income')}</span><strong>{formatSAR(income)}</strong></article>

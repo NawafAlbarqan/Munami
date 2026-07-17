@@ -121,6 +121,11 @@ export default function CopilotTab({ financialContext, demo = false }) {
 
   const [input, setInput] = useState('')
   const [isThinking, setIsThinking] = useState(false)
+  const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  const suggestionPlaceholders = locale === 'ar'
+    ? ['كم أقدر أصرف بأمان هذا الأسبوع؟', 'ليش زاد إنفاق المطاعم؟']
+    : ['How much can I safely spend this week?', 'Why did my restaurant spending increase?']
+  const rotatingPlaceholders = [t(locale, 'askMunami'), ...suggestionPlaceholders]
 
   // Every change to the current conversation is saved immediately.
   useEffect(() => {
@@ -138,6 +143,14 @@ export default function CopilotTab({ financialContext, demo = false }) {
       return prev
     })
   }, [locale, demo])
+
+  useEffect(() => {
+    setPlaceholderIndex(0)
+    const interval = window.setInterval(() => {
+      setPlaceholderIndex((current) => (current + 1) % 3)
+    }, 3200)
+    return () => window.clearInterval(interval)
+  }, [locale])
 
   // Starting a new conversation is a deliberate action (the "new chat"
   // button) — never automatic on tab switch. Archives the current
@@ -346,16 +359,6 @@ export default function CopilotTab({ financialContext, demo = false }) {
         dir="ltr"
       >
         <div className="flex flex-col gap-3 py-2">
-          {demo && messages.length === 1 && (
-            <div className="assistant-suggestions" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-              {[
-                locale === 'ar' ? 'كم أقدر أصرف بأمان هذا الأسبوع؟' : 'How much can I safely spend this week?',
-                locale === 'ar' ? 'ليش زاد إنفاق المطاعم؟' : 'Why did my restaurant spending increase?',
-                locale === 'ar' ? 'هل أوصل لهدف السفر في الوقت؟' : 'Can I reach my travel goal on time?',
-                locale === 'ar' ? 'أي اشتراك أراجع؟' : 'Which subscription should I review?',
-              ].map((prompt) => <button type="button" key={prompt} onClick={() => sendMessage(prompt)}>{prompt}</button>)}
-            </div>
-          )}
           {messages.map((msg, i) => (
             <motion.div
               key={`${locale}-${i}`}
@@ -414,7 +417,7 @@ export default function CopilotTab({ financialContext, demo = false }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage(input)}
-            placeholder={t(locale, 'askMunami')}
+            placeholder={rotatingPlaceholders[placeholderIndex]}
             dir={locale === 'ar' ? 'rtl' : 'ltr'}
             disabled={isThinking}
             className="flex-1 bg-transparent text-text text-sm placeholder:text-muted outline-none min-w-0 disabled:opacity-50"
